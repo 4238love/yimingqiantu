@@ -233,3 +233,7 @@
 - 前端行动区新增 `action-preview-panel`：选中行动前后可直接看到“预计判定 / 愿望同频 / 属性走向 / 连续预判”，并用 `goal-fit` / `streak-ready` 标记更贴合愿望或即将获得连续加成的行动按钮。
 - 更新 schema、README、task_plan、布局静态断言和后端测试；验证通过：`python -m py_compile backend\app\game_logic.py`、`node --check frontend\index.js`、`node tests\frontend_layout_check.mjs`、`python -B -m pytest -p no:cacheprovider backend\tests`（36 passed）。
 - Rebuilt Docker with `docker compose up -d --build`; container is healthy on `0.0.0.0:7650->7650/tcp`. Browser smoke on `http://127.0.0.1:7650/?v=action-preview-smoke` verified `action-preview-20260608` assets, visible `行动预览` panel, `预计判定 / 愿望同频 / 属性走向 / 连续预判` grid, `goal-fit` chips, and `streak-ready` chip labels.
+
+- 修复开始人生后底部行动/聊天区挤占主展示区的问题：`#game-view` 在人生模拟阶段会切换 `action-tray-compact`，把底部命令栏限制在桌面约 26vh、移动端约 34vh，并让行动区内部滚动。
+- `#main-content` / `#status-panel` 现在显式 `min-height: 0`，避免 CSS Grid 子项撑破布局；自由输入栏在紧凑行动区内置顶 sticky，确保可见。
+- 桌面浏览器实测 1042×658：底部行动区从约 549px / 83% 降到约 171px / 26%，主内容区从约 58px 恢复到约 390px。移动端 390×844：行动区约 287px / 34%，输入框可见且无横向溢出。

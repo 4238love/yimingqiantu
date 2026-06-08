@@ -754,6 +754,7 @@ function renderFocusActions() {
     const state = appState.gameState || {};
     const canAct = state.phase === 'life_simulation' && !state.is_finished;
     DOMElements.focusActions.innerHTML = '';
+    DOMElements.gameView.classList.toggle('action-tray-compact', canAct);
     if (!canAct) return;
     const options = cleanActionOptions(state);
     const guides = actionGuideMap(state);

@@ -41,7 +41,7 @@ assert.match(html, /本半年行动/, 'free-text action placeholder should use h
 assert.match(html, /id='codex-button'/, 'game header should expose ending codex collection');
 assert.match(html, /id='codex-panel'/, 'ending codex should render as a modal panel');
 assert.match(html, /id='codex-content'/, 'ending codex modal should contain collection content');
-assert.match(html, /action-preview-20260608/, 'main assets should be cache-busted for the action-preview optimization');
+assert.match(html, /action-tray-20260608/, 'main assets should be cache-busted for the action-tray layout fix');
 assert.doesNotMatch(html, /Linux\.do|login\/linuxdo/, 'Linux.do login entry should be removed');
 assert.doesNotMatch(html, /id='fullscreen-button'/, 'fullscreen button should be removed');
 assert.doesNotMatch(html, /start-trial-button/, 'legacy start trial button should be removed');
@@ -49,6 +49,9 @@ assert.doesNotMatch(html, /start-trial-button/, 'legacy start trial button shoul
 assert.match(css, /#app-container\s*{[^}]*height:\s*100vh/s, 'app should default to viewport height');
 assert.match(css, /#app-container\s*{[^}]*max-width:\s*none/s, 'app should default to full viewport width');
 assert.match(css, /#game-view\.status-collapsed\s*{[^}]*grid-template-columns:\s*48px\s+1fr/s, 'desktop collapsed status rail should keep the status panel on the left');
+assert.match(css, /#game-view\.action-tray-compact\s*{[^}]*grid-template-rows:\s*auto\s+minmax\(0,\s*1fr\)\s+minmax\(10rem,\s*clamp\(10rem,\s*26vh,\s*18rem\)\)/s, 'life-simulation action tray should be height-capped on desktop');
+assert.match(css, /#game-view\.action-tray-compact\s+#action-area\s*{[^}]*overflow:\s*auto/s, 'height-capped action tray should scroll internally instead of squeezing main content');
+assert.match(css, /#game-view\.action-tray-compact\s+\.action-input-row\s*{[^}]*order:\s*-1/s, 'free-text action input should stay visible at the top of the compact action tray');
 assert.match(css, /@media\s*\(max-width:\s*850px\)[\s\S]*#status-panel\s*{[^}]*position:\s*absolute/s, 'mobile status panel should overlay instead of consuming layout rows');
 assert.match(css, /@media\s*\(max-width:\s*850px\)[\s\S]*#game-view\.status-collapsed\s+#status-panel/s, 'mobile collapsed status panel should be hidden off-canvas');
 assert.match(css, /#scene-background-image\s*{[^}]*position:\s*fixed/s, 'scene background image should be fixed behind the app');
@@ -120,6 +123,7 @@ assert.match(js, /function renderStreakStatusCard\(/, 'frontend should render co
 assert.match(js, /function actionGuideMap\(/, 'frontend should map backend action guide previews by action');
 assert.match(js, /function renderActionPreviewPanel\(/, 'frontend should render selected action preview details');
 assert.match(js, /action_guides/, 'frontend should consume backend action guide previews');
+assert.match(js, /action-tray-compact/, 'frontend should toggle compact action tray during life simulation');
 assert.match(js, /focus_streak/, 'frontend should consume focus streak state');
 assert.match(js, /focus_memory/, 'frontend should consume focus memory state');
 assert.match(js, /连续选择反馈/, 'frontend should label continuous choice feedback');

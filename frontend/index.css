@@ -154,6 +154,9 @@ textarea:focus-visible,
 }
 
 #game-view.status-collapsed { grid-template-columns: 48px 1fr; }
+#game-view.action-tray-compact {
+    grid-template-rows: auto minmax(0, 1fr) minmax(10rem, clamp(10rem, 26vh, 18rem));
+}
 
 #game-header, #status-panel, #main-content, #action-area {
     background: var(--paper);
@@ -181,6 +184,7 @@ textarea:focus-visible,
 
 #status-panel {
     grid-area: status;
+    min-height: 0;
     overflow: auto;
     padding: 1.1rem;
     transition: padding 0.25s ease;
@@ -208,6 +212,7 @@ textarea:focus-visible,
 
 #main-content {
     grid-area: main;
+    min-height: 0;
     overflow: auto;
     padding: clamp(1rem, 2.8vw, 2rem);
 }
@@ -1295,6 +1300,19 @@ meter { width: 100%; height: 0.72rem; }
     padding: 0.9rem clamp(1rem, 3vw, 2rem);
     display: grid;
     gap: 0.8rem;
+    min-height: 0;
+}
+
+#game-view.action-tray-compact #action-area {
+    overflow: auto;
+    overscroll-behavior: contain;
+    align-content: start;
+    padding: 0.65rem clamp(0.85rem, 2.4vw, 1.4rem);
+}
+
+#game-view.action-tray-compact #focus-actions {
+    align-content: start;
+    padding-bottom: 0.25rem;
 }
 
 #focus-actions { display: flex; gap: 0.55rem; flex-wrap: wrap; align-items: center; }
@@ -1406,6 +1424,18 @@ meter { width: 100%; height: 0.72rem; }
 }
 
 .action-input-row { display: flex; gap: 0.7rem; }
+#game-view.action-tray-compact .action-input-row {
+    order: -1;
+    position: sticky;
+    top: -0.65rem;
+    z-index: 8;
+    margin: -0.15rem 0 0;
+    padding: 0.45rem 0 0.5rem;
+    background:
+        linear-gradient(180deg, rgba(255,252,239,0.98), rgba(255,252,239,0.92)),
+        var(--paper);
+    box-shadow: 0 10px 22px rgba(43,36,28,0.08);
+}
 #action-input { flex: 1; }
 #action-button {
     min-width: 4rem;
@@ -1617,7 +1647,7 @@ button:disabled, input:disabled { opacity: 0.58; cursor: not-allowed; }
 @media (max-width: 850px) {
     #game-view {
         grid-template-columns: 1fr;
-        grid-template-rows: auto 1fr auto;
+        grid-template-rows: auto minmax(0, 1fr) auto;
         grid-template-areas:
             'header'
             'main'
@@ -1626,6 +1656,9 @@ button:disabled, input:disabled { opacity: 0.58; cursor: not-allowed; }
     }
 
     #game-view.status-collapsed { grid-template-columns: 1fr; }
+    #game-view.action-tray-compact {
+        grid-template-rows: auto minmax(0, 1fr) minmax(10rem, clamp(10rem, 34vh, 19rem));
+    }
 
     #game-header { align-items: flex-start; flex-direction: column; }
 

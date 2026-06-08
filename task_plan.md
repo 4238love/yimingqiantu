@@ -83,3 +83,5 @@ Retrofit `YiMingQianTu` to match the design document: a birth-info driven Bazi +
 42. [complete] 将阶段事件池模块化到 `backend/app/event_pool.py`，并加入连续行动反馈：D100 加成、状态惯性、机会成本提醒、前端状态卡、档案导出、schema 与测试覆盖。
 
 43. [complete] 新增行动预览系统：后端生成当前阶段每个行动的愿望同频、预计 D100 目标、属性走向、风险属性与连续投入预判；前端在提交前展示决策卡并标记愿望契合/连续可加成行动。
+
+44. [complete] 修复人生模拟阶段底部行动/聊天区过高遮挡主内容：加入紧凑行动栏、内部滚动、输入栏 sticky 和桌面/移动端高度上限。
