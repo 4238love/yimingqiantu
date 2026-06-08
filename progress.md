@@ -228,3 +228,8 @@
 - 前端状态栏新增连续选择反馈卡，当前回合决策提示新增“连续投入”预览，Markdown 人生档案导出包含当前行动惯性。
 - 更新 schema、README、task_plan、静态前端断言和后端测试；验证通过：`node --check frontend/index.js`、`node --check frontend/live.js`、`node tests/frontend_layout_check.mjs`、`python -B -m pytest -p no:cacheprovider backend\tests`（35 passed）。
 - Rebuilt Docker with `docker compose up -d --build`; deployed container is healthy on `0.0.0.0:7650->7650/tcp`. Browser smoke on `http://127.0.0.1:7650/?v=streak-smoke` verified two consecutive `发展事业` actions show `连续 2 次 · 发展事业`, `D100 +3`, event伏笔, and `codex-20260608-streak` assets.
+
+- 继续优化回合决策体验：后端新增 `action_guides`，为当前阶段可选行动生成愿望同频、预计 D100 目标、主/辅/风险属性分数、连续投入预判、事件标签和伏笔。
+- 前端行动区新增 `action-preview-panel`：选中行动前后可直接看到“预计判定 / 愿望同频 / 属性走向 / 连续预判”，并用 `goal-fit` / `streak-ready` 标记更贴合愿望或即将获得连续加成的行动按钮。
+- 更新 schema、README、task_plan、布局静态断言和后端测试；验证通过：`python -m py_compile backend\app\game_logic.py`、`node --check frontend\index.js`、`node tests\frontend_layout_check.mjs`、`python -B -m pytest -p no:cacheprovider backend\tests`（36 passed）。
+- Rebuilt Docker with `docker compose up -d --build`; container is healthy on `0.0.0.0:7650->7650/tcp`. Browser smoke on `http://127.0.0.1:7650/?v=action-preview-smoke` verified `action-preview-20260608` assets, visible `行动预览` panel, `预计判定 / 愿望同频 / 属性走向 / 连续预判` grid, `goal-fit` chips, and `streak-ready` chip labels.

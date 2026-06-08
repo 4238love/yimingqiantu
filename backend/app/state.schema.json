@@ -261,6 +261,7 @@
       ]
     },
     "action_options": { "type": "array", "items": { "type": "string" } },
+    "action_guides": { "type": "array" },
     "current_life": { "type": ["object", "null"] }
   },
   "required": [
@@ -311,6 +312,7 @@
     "streak_warning",
     "ending",
     "action_options",
+    "action_guides",
     "current_life"
   ]
 }

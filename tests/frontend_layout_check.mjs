@@ -41,7 +41,7 @@ assert.match(html, /本半年行动/, 'free-text action placeholder should use h
 assert.match(html, /id='codex-button'/, 'game header should expose ending codex collection');
 assert.match(html, /id='codex-panel'/, 'ending codex should render as a modal panel');
 assert.match(html, /id='codex-content'/, 'ending codex modal should contain collection content');
-assert.match(html, /codex-20260608/, 'main assets should be cache-busted for the codex optimization');
+assert.match(html, /action-preview-20260608/, 'main assets should be cache-busted for the action-preview optimization');
 assert.doesNotMatch(html, /Linux\.do|login\/linuxdo/, 'Linux.do login entry should be removed');
 assert.doesNotMatch(html, /id='fullscreen-button'/, 'fullscreen button should be removed');
 assert.doesNotMatch(html, /start-trial-button/, 'legacy start trial button should be removed');
@@ -72,6 +72,9 @@ assert.match(css, /\.relationship-card\s*{/, 'relationship network should render
 assert.match(css, /\.life-goal-card\s*{/, 'life goals should render as selectable cards');
 assert.match(css, /\.goal-progress-card\s*{/, 'active life goal progress should render in status');
 assert.match(css, /\.streak-card\s*{/, 'continuous focus streaks should render as status cards');
+assert.match(css, /\.action-preview-panel\s*{/, 'action previews should render as a distinct decision panel');
+assert.match(css, /\.action-preview-grid\s*{/, 'action previews should show target, goal alignment, effects, and streak prediction');
+assert.match(css, /\.focus-chip\.goal-fit\s*{/, 'goal-aligned action chips should be visually marked');
 assert.match(css, /\.achievement-card\s*{/, 'unlocked achievements should render as status cards');
 assert.match(css, /\.milestone-card\s*{/, 'life milestones should render as status cards');
 assert.match(css, /\.ending-archive\s*{/, 'ending should render as a life archive section');
@@ -114,6 +117,9 @@ assert.match(js, /function renderMonthFlowBoard\(/, 'frontend should render flow
 assert.match(js, /function renderTurnGuide\(/, 'frontend should render a decision guide for the current half-year');
 assert.match(js, /function getStreakView\(/, 'frontend should normalize continuous focus streak state');
 assert.match(js, /function renderStreakStatusCard\(/, 'frontend should render continuous choice feedback in status');
+assert.match(js, /function actionGuideMap\(/, 'frontend should map backend action guide previews by action');
+assert.match(js, /function renderActionPreviewPanel\(/, 'frontend should render selected action preview details');
+assert.match(js, /action_guides/, 'frontend should consume backend action guide previews');
 assert.match(js, /focus_streak/, 'frontend should consume focus streak state');
 assert.match(js, /focus_memory/, 'frontend should consume focus memory state');
 assert.match(js, /连续选择反馈/, 'frontend should label continuous choice feedback');

@@ -736,6 +736,94 @@ def _refresh_goal_progress(session: dict[str, Any]) -> dict[str, Any]:
     return progress
 
 
+def _action_goal_alignment(session: dict[str, Any], action: str) -> dict[str, Any]:
+    progress = session.get('goal_progress') or {}
+    goal = _active_life_goal(session) if session.get('life_state') else {}
+    support_actions = _string_list(progress.get('support_actions') or goal.get('support_actions'), [], 8)
+    score_keys = _string_list(goal.get('score_keys'), [], 8)
+    profile = fate_mapper.ACTION_PROFILES.get(action, fate_mapper.ACTION_PROFILES['随缘而行'])
+    primary = str(profile.get('primary') or '')
+    secondary = str(profile.get('secondary') or '')
+    risk = str(profile.get('risk') or '')
+    if action in support_actions:
+        return {
+            'level': '高度契合',
+            'score': 3,
+            'reason': '直接支持当前人生愿望“' + str(progress.get('title') or goal.get('title') or '未命名愿望') + '”。',
+        }
+    if primary in score_keys or secondary in score_keys:
+        return {
+            'level': '间接助力',
+            'score': 2,
+            'reason': '会提升愿望看重的“' + (primary if primary in score_keys else secondary) + '”。',
+        }
+    if risk in score_keys:
+        return {
+            'level': '需要权衡',
+            'score': 1,
+            'reason': '可能消耗愿望看重的“' + risk + '”，适合作为阶段性取舍而非长期单押。',
+        }
+    return {
+        'level': '中性探索',
+        'score': 1,
+        'reason': '不直接推动当前愿望，但可能补足长期人生结构。',
+    }
+
+
+def _action_preview_summary(action: str) -> str:
+    text = ACTION_DETAIL.get(action, ACTION_DETAIL['随缘而行'])
+    first_sentence = str(text).split('。')[0].strip()
+    return first_sentence + '。' if first_sentence else str(text)
+
+
+def _build_action_guides(session: dict[str, Any]) -> list[dict[str, Any]]:
+    age = session.get('current_age') if session.get('current_age') is not None else session.get('start_age')
+    if age is None:
+        return []
+    guides = []
+    state = session.get('life_state') or {}
+    stage = _age_stage(int(age))
+    for action in _stage_action_options(int(age)):
+        profile = fate_mapper.ACTION_PROFILES.get(action, fate_mapper.ACTION_PROFILES['随缘而行'])
+        target, modifiers = fate_mapper.compute_roll_target(session, action)
+        predicted_count = 1
+        memory = _normalize_focus_memory(session.get('focus_memory'))
+        if str(memory.get('last_focus') or '') == action:
+            predicted_count = int(memory.get('streak') or 0) + 1
+        streak_bonus = _focus_streak_roll_bonus(predicted_count)
+        target_preview = fate_mapper.clamp(target + streak_bonus, 20, 95)
+        alignment = _action_goal_alignment(session, action)
+        primary = str(profile.get('primary') or '')
+        secondary = str(profile.get('secondary') or '')
+        risk = str(profile.get('risk') or '')
+        meta = event_pool.ACTION_META.get(action, {})
+        guides.append({
+            'action': action,
+            'stage_id': stage.get('id'),
+            'stage_label': stage.get('label'),
+            'primary': primary,
+            'secondary': secondary,
+            'risk': risk,
+            'primary_score': int(state.get(primary, 0)) if primary else 0,
+            'secondary_score': int(state.get(secondary, 0)) if secondary else 0,
+            'risk_score': int(state.get(risk, 0)) if risk else 0,
+            'goal_alignment': alignment,
+            'roll_target_base': target,
+            'roll_target_preview': target_preview,
+            'roll_modifiers': modifiers,
+            'streak_preview': {
+                'count': predicted_count,
+                'bonus': streak_bonus,
+                'will_continue': str(memory.get('last_focus') or '') == action and predicted_count > 1,
+            },
+            'tags': list(meta.get('tags') or []),
+            'clue': str(meta.get('clue') or ''),
+            'summary': _action_preview_summary(action),
+        })
+    guides.sort(key=lambda item: (int(item.get('goal_alignment', {}).get('score') or 0), int(item.get('streak_preview', {}).get('bonus') or 0), int(item.get('roll_target_preview') or 0)), reverse=True)
+    return guides
+
+
 def _format_goal_progress(progress: dict[str, Any]) -> str:
     if not progress:
         return '人生愿望尚未确定。'
@@ -1056,6 +1144,7 @@ def _new_session(player_id: str) -> dict[str, Any]:
         'focus_streak': {},
         'streak_warning': '',
         'action_options': ACTION_OPTIONS,
+        'action_guides': [],
         'current_life': None,
     }
 
@@ -1074,6 +1163,7 @@ def _ensure_session_defaults(session: dict[str, Any]) -> dict[str, Any]:
     session['focus_memory'] = _normalize_focus_memory(session.get('focus_memory'))
     session.setdefault('focus_streak', {})
     session.setdefault('streak_warning', '')
+    session.setdefault('action_guides', [])
     session['ending_codex'] = _normalize_ending_codex(session.get('ending_codex'))
     if session.get('life_state'):
         _ensure_life_goals(session)
@@ -1081,6 +1171,7 @@ def _ensure_session_defaults(session: dict[str, Any]) -> dict[str, Any]:
     if session.get('phase') == 'life_simulation' and session.get('current_age') is not None:
         _refresh_life_systems(session)
         session['action_options'] = _stage_action_options(int(session.get('current_age') or 22))
+        session['action_guides'] = _build_action_guides(session)
     return session
 
 
@@ -1112,6 +1203,7 @@ def _refresh_current_context(session: dict[str, Any]) -> None:
     session['action_options'] = _stage_action_options(int(age))
     _refresh_life_systems(session)
     _refresh_goal_progress(session)
+    session['action_guides'] = _build_action_guides(session)
     session['current_life'] = {
         '年龄': session.get('current_age'),
         '年份': session.get('current_year'),
@@ -1122,6 +1214,7 @@ def _refresh_current_context(session: dict[str, Any]) -> None:
         '当前流月': session.get('current_monthly_cycles'),
         '人生状态': session.get('life_state', {}),
         '人生愿望': session.get('goal_progress', {}),
+        '行动预览': session.get('action_guides', []),
         '长期系统': session.get('life_systems', {}),
         '关系': session.get('relationships', []),
         '连续选择': session.get('focus_streak', {}),

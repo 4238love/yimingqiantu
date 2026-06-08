@@ -89,6 +89,8 @@ def test_childhood_stage_limits_adult_actions_after_start():
     assert session['relationships']
     assert session['life_goals']
     assert session['goal_progress']['title']
+    assert session['action_guides']
+    assert all('roll_target_preview' in guide for guide in session['action_guides'])
 
     game_logic._handle_annual_action(session, {'focuses': ['想创业赚钱']})
     assert session['annual_summaries'][-1]['main_focus'] == '专注学业'
@@ -245,6 +247,30 @@ def test_repeated_focus_adds_streak_feedback_and_effect(monkeypatch):
     assert session['focus_memory']['streak'] == 2
     assert '连续选择反馈' in second['summary']
     assert any('连续选择反馈' in item for item in session['display_history'])
+
+
+def test_action_guides_preview_goal_alignment_and_streak(monkeypatch):
+    monkeypatch.setattr(game_logic.openai_client, 'is_text_ai_enabled', lambda *args, **kwargs: False)
+    session = _chart_session()
+    game_logic._handle_generate_prelude(session)
+    game_logic._handle_accept_prelude(session)
+    game_logic._handle_set_life_goal(session, 'recognized_work')
+    game_logic._refresh_current_context(session)
+
+    career_guide = next(item for item in session['action_guides'] if item['action'] == '发展事业')
+    assert career_guide['goal_alignment']['level'] == '高度契合'
+    assert career_guide['primary'] == '事业'
+    assert career_guide['secondary'] == '财富'
+    assert career_guide['risk'] == '压力'
+    assert career_guide['roll_target_preview'] >= 20
+    assert career_guide['streak_preview']['count'] == 1
+
+    game_logic._handle_annual_action(session, {'focuses': ['发展事业']})
+    next_career_guide = next(item for item in session['action_guides'] if item['action'] == '发展事业')
+    assert next_career_guide['streak_preview']['count'] == 2
+    assert next_career_guide['streak_preview']['bonus'] == 3
+    assert next_career_guide['roll_target_preview'] >= next_career_guide['roll_target_base']
+    assert next_career_guide['clue']
 
 
 def test_ending_contains_life_archive(monkeypatch):

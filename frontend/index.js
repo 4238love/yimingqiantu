@@ -667,6 +667,48 @@ function cleanActionOptions(state) {
     return Array.from(new Set(options));
 }
 
+function actionGuideMap(state) {
+    const guides = Array.isArray(state.action_guides) ? state.action_guides : [];
+    return new Map(guides.filter(item => item && item.action).map(item => [String(item.action), item]));
+}
+
+function formatGuideEffect(guide) {
+    if (!guide) return '选择后会根据命盘、时势和 D100 判定产生状态变化。';
+    const primary = guide.primary ? guide.primary + ' ' + Number(guide.primary_score || 0) + '分' : '主属性待定';
+    const secondary = guide.secondary ? guide.secondary + ' ' + Number(guide.secondary_score || 0) + '分' : '副属性待定';
+    const risk = guide.risk ? guide.risk + ' ' + Number(guide.risk_score || 0) + '分' : '风险待定';
+    return '主推 ' + primary + ' · 辅助 ' + secondary + ' · 风险 ' + risk;
+}
+
+function renderActionPreviewPanel(state, options) {
+    const guides = actionGuideMap(state);
+    const selected = appState.selectedFocuses.length ? appState.selectedFocuses : [options[0]].filter(Boolean);
+    const mainAction = selected[0] || options[0] || '随缘而行';
+    const guide = guides.get(mainAction) || {};
+    const alignment = guide.goal_alignment || {};
+    const streak = guide.streak_preview || {};
+    const target = Number(guide.roll_target_preview || guide.roll_target_base || 0);
+    const base = Number(guide.roll_target_base || target || 0);
+    const bonus = Number(streak.bonus || 0);
+    const selectedPills = selected.map(action => {
+        const item = guides.get(action) || {};
+        const itemAlignment = item.goal_alignment || {};
+        return '<span>' + escapeHtml(action) + ' · ' + escapeHtml(itemAlignment.level || '待判定') + '</span>';
+    }).join('');
+    return '<section class=\'action-preview-panel\' aria-live=\'polite\'>' +
+        '<div class=\'action-preview-head\'><div><span>行动预览</span><strong>' + escapeHtml(mainAction) + '</strong></div>' +
+        '<b>' + escapeHtml(alignment.level || '等待选择') + '</b></div>' +
+        '<p>' + escapeHtml(guide.summary || '先选择一个本半年重点，系统会预览愿望同频、判定目标和连续投入。') + '</p>' +
+        '<div class=\'action-preview-grid\'>' +
+            '<article><span>预计判定</span><b>' + escapeHtml(target ? String(target) : '-') + '</b><small>' + escapeHtml(bonus ? ('基础 ' + base + ' / 连续投入 +' + bonus) : '合参大运、流年、流月与当前属性') + '</small></article>' +
+            '<article><span>愿望同频</span><b>' + escapeHtml(alignment.level || '-') + '</b><small>' + escapeHtml(alignment.reason || '选择人生愿望后会显示更准确的同频提示。') + '</small></article>' +
+            '<article><span>属性走向</span><b>' + escapeHtml(formatGuideEffect(guide)) + '</b><small>' + escapeHtml(guide.clue || '阶段事件会留下后续伏笔。') + '</small></article>' +
+            '<article><span>连续预判</span><b>' + escapeHtml((Number(streak.count || 1)) + ' 次' + (bonus ? ' / D100 +' + bonus : ' / 暂无加成')) + '</b><small>同一主行动连续选择会形成加成，也会积累机会成本。</small></article>' +
+        '</div>' +
+        (selectedPills ? '<div class=\'action-preview-selected\'><small>本次组合</small>' + selectedPills + '</div>' : '') +
+    '</section>';
+}
+
 function renderEndingCodex() {
     const codex = appState.gameState?.ending_codex || {};
     const entries = Array.isArray(codex.entries) ? codex.entries : [];
@@ -714,6 +756,7 @@ function renderFocusActions() {
     DOMElements.focusActions.innerHTML = '';
     if (!canAct) return;
     const options = cleanActionOptions(state);
+    const guides = actionGuideMap(state);
     appState.selectedFocuses = appState.selectedFocuses.filter(option => options.includes(option));
     const stage = state.current_stage || {};
     if (stage.label) {
@@ -723,9 +766,14 @@ function renderFocusActions() {
         DOMElements.focusActions.appendChild(hint);
     }
     options.forEach(option => {
+        const guide = guides.get(option) || {};
+        const alignment = guide.goal_alignment || {};
+        const streak = guide.streak_preview || {};
         const button = document.createElement('button');
         button.textContent = option;
-        button.className = 'focus-chip' + (appState.selectedFocuses.includes(option) ? ' selected' : '');
+        button.className = 'focus-chip' + (appState.selectedFocuses.includes(option) ? ' selected' : '') + (Number(alignment.score || 0) >= 3 ? ' goal-fit' : '') + (Number(streak.bonus || 0) > 0 ? ' streak-ready' : '');
+        button.setAttribute('aria-pressed', String(appState.selectedFocuses.includes(option)));
+        button.title = [alignment.level, guide.summary, Number(streak.bonus || 0) > 0 ? '连续投入 +' + Number(streak.bonus || 0) : ''].filter(Boolean).join(' · ');
         button.addEventListener('click', () => toggleFocus(option));
         DOMElements.focusActions.appendChild(button);
     });
@@ -734,6 +782,7 @@ function renderFocusActions() {
     submit.textContent = '提交本半年重点';
     submit.addEventListener('click', submitFocuses);
     DOMElements.focusActions.appendChild(submit);
+    DOMElements.focusActions.insertAdjacentHTML('beforeend', renderActionPreviewPanel(state, options));
 }
 
 function renderApiSettings() {
