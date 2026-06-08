@@ -4,13 +4,12 @@ import asyncio
 import ast
 import json
 import logging
-import time
 from copy import deepcopy
 from datetime import date
 from pathlib import Path
 from typing import Any
 
-from . import bazi_engine, event_pool, fate_mapper, half_year_resolution, openai_client, state_manager
+from . import bazi_engine, fate_mapper, half_year_resolution, openai_client, state_manager
 
 
 logger = logging.getLogger(__name__)
@@ -71,103 +70,8 @@ ACTION_SCENE_DETAIL = {
 }
 
 AGE_STAGE_PROFILES = half_year_resolution.AGE_STAGE_PROFILES
-
-
-LIFE_GOAL_TEMPLATES = [
-    {
-        'id': 'stable_abundance',
-        'title': '稳定富足',
-        'summary': '希望一生有足够的物质余量、稳定生活和可抵御风险的安全感。',
-        'score_keys': ['财富', '事业', '健康', '福德'],
-        'support_actions': ['投资理财', '发展事业', '调养身体', '陪伴家人'],
-        'ending_threshold': 72,
-    },
-    {
-        'id': 'recognized_work',
-        'title': '事业有成',
-        'summary': '希望把学识、专业和长期投入转化成被看见的事业成果。',
-        'score_keys': ['事业', '学识', '名望', '心智'],
-        'support_actions': ['专注学业', '发展事业', '社交拓展', '创业冒险'],
-        'ending_threshold': 74,
-    },
-    {
-        'id': 'warm_bonds',
-        'title': '亲密圆满',
-        'summary': '希望在家庭、伴侣、朋友和重要关系里获得稳定连接。',
-        'score_keys': ['家庭', '感情', '社交', '情绪'],
-        'support_actions': ['经营感情', '陪伴家人', '社交拓展', '调养身体'],
-        'ending_threshold': 72,
-    },
-    {
-        'id': 'inner_peace',
-        'title': '身心安稳',
-        'summary': '希望不被压力吞没，在健康、情绪和精神余量里过完这一生。',
-        'score_keys': ['健康', '心智', '情绪', '福德'],
-        'support_actions': ['调养身体', '随缘而行', '陪伴家人', '搬迁远行'],
-        'ending_threshold': 72,
-    },
-    {
-        'id': 'free_explorer',
-        'title': '自由探索',
-        'summary': '希望拥有更广阔的生活半径，在迁移、社交和冒险中寻找另一种可能。',
-        'score_keys': ['社交', '心智', '名望', '福德'],
-        'support_actions': ['搬迁远行', '社交拓展', '创业冒险', '随缘而行'],
-        'ending_threshold': 70,
-    },
-]
-
-ACHIEVEMENT_DEFINITIONS = {
-    'first_choice': {
-        'title': '命途初定',
-        'description': '完成第一次半年度选择，真正把命盘底色交到自己手里。',
-        'category': '旅程',
-    },
-    'first_success': {
-        'title': '初见顺风',
-        'description': '第一次在 D100 判定中取得成功，证明积累与时势可以互相借力。',
-        'category': '判定',
-    },
-    'great_success': {
-        'title': '天光乍破',
-        'description': '触发一次大成功，人生里出现罕见的高光窗口。',
-        'category': '判定',
-    },
-    'scholar_seed': {
-        'title': '学识成种',
-        'description': '学识积累突破 75，学习与专业能力成为可靠筹码。',
-        'category': '成长',
-    },
-    'career_foundation': {
-        'title': '立业有基',
-        'description': '事业积累突破 70，职业或社会角色开始形成稳定基础。',
-        'category': '事业',
-    },
-    'wealth_buffer': {
-        'title': '余粮在仓',
-        'description': '财富突破 65，生活开始拥有抵御风险的物质余量。',
-        'category': '资产',
-    },
-    'warm_anchor': {
-        'title': '灯火可归',
-        'description': '家庭与感情形成稳定支点，关系不再只是消耗。',
-        'category': '关系',
-    },
-    'health_guardian': {
-        'title': '身心护城',
-        'description': '健康保持在高位，身体底盘成为长期选择的保护层。',
-        'category': '健康',
-    },
-    'goal_aligned': {
-        'title': '愿望同频',
-        'description': '一次行动清晰贴合当前人生愿望，让选择更有方向。',
-        'category': '愿望',
-    },
-    'comeback': {
-        'title': '逆风回身',
-        'description': '在失败之后重新取得成功，把挫折转化成下一段路的经验。',
-        'category': '韧性',
-    },
-}
+LIFE_GOAL_TEMPLATES = half_year_resolution.LIFE_GOAL_TEMPLATES
+ACHIEVEMENT_DEFINITIONS = half_year_resolution.ACHIEVEMENT_DEFINITIONS
 
 
 def _load_prompt(filename: str) -> str:
@@ -399,194 +303,47 @@ def _average_state(state: dict[str, Any], keys: list[str], fallback: int = 50) -
 
 
 def _goal_template(goal_id: str | None) -> dict[str, Any] | None:
-    for goal in LIFE_GOAL_TEMPLATES:
-        if goal['id'] == goal_id:
-            return dict(goal)
-    return None
+    return half_year_resolution.goal_template(goal_id)
 
 
 def _goal_score(state: dict[str, Any], goal: dict[str, Any]) -> int:
-    return _average_state(state, _string_list(goal.get('score_keys'), [], 8), 50)
+    return half_year_resolution.goal_score(state, goal)
 
 
 def _goal_stage(score: int, threshold: int) -> str:
-    if score >= threshold:
-        return '接近达成'
-    if score >= threshold - 12:
-        return '稳步推进'
-    if score >= threshold - 28:
-        return '仍在积累'
-    return '偏离目标'
+    return half_year_resolution.goal_stage(score, threshold)
 
 
 def _build_life_goals(session: dict[str, Any]) -> list[dict[str, Any]]:
-    state = session.get('life_state') or {}
-    stage = _age_stage(session.get('start_age') or session.get('current_age') or 22)
-    goals = []
-    for template in LIFE_GOAL_TEMPLATES:
-        score = _goal_score(state, template)
-        threshold = int(template.get('ending_threshold') or 72)
-        goals.append({
-            'id': template['id'],
-            'title': template['title'],
-            'summary': template['summary'],
-            'score_keys': list(template.get('score_keys') or []),
-            'support_actions': list(template.get('support_actions') or []),
-            'ending_threshold': threshold,
-            'recommended_for_stage': any(action in stage.get('action_options', []) for action in template.get('support_actions', [])),
-            'current_score': score,
-            'status': _goal_stage(score, threshold),
-        })
-    return goals
+    return half_year_resolution.build_life_goals(session)
 
 
 def _default_life_goal_id(session: dict[str, Any]) -> str:
-    state = session.get('life_state') or {}
-    if int(state.get('财富', 0)) >= 55 and int(state.get('健康', 0)) >= 55:
-        return 'stable_abundance'
-    if int(state.get('事业', 0)) + int(state.get('学识', 0)) >= int(state.get('家庭', 0)) + int(state.get('感情', 0)):
-        return 'recognized_work'
-    if int(state.get('家庭', 0)) + int(state.get('感情', 0)) >= 110:
-        return 'warm_bonds'
-    if int(state.get('压力', 0)) >= 45 or int(state.get('健康', 0)) <= 55:
-        return 'inner_peace'
-    return 'stable_abundance'
+    return half_year_resolution.default_life_goal_id(session)
 
 
 def _ensure_life_goals(session: dict[str, Any]) -> list[dict[str, Any]]:
-    goals: list[dict[str, Any]] = []
-    existing = session.get('life_goals')
-    if isinstance(existing, list) and existing:
-        goals = existing
-    else:
-        goals = _build_life_goals(session)
-        session['life_goals'] = goals
-    active_id = str(session.get('active_life_goal_id') or '')
-    if not active_id or not any(goal.get('id') == active_id for goal in goals if isinstance(goal, dict)):
-        session['active_life_goal_id'] = _default_life_goal_id(session)
-    return session.get('life_goals') or []
+    return half_year_resolution.ensure_life_goals(session)
 
 
 def _active_life_goal(session: dict[str, Any]) -> dict[str, Any]:
-    goals = _ensure_life_goals(session)
-    active_id = str(session.get('active_life_goal_id') or '')
-    for goal in goals:
-        if isinstance(goal, dict) and goal.get('id') == active_id:
-            return goal
-    return goals[0] if goals and isinstance(goals[0], dict) else dict(LIFE_GOAL_TEMPLATES[0])
+    return half_year_resolution.active_life_goal(session)
 
 
 def _refresh_goal_progress(session: dict[str, Any]) -> dict[str, Any]:
-    goals = _build_life_goals(session)
-    session['life_goals'] = goals
-    active_id = str(session.get('active_life_goal_id') or '')
-    if not active_id or not any(goal['id'] == active_id for goal in goals):
-        active_id = _default_life_goal_id(session)
-        session['active_life_goal_id'] = active_id
-    active = next((goal for goal in goals if goal['id'] == active_id), goals[0])
-    threshold = int(active.get('ending_threshold') or 72)
-    score = int(active.get('current_score') or 0)
-    progress = {
-        'goal_id': active['id'],
-        'title': active['title'],
-        'summary': active['summary'],
-        'score': score,
-        'threshold': threshold,
-        'percent': fate_mapper.clamp(round(score / max(1, threshold) * 100)),
-        'status': _goal_stage(score, threshold),
-        'support_actions': active.get('support_actions') or [],
-        'achieved': score >= threshold,
-    }
-    session['goal_progress'] = progress
-    return progress
+    return half_year_resolution.refresh_goal_progress(session)
 
 
 def _action_goal_alignment(session: dict[str, Any], action: str) -> dict[str, Any]:
-    progress = session.get('goal_progress') or {}
-    goal = _active_life_goal(session) if session.get('life_state') else {}
-    support_actions = _string_list(progress.get('support_actions') or goal.get('support_actions'), [], 8)
-    score_keys = _string_list(goal.get('score_keys'), [], 8)
-    profile = fate_mapper.ACTION_PROFILES.get(action, fate_mapper.ACTION_PROFILES['随缘而行'])
-    primary = str(profile.get('primary') or '')
-    secondary = str(profile.get('secondary') or '')
-    risk = str(profile.get('risk') or '')
-    if action in support_actions:
-        return {
-            'level': '高度契合',
-            'score': 3,
-            'reason': '直接支持当前人生愿望“' + str(progress.get('title') or goal.get('title') or '未命名愿望') + '”。',
-        }
-    if primary in score_keys or secondary in score_keys:
-        return {
-            'level': '间接助力',
-            'score': 2,
-            'reason': '会提升愿望看重的“' + (primary if primary in score_keys else secondary) + '”。',
-        }
-    if risk in score_keys:
-        return {
-            'level': '需要权衡',
-            'score': 1,
-            'reason': '可能消耗愿望看重的“' + risk + '”，适合作为阶段性取舍而非长期单押。',
-        }
-    return {
-        'level': '中性探索',
-        'score': 1,
-        'reason': '不直接推动当前愿望，但可能补足长期人生结构。',
-    }
+    return half_year_resolution.action_goal_alignment(session, action)
 
 
 def _action_preview_summary(action: str) -> str:
-    text = ACTION_DETAIL.get(action, ACTION_DETAIL['随缘而行'])
-    first_sentence = str(text).split('。')[0].strip()
-    return first_sentence + '。' if first_sentence else str(text)
+    return half_year_resolution.action_preview_summary(action, ACTION_DETAIL)
 
 
 def _build_action_guides(session: dict[str, Any]) -> list[dict[str, Any]]:
-    age = session.get('current_age') if session.get('current_age') is not None else session.get('start_age')
-    if age is None:
-        return []
-    guides = []
-    state = session.get('life_state') or {}
-    stage = _age_stage(int(age))
-    for action in _stage_action_options(int(age)):
-        profile = fate_mapper.ACTION_PROFILES.get(action, fate_mapper.ACTION_PROFILES['随缘而行'])
-        target, modifiers = fate_mapper.compute_roll_target(session, action)
-        predicted_count = 1
-        memory = _normalize_focus_memory(session.get('focus_memory'))
-        if str(memory.get('last_focus') or '') == action:
-            predicted_count = int(memory.get('streak') or 0) + 1
-        streak_bonus = _focus_streak_roll_bonus(predicted_count)
-        target_preview = fate_mapper.clamp(target + streak_bonus, 20, 95)
-        alignment = _action_goal_alignment(session, action)
-        primary = str(profile.get('primary') or '')
-        secondary = str(profile.get('secondary') or '')
-        risk = str(profile.get('risk') or '')
-        meta = event_pool.ACTION_META.get(action, {})
-        guides.append({
-            'action': action,
-            'stage_id': stage.get('id'),
-            'stage_label': stage.get('label'),
-            'primary': primary,
-            'secondary': secondary,
-            'risk': risk,
-            'primary_score': int(state.get(primary, 0)) if primary else 0,
-            'secondary_score': int(state.get(secondary, 0)) if secondary else 0,
-            'risk_score': int(state.get(risk, 0)) if risk else 0,
-            'goal_alignment': alignment,
-            'roll_target_base': target,
-            'roll_target_preview': target_preview,
-            'roll_modifiers': modifiers,
-            'streak_preview': {
-                'count': predicted_count,
-                'bonus': streak_bonus,
-                'will_continue': str(memory.get('last_focus') or '') == action and predicted_count > 1,
-            },
-            'tags': list(meta.get('tags') or []),
-            'clue': str(meta.get('clue') or ''),
-            'summary': _action_preview_summary(action),
-        })
-    guides.sort(key=lambda item: (int(item.get('goal_alignment', {}).get('score') or 0), int(item.get('streak_preview', {}).get('bonus') or 0), int(item.get('roll_target_preview') or 0)), reverse=True)
-    return guides
+    return half_year_resolution.build_action_guides(session, ACTION_DETAIL)
 
 
 def _format_goal_progress(progress: dict[str, Any]) -> str:
@@ -600,87 +357,19 @@ def _format_goal_progress(progress: dict[str, Any]) -> str:
 
 
 def _achievement_unlocked(session: dict[str, Any], achievement_id: str) -> bool:
-    return any(isinstance(item, dict) and item.get('id') == achievement_id for item in session.get('achievements') or [])
+    return half_year_resolution.achievement_unlocked(session, achievement_id)
 
 
 def _unlock_achievement(session: dict[str, Any], achievement_id: str, age: int, half_label: str) -> dict[str, Any] | None:
-    if _achievement_unlocked(session, achievement_id):
-        return None
-    definition = ACHIEVEMENT_DEFINITIONS.get(achievement_id)
-    if not definition:
-        return None
-    achievement = {
-        'id': achievement_id,
-        'title': definition['title'],
-        'description': definition['description'],
-        'category': definition['category'],
-        'age': age,
-        'half_label': half_label,
-        'unlocked_at': str(age) + '岁' + str(half_label),
-    }
-    session.setdefault('achievements', []).append(achievement)
-    return achievement
+    return half_year_resolution.unlock_achievement(session, achievement_id, age, half_label)
 
 
 def _evaluate_achievements(session: dict[str, Any], record: dict[str, Any]) -> list[dict[str, Any]]:
-    age = int(record.get('age') or session.get('current_age') or 0)
-    half_label = str(record.get('half_label') or '')
-    roll_event = record.get('roll_event') or {}
-    outcome = str(roll_event.get('outcome') or '')
-    state = session.get('life_state') or {}
-    active_goal = _active_life_goal(session)
-    support_actions = _string_list(active_goal.get('support_actions'), [], 8)
-    previous = session.get('annual_summaries') or []
-    previous_outcome = ''
-    if previous:
-        previous_outcome = str(((previous[-1] or {}).get('roll_event') or {}).get('outcome') or '')
-    candidates = ['first_choice']
-    if outcome in ['成功', '大成功']:
-        candidates.append('first_success')
-    if outcome == '大成功':
-        candidates.append('great_success')
-    if previous_outcome in ['失败', '大失败'] and outcome in ['成功', '大成功']:
-        candidates.append('comeback')
-    if int(state.get('学识', 0)) >= 75:
-        candidates.append('scholar_seed')
-    if int(state.get('事业', 0)) >= 70:
-        candidates.append('career_foundation')
-    if int(state.get('财富', 0)) >= 65:
-        candidates.append('wealth_buffer')
-    if int(state.get('家庭', 0)) + int(state.get('感情', 0)) >= 140:
-        candidates.append('warm_anchor')
-    if int(state.get('健康', 0)) >= 82:
-        candidates.append('health_guardian')
-    if str(record.get('main_focus') or '') in support_actions:
-        candidates.append('goal_aligned')
-    unlocked = []
-    for achievement_id in candidates:
-        achievement = _unlock_achievement(session, achievement_id, age, half_label)
-        if achievement:
-            unlocked.append(achievement)
-    session['latest_achievements'] = unlocked
-    return unlocked
+    return half_year_resolution.evaluate_achievements(session, record)
 
 
 def _append_milestone(session: dict[str, Any], record: dict[str, Any], achievements: list[dict[str, Any]]) -> dict[str, Any]:
-    stage_event = record.get('stage_event') or {}
-    roll_event = record.get('roll_event') or {}
-    age_half = str(record.get('age') or '') + '岁' + str(record.get('half_label') or '')
-    milestone = {
-        'id': 'milestone_' + str(int(time.time() * 1000)) + '_' + str(len(session.get('milestones') or [])),
-        'age': record.get('age'),
-        'year': record.get('year'),
-        'half_label': record.get('half_label'),
-        'title': age_half + ' · ' + str(record.get('main_focus') or '随缘而行') + ' · ' + str(roll_event.get('outcome') or '未知'),
-        'text': str(stage_event.get('event') or record.get('summary') or '')[:180],
-        'stage_label': stage_event.get('stage_label') or record.get('stage_label') or '',
-        'goal_title': (record.get('goal_progress_after') or {}).get('title') or '',
-        'achievement_titles': [item.get('title') for item in achievements if item.get('title')],
-    }
-    milestones = session.setdefault('milestones', [])
-    milestones.append(milestone)
-    session['milestones'] = milestones[-80:]
-    return milestone
+    return half_year_resolution.append_milestone(session, record, achievements)
 
 
 def _system_stage(kind: str, age: int, score: int) -> str:
@@ -860,39 +549,7 @@ async def get_or_create_session(current_user: dict[str, Any]) -> dict[str, Any]:
 
 
 def _refresh_current_context(session: dict[str, Any]) -> None:
-    age = session.get('current_age')
-    if age is None:
-        return
-    session['current_luck_cycle'] = fate_mapper.find_luck_cycle(session, int(age))
-    session['current_annual_cycle'] = fate_mapper.find_annual_cycle(session, int(age))
-    current_half = int(session.get('current_half') or 1)
-    session['current_half'] = 2 if current_half == 2 else 1
-    session['current_half_label'] = fate_mapper.half_label(session['current_half'])
-    session['current_monthly_cycles'] = fate_mapper.find_monthly_cycles(session, int(age), session['current_half'])
-    session['current_stage'] = _age_stage(int(age))
-    session['action_options'] = _stage_action_options(int(age))
-    _refresh_life_systems(session)
-    _refresh_goal_progress(session)
-    session['action_guides'] = _build_action_guides(session)
-    session['current_life'] = {
-        '年龄': session.get('current_age'),
-        '年份': session.get('current_year'),
-        '当前半年': session.get('current_half_label'),
-        '人生阶段': session.get('current_stage'),
-        '当前大运': session.get('current_luck_cycle'),
-        '当前流年': session.get('current_annual_cycle'),
-        '当前流月': session.get('current_monthly_cycles'),
-        '人生状态': session.get('life_state', {}),
-        '人生愿望': session.get('goal_progress', {}),
-        '行动预览': session.get('action_guides', []),
-        '长期系统': session.get('life_systems', {}),
-        '关系': session.get('relationships', []),
-        '连续选择': session.get('focus_streak', {}),
-        '行动记忆': session.get('focus_memory', {}),
-        '成就': session.get('achievements', []),
-        '里程碑': session.get('milestones', [])[-10:],
-        '性格': session.get('personality', []),
-    }
+    half_year_resolution.refresh_current_context(session, ACTION_DETAIL)
 
 
 def _roll(player_id: str, roll_type: str, target: int, description: str) -> dict[str, Any]:
@@ -1388,11 +1045,8 @@ def _finish_session(session: dict[str, Any], reason: str = 'natural') -> bool:
 
 
 def _finish_if_needed(session: dict[str, Any]) -> bool:
-    if int(session.get('life_state', {}).get('健康', 1)) <= 0:
-        return _finish_session(session, 'health_zero')
-    if int(session.get('current_age') or 0) >= 60:
-        return _finish_session(session, 'age_60')
-    return False
+    reason = half_year_resolution.finish_reason(session)
+    return _finish_session(session, reason) if reason else False
 
 
 def _handle_retrospect_life(session: dict[str, Any]) -> None:
@@ -1603,15 +1257,8 @@ def _handle_annual_action(session: dict[str, Any], action_payload: dict[str, Any
     half_record = half_year_resolution.resolve_authoritative_record(session, action_payload)
     roll_event = half_record['roll_event']
     changes = half_record['state_effect']
-    _refresh_life_systems(session, half_record)
-    goal_progress_after = _refresh_goal_progress(session)
-    half_record['life_systems_after'] = deepcopy(session.get('life_systems') or {})
-    half_record['relationships_after'] = deepcopy(session.get('relationships') or [])
-    half_record['goal_progress_after'] = deepcopy(goal_progress_after)
-    new_achievements = _evaluate_achievements(session, half_record)
-    half_record['new_achievements'] = deepcopy(new_achievements)
-    milestone = _append_milestone(session, half_record, new_achievements)
-    half_record['milestone'] = deepcopy(milestone)
+    half_year_resolution.complete_authoritative_record(session, half_record)
+    new_achievements = half_record.get('new_achievements') or []
     half_record['summary'] = _format_detailed_half_year_summary(half_record)
     session['half_year_summaries'].append(half_record)
     session['annual_summaries'].append(half_record.copy())

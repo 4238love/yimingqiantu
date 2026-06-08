@@ -760,12 +760,18 @@ function renderFocusActions() {
     const guides = actionGuideMap(state);
     appState.selectedFocuses = appState.selectedFocuses.filter(option => options.includes(option));
     const stage = state.current_stage || {};
-    if (stage.label) {
-        const hint = document.createElement('p');
-        hint.className = 'stage-action-hint';
-        hint.textContent = stage.label + '：' + (stage.summary || '请选择符合当前人生阶段的行动重点。');
-        DOMElements.focusActions.appendChild(hint);
-    }
+    const meta = document.createElement('div');
+    meta.className = 'decision-dock-meta';
+    const selectedText = appState.selectedFocuses.length ? appState.selectedFocuses.join('、') : '尚未选择，默认参考第一项';
+    meta.innerHTML =
+        '<p class=\'stage-action-hint\'><span>' + escapeHtml(stage.label || '本半年行动') + '</span><small>' + escapeHtml(stage.summary || '请选择符合当前人生阶段的行动重点。') + '</small></p>' +
+        '<div class=\'selected-focus-summary\'><span>已选 ' + appState.selectedFocuses.length + '/3</span><strong>' + escapeHtml(selectedText) + '</strong></div>';
+    DOMElements.focusActions.appendChild(meta);
+
+    const rail = document.createElement('div');
+    rail.className = 'decision-action-rail';
+    const chipStrip = document.createElement('div');
+    chipStrip.className = 'focus-chip-strip';
     options.forEach(option => {
         const guide = guides.get(option) || {};
         const alignment = guide.goal_alignment || {};
@@ -776,13 +782,15 @@ function renderFocusActions() {
         button.setAttribute('aria-pressed', String(appState.selectedFocuses.includes(option)));
         button.title = [alignment.level, guide.summary, Number(streak.bonus || 0) > 0 ? '连续投入 +' + Number(streak.bonus || 0) : ''].filter(Boolean).join(' · ');
         button.addEventListener('click', () => toggleFocus(option));
-        DOMElements.focusActions.appendChild(button);
+        chipStrip.appendChild(button);
     });
     const submit = document.createElement('button');
-    submit.className = 'primary-button compact';
+    submit.className = 'primary-button compact submit-focus-button';
     submit.textContent = '提交本半年重点';
     submit.addEventListener('click', submitFocuses);
-    DOMElements.focusActions.appendChild(submit);
+    rail.appendChild(chipStrip);
+    rail.appendChild(submit);
+    DOMElements.focusActions.appendChild(rail);
     DOMElements.focusActions.insertAdjacentHTML('beforeend', renderActionPreviewPanel(state, options));
 }
 

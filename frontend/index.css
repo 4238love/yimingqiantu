@@ -155,7 +155,7 @@ textarea:focus-visible,
 
 #game-view.status-collapsed { grid-template-columns: 48px 1fr; }
 #game-view.action-tray-compact {
-    grid-template-rows: auto minmax(0, 1fr) minmax(10rem, clamp(10rem, 26vh, 18rem));
+    grid-template-rows: auto minmax(0, 1fr) minmax(8.8rem, clamp(8.8rem, 21vh, 14rem));
 }
 
 #game-header, #status-panel, #main-content, #action-area {
@@ -1307,26 +1307,105 @@ meter { width: 100%; height: 0.72rem; }
     overflow: auto;
     overscroll-behavior: contain;
     align-content: start;
-    padding: 0.65rem clamp(0.85rem, 2.4vw, 1.4rem);
+    padding: 0.72rem clamp(0.9rem, 2.4vw, 1.5rem);
+    border-top: 1px solid rgba(126, 94, 47, 0.22);
+    background:
+        linear-gradient(180deg, rgba(255,252,239,0.96), rgba(239,229,202,0.94)),
+        radial-gradient(circle at 14% 0, rgba(47,123,100,0.12), transparent 16rem),
+        radial-gradient(circle at 92% 0, rgba(177,88,51,0.11), transparent 14rem);
+    box-shadow: 0 -18px 42px rgba(43,36,28,0.12);
 }
 
 #game-view.action-tray-compact #focus-actions {
+    display: grid;
+    gap: 0.48rem;
     align-content: start;
-    padding-bottom: 0.25rem;
+    padding-bottom: 0.15rem;
 }
 
 #focus-actions { display: flex; gap: 0.55rem; flex-wrap: wrap; align-items: center; }
+.decision-dock-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0 0.18rem;
+}
+#game-view.action-tray-compact .decision-dock-meta {
+    display: none;
+}
 .stage-action-hint {
-    flex: 1 0 100%;
     margin: 0;
     color: var(--muted);
     font-size: 0.9rem;
     line-height: 1.5;
 }
-.focus-chip { border: 1px solid transparent; }
+.stage-action-hint span {
+    display: block;
+    color: var(--ink);
+    font-family: var(--font-serif);
+    font-size: 1.05rem;
+    font-weight: 900;
+    letter-spacing: 0.04em;
+}
+.stage-action-hint small {
+    display: block;
+    max-width: 64rem;
+    overflow: hidden;
+    color: var(--muted);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.selected-focus-summary {
+    min-width: 13rem;
+    max-width: 24rem;
+    padding: 0.45rem 0.72rem;
+    border: 1px solid rgba(47,123,100,0.18);
+    border-radius: 16px;
+    background: rgba(255,255,255,0.42);
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.35);
+}
+.selected-focus-summary span {
+    display: block;
+    color: var(--jade);
+    font-size: 0.72rem;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+}
+.selected-focus-summary strong {
+    display: block;
+    overflow: hidden;
+    color: var(--ink);
+    font-size: 0.9rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.decision-action-rail {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.7rem;
+    align-items: center;
+}
+.focus-chip-strip {
+    display: flex;
+    gap: 0.5rem;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    padding: 0.08rem 0.1rem 0.28rem;
+    scrollbar-width: thin;
+}
+.focus-chip {
+    flex: 0 0 auto;
+    border: 1px solid rgba(126, 94, 47, 0.12);
+    background:
+        linear-gradient(180deg, rgba(238,223,184,0.95), rgba(219,198,143,0.88));
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.5), 0 5px 12px rgba(88,65,35,0.08);
+}
 .focus-chip.goal-fit {
     border-color: rgba(47,123,100,0.36);
-    box-shadow: inset 0 -0.18rem 0 rgba(47,123,100,0.12);
+    background:
+        linear-gradient(180deg, rgba(223,235,205,0.96), rgba(196,216,171,0.9));
+    box-shadow: inset 0 -0.18rem 0 rgba(47,123,100,0.12), 0 6px 13px rgba(47,123,100,0.08);
 }
 .focus-chip.streak-ready::after {
     content: ' 连';
@@ -1334,9 +1413,23 @@ meter { width: 100%; height: 0.72rem; }
     font-size: 0.72rem;
     font-weight: 900;
 }
-.focus-chip.selected { background: var(--jade); color: #fff; }
+.focus-chip.selected {
+    background:
+        linear-gradient(135deg, #2f7b64, #245847);
+    color: #fff;
+    transform: translateY(-1px);
+    box-shadow: 0 9px 18px rgba(36,88,71,0.2);
+}
 .focus-chip.selected::after { color: rgba(255,255,255,0.86); }
 .primary-button.compact { padding: 0.62rem 1rem; }
+.submit-focus-button {
+    min-height: 46px;
+    padding-inline: 1.2rem;
+    white-space: nowrap;
+    background:
+        linear-gradient(135deg, #9f3d31, #c66f3c);
+    box-shadow: 0 10px 22px rgba(159,61,49,0.18);
+}
 
 .action-preview-panel {
     flex: 1 0 100%;
@@ -1349,6 +1442,16 @@ meter { width: 100%; height: 0.72rem; }
         radial-gradient(circle at 0 0, rgba(47,123,100,0.14), transparent 16rem),
         radial-gradient(circle at 100% 0, rgba(201,154,66,0.16), transparent 12rem);
     box-shadow: inset 0 0 0 1px rgba(255,255,255,0.38);
+}
+#game-view.action-tray-compact .action-preview-panel {
+    margin: 0;
+    padding: 0.54rem 0.72rem;
+    border-color: rgba(47,123,100,0.22);
+    border-left: 4px solid rgba(47,123,100,0.62);
+    border-radius: 18px;
+    background:
+        linear-gradient(90deg, rgba(255,255,255,0.56), rgba(255,248,223,0.5)),
+        radial-gradient(circle at 100% 0, rgba(201,154,66,0.12), transparent 11rem);
 }
 .action-preview-head {
     display: flex;
@@ -1383,10 +1486,20 @@ meter { width: 100%; height: 0.72rem; }
     color: var(--muted);
     line-height: 1.55;
 }
+#game-view.action-tray-compact .action-preview-panel p {
+    display: -webkit-box;
+    margin: 0.14rem 0 0;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 1;
+}
 .action-preview-grid {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 0.55rem;
+}
+#game-view.action-tray-compact .action-preview-grid {
+    display: none;
 }
 .action-preview-grid article {
     min-height: 5.5rem;
@@ -1427,16 +1540,26 @@ meter { width: 100%; height: 0.72rem; }
 #game-view.action-tray-compact .action-input-row {
     order: -1;
     position: sticky;
-    top: -0.65rem;
+    top: 0;
     z-index: 8;
-    margin: -0.15rem 0 0;
-    padding: 0.45rem 0 0.5rem;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    gap: 0.42rem;
+    margin: 0;
+    padding: 0.36rem;
+    border: 1px solid rgba(126, 94, 47, 0.2);
+    border-radius: 999px;
     background:
-        linear-gradient(180deg, rgba(255,252,239,0.98), rgba(255,252,239,0.92)),
-        var(--paper);
-    box-shadow: 0 10px 22px rgba(43,36,28,0.08);
+        linear-gradient(180deg, rgba(255,255,255,0.78), rgba(255,248,223,0.62));
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.65), 0 12px 26px rgba(43,36,28,0.1);
 }
 #action-input { flex: 1; }
+#game-view.action-tray-compact #action-input {
+    min-height: 44px;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+}
 #action-button {
     min-width: 4rem;
     min-height: 44px;
@@ -1449,6 +1572,11 @@ meter { width: 100%; height: 0.72rem; }
     font: inherit;
     font-weight: 800;
 }
+#game-view.action-tray-compact #action-button {
+    min-width: 3.45rem;
+    padding-inline: 0.95rem;
+    box-shadow: 0 8px 16px rgba(159,61,49,0.18);
+}
 .retrospect-button {
     min-height: 44px;
     white-space: nowrap;
@@ -1458,6 +1586,10 @@ meter { width: 100%; height: 0.72rem; }
         radial-gradient(circle at 20% 20%, rgba(201,154,66,0.18), transparent 9rem);
     color: var(--ink);
     box-shadow: inset 0 0 0 1px rgba(255,255,255,0.32);
+}
+#game-view.action-tray-compact .retrospect-button {
+    padding-inline: 1rem;
+    border-radius: 999px;
 }
 .retrospect-button:not(:disabled):hover {
     transform: translateY(-1px);
@@ -1683,5 +1815,22 @@ button:disabled, input:disabled { opacity: 0.58; cursor: not-allowed; }
     .history-toolbar { grid-template-columns: 1fr; }
     .history-expand-button { justify-self: stretch; }
     #main-content { padding: 0.8rem; }
-    .action-input-row { flex-direction: column; }
+    .decision-dock-meta,
+    .decision-action-rail {
+        grid-template-columns: 1fr;
+        display: grid;
+    }
+    .selected-focus-summary {
+        min-width: 0;
+        max-width: none;
+    }
+    #game-view.action-tray-compact .action-input-row {
+        grid-template-columns: 1fr;
+        border-radius: 24px;
+    }
+    #game-view.action-tray-compact #action-button,
+    #game-view.action-tray-compact .retrospect-button,
+    .submit-focus-button {
+        width: 100%;
+    }
 }

@@ -41,7 +41,7 @@ assert.match(html, /本半年行动/, 'free-text action placeholder should use h
 assert.match(html, /id='codex-button'/, 'game header should expose ending codex collection');
 assert.match(html, /id='codex-panel'/, 'ending codex should render as a modal panel');
 assert.match(html, /id='codex-content'/, 'ending codex modal should contain collection content');
-assert.match(html, /action-tray-20260608/, 'main assets should be cache-busted for the action-tray layout fix');
+assert.match(html, /decision-dock-20260608/, 'main assets should be cache-busted for the decision dock layout fix');
 assert.doesNotMatch(html, /Linux\.do|login\/linuxdo/, 'Linux.do login entry should be removed');
 assert.doesNotMatch(html, /id='fullscreen-button'/, 'fullscreen button should be removed');
 assert.doesNotMatch(html, /start-trial-button/, 'legacy start trial button should be removed');
@@ -49,7 +49,7 @@ assert.doesNotMatch(html, /start-trial-button/, 'legacy start trial button shoul
 assert.match(css, /#app-container\s*{[^}]*height:\s*100vh/s, 'app should default to viewport height');
 assert.match(css, /#app-container\s*{[^}]*max-width:\s*none/s, 'app should default to full viewport width');
 assert.match(css, /#game-view\.status-collapsed\s*{[^}]*grid-template-columns:\s*48px\s+1fr/s, 'desktop collapsed status rail should keep the status panel on the left');
-assert.match(css, /#game-view\.action-tray-compact\s*{[^}]*grid-template-rows:\s*auto\s+minmax\(0,\s*1fr\)\s+minmax\(10rem,\s*clamp\(10rem,\s*26vh,\s*18rem\)\)/s, 'life-simulation action tray should be height-capped on desktop');
+assert.match(css, /#game-view\.action-tray-compact\s*{[^}]*grid-template-rows:\s*auto\s+minmax\(0,\s*1fr\)\s+minmax\(8\.8rem,\s*clamp\(8\.8rem,\s*21vh,\s*14rem\)\)/s, 'life-simulation action tray should be height-capped on desktop');
 assert.match(css, /#game-view\.action-tray-compact\s+#action-area\s*{[^}]*overflow:\s*auto/s, 'height-capped action tray should scroll internally instead of squeezing main content');
 assert.match(css, /#game-view\.action-tray-compact\s+\.action-input-row\s*{[^}]*order:\s*-1/s, 'free-text action input should stay visible at the top of the compact action tray');
 assert.match(css, /@media\s*\(max-width:\s*850px\)[\s\S]*#status-panel\s*{[^}]*position:\s*absolute/s, 'mobile status panel should overlay instead of consuming layout rows');
@@ -77,6 +77,9 @@ assert.match(css, /\.goal-progress-card\s*{/, 'active life goal progress should 
 assert.match(css, /\.streak-card\s*{/, 'continuous focus streaks should render as status cards');
 assert.match(css, /\.action-preview-panel\s*{/, 'action previews should render as a distinct decision panel');
 assert.match(css, /\.action-preview-grid\s*{/, 'action previews should show target, goal alignment, effects, and streak prediction');
+assert.match(css, /\.decision-dock-meta\s*{/, 'decision dock should separate stage context from controls');
+assert.match(css, /\.focus-chip-strip\s*{[^}]*overflow-x:\s*auto/s, 'decision dock action chips should scroll horizontally instead of wrapping into clutter');
+assert.match(css, /\.submit-focus-button\s*{/, 'decision dock should keep the main submit action visually distinct');
 assert.match(css, /\.focus-chip\.goal-fit\s*{/, 'goal-aligned action chips should be visually marked');
 assert.match(css, /\.achievement-card\s*{/, 'unlocked achievements should render as status cards');
 assert.match(css, /\.milestone-card\s*{/, 'life milestones should render as status cards');

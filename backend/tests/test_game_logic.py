@@ -217,7 +217,7 @@ def test_half_year_resolution_core_returns_authoritative_record(monkeypatch):
     session = _chart_session()
     game_logic._handle_generate_prelude(session)
     game_logic._handle_accept_prelude(session)
-    game_logic._refresh_current_context(session)
+    half_year_resolution.refresh_current_context(session, game_logic.ACTION_DETAIL)
 
     record = half_year_resolution.resolve_authoritative_record(session, {'focuses': ['发展事业', '投资理财']})
 
@@ -238,14 +238,22 @@ def test_half_year_resolution_owns_system_projection_and_cursor(monkeypatch):
     session = _chart_session()
     game_logic._handle_generate_prelude(session)
     game_logic._handle_accept_prelude(session)
-    game_logic._refresh_current_context(session)
+    half_year_resolution.refresh_current_context(session, game_logic.ACTION_DETAIL)
+
+    assert session['current_life']['行动预览'] == session['action_guides']
+    assert session['current_monthly_cycles']
 
     record = half_year_resolution.resolve_authoritative_record(session, {'focuses': ['发展事业']})
-    half_year_resolution.refresh_life_systems(session, record)
+    half_year_resolution.complete_authoritative_record(session, record)
 
     assert session['life_systems']['career']['stage'].startswith('职业入口')
     assert session['life_systems']['career']['notes']
     assert session['relationships'][1]['name'] == '伴侣/亲密关系'
+    assert record['goal_progress_after']['goal_id'] == session['active_life_goal_id']
+    assert record['new_achievements']
+    assert record['milestone']['title']
+    assert session['latest_achievements'] == record['new_achievements']
+    assert session['milestones'][-1] == record['milestone']
 
     half_year_resolution.advance_turn_cursor(session, record)
     assert session['current_half'] == 2
@@ -300,9 +308,14 @@ def test_action_guides_preview_goal_alignment_and_streak(monkeypatch):
     game_logic._handle_generate_prelude(session)
     game_logic._handle_accept_prelude(session)
     game_logic._handle_set_life_goal(session, 'recognized_work')
-    game_logic._refresh_current_context(session)
+    half_year_resolution.refresh_current_context(session, game_logic.ACTION_DETAIL)
 
     career_guide = next(item for item in session['action_guides'] if item['action'] == '发展事业')
+    direct_career_guide = next(
+        item for item in half_year_resolution.build_action_guides(session, game_logic.ACTION_DETAIL)
+        if item['action'] == '发展事业'
+    )
+    assert direct_career_guide == career_guide
     assert career_guide['goal_alignment']['level'] == '高度契合'
     assert career_guide['primary'] == '事业'
     assert career_guide['secondary'] == '财富'
@@ -468,6 +481,7 @@ def test_reaching_age_60_finishes_immediately(monkeypatch):
     assert session['phase'] == 'ending'
     assert session['is_finished'] is True
     assert session['current_age'] == 60
+    assert half_year_resolution.finish_reason(session) == 'age_60'
     assert len(session['annual_summaries']) == 2
     assert len(session['half_year_summaries']) == 2
     assert session['ending']['title']
