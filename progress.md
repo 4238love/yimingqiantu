@@ -194,3 +194,14 @@
 - Found blank action chips during the first deployed age-6 flow; patched `frontend/index.js` with `cleanActionOptions()` to fall back to `current_stage.action_options`, updated layout assertions, rebuilt Docker again, and re-ran the browser flow. Final action chips were `专注学业 / 陪伴家人 / 调养身体 / 社交拓展 / 搬迁远行 / 随缘而行` with `blankButtons=0`.
 - Mobile browser smoke at `390x844` passed: status panel starts collapsed, guide/history grids collapse to one column, `smallTargets=[]`, and there is no horizontal overflow.
 - Docker logs after validation showed normal startup and HTTP/WebSocket activity, with no application errors beyond the expected missing-placeholder `OPENAI_API_KEY` warning.
+
+## 2026-06-08
+
+- Continued gameplay optimization after GitHub initial release.
+- Added an active `retrospect_life` flow: players can voluntarily end a life run before age 60, preserving the current state as a formal ending archive instead of needing to play to the terminal age.
+- Backend ending generation now records `ending_reason` / `ending.reason`, distinguishes active retrospection from age-60 and health-zero endings, and writes a `【回望一生：...】` history entry.
+- Frontend action area now exposes a distinct `回望一生` button with confirmation, disables it during processing/finished states, and renders the ending reason inside the archive.
+- Updated schema/tests/static layout assertions/README/task plan for the retrospection feature.
+- Validation passed: `node --check frontend/index.js`, `node --check frontend/live.js`, `node tests/frontend_layout_check.mjs`, and `python -B -m pytest -p no:cacheprovider backend\tests` (31 passed).
+- Rebuilt Docker with `docker compose up -d --build`; container is healthy on `0.0.0.0:7650->7650/tcp`.
+- Browser smoke on `http://127.0.0.1:7650/?v=retrospect-smoke` verified guest start -> chart -> prelude -> life start -> `回望一生` confirmation -> `phase=结局`, disabled retrospection button, and archive reason `收束方式：主动回望`.

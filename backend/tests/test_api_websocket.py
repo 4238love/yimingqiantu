@@ -103,6 +103,50 @@ def test_guest_websocket_can_play_to_ending(monkeypatch):
                 assert len(state['annual_summaries']) == 2
 
 
+def test_guest_websocket_can_retrospect_life(monkeypatch):
+    from backend.app import game_logic
+
+    monkeypatch.setattr(game_logic.openai_client, 'is_text_ai_enabled', lambda *args, **kwargs: False)
+
+    with tempfile.TemporaryDirectory() as tmp:
+        _redirect_storage(tmp)
+        from backend.app.main import app
+
+        with TestClient(app) as client:
+            assert client.post('/api/guest').status_code == 200
+            assert client.post('/api/game/init').status_code == 200
+
+            with client.websocket_connect('/api/ws') as websocket:
+                state = _apply_ws_message(None, websocket.receive_json())
+                websocket.send_json({
+                    'action': {
+                        'type': 'generate_chart',
+                        'birth_info': {
+                            'birth_date': '2000-03-15',
+                            'birth_time': '08:30',
+                            'gender': 'male',
+                            'start_age': 22,
+                            'calendar': 'solar',
+                        },
+                    }
+                })
+                state = _apply_ws_message(state, websocket.receive_json())
+                websocket.send_json({'action': {'type': 'generate_prelude'}})
+                state = _apply_ws_message(state, websocket.receive_json())
+                websocket.send_json({'action': {'type': 'accept_prelude'}})
+                state = _apply_ws_message(state, websocket.receive_json())
+                assert state['phase'] == 'life_simulation'
+
+                websocket.send_json({'action': {'type': 'retrospect_life'}})
+                state = _apply_ws_message(state, websocket.receive_json())
+
+                assert state['phase'] == 'ending'
+                assert state['is_finished'] is True
+                assert state['ending_reason'] == 'retrospect'
+                assert state['ending']['reason'] == 'retrospect'
+                assert any(item.startswith('【回望一生：') for item in state['display_history'])
+
+
 def test_guest_can_manage_custom_ai_settings(monkeypatch):
     async def fake_test_text_ai_connection(user_id, payload):
         assert user_id.startswith('guest_')

@@ -865,6 +865,7 @@ def _new_session(player_id: str) -> dict[str, Any]:
         'roll_event': None,
         'is_processing': False,
         'is_finished': False,
+        'ending_reason': '',
         'ending': None,
         'action_options': ACTION_OPTIONS,
         'current_life': None,
@@ -881,6 +882,7 @@ def _ensure_session_defaults(session: dict[str, Any]) -> dict[str, Any]:
     session.setdefault('latest_achievements', [])
     session.setdefault('milestones', [])
     session.setdefault('relationships', [])
+    session.setdefault('ending_reason', '')
     if session.get('life_state'):
         _ensure_life_goals(session)
         _refresh_goal_progress(session)
@@ -1279,6 +1281,7 @@ def _ending_achievements_and_regrets(state: dict[str, Any]) -> tuple[list[str], 
 def _build_ending(session: dict[str, Any]) -> dict[str, Any]:
     state = session.get('life_state', {})
     goal_progress = _refresh_goal_progress(session) if state else {}
+    reason = str(session.get('ending_reason') or '')
     dimensions = {
         '事业': _ending_dimension('事业', int(state.get('事业', 0))),
         '财富': _ending_dimension('财富', int(state.get('财富', 0))),
@@ -1303,9 +1306,15 @@ def _build_ending(session: dict[str, Any]) -> dict[str, Any]:
         title = '心有所安之一生'
     else:
         title = '一生多变，晚景自明'
+    reason_line = {
+        'retrospect': '这是你主动选择停下脚步、回望当下人生时生成的档案；它不是失败，而是本周目在此刻的定格。',
+        'health_zero': '这一生因健康归零而提前收束，身体底盘成为最终结局里最沉重的注脚。',
+        'age_60': '这一生已走到六十岁节点，命书按照当前积累生成阶段性终章。',
+    }.get(reason, '')
     dimension_line = '、'.join(label + str(item['score']) + '分（' + item['grade'] + '）' for label, item in dimensions.items())
     system_line = '；'.join(str(item.get('label')) + '：' + str(item.get('stage')) for item in systems.values()) if isinstance(systems, dict) else ''
     summary = (
+        (reason_line + ' ' if reason_line else '') +
         '回望这一生，你最终留下的状态是：' + dimension_line + '。' +
         '命盘给了底色，大运、流年和流月给了每个阶段的风向，但真正留下痕迹的是你在半年又半年里反复选择、承担后果、修补关系和重新分配精力的方式。' +
         ('长期系统收束为：' + system_line + '。' if system_line else '') +
@@ -1318,6 +1327,7 @@ def _build_ending(session: dict[str, Any]) -> dict[str, Any]:
     )
     return {
         'title': title,
+        'reason': reason or 'natural',
         'summary': summary,
         'final_state': state,
         'dimensions': dimensions,
@@ -1333,14 +1343,38 @@ def _build_ending(session: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def _finish_if_needed(session: dict[str, Any]) -> bool:
-    if int(session.get('life_state', {}).get('健康', 1)) <= 0 or int(session.get('current_age') or 0) >= 60:
-        session['phase'] = 'ending'
-        session['is_finished'] = True
-        session['ending'] = _build_ending(session)
-        session['display_history'].append('【结局：' + session['ending']['title'] + '】\n\n' + session['ending']['summary'])
+def _finish_session(session: dict[str, Any], reason: str = 'natural') -> bool:
+    if session.get('is_finished') and session.get('ending'):
         return True
+    session['ending_reason'] = reason
+    session['phase'] = 'ending'
+    session['is_finished'] = True
+    session['ending'] = _build_ending(session)
+    if reason == 'retrospect':
+        prefix = '【回望一生：'
+    else:
+        prefix = '【结局：'
+    session['display_history'].append(prefix + session['ending']['title'] + '】\n\n' + session['ending']['summary'])
+    return True
+
+
+def _finish_if_needed(session: dict[str, Any]) -> bool:
+    if int(session.get('life_state', {}).get('健康', 1)) <= 0:
+        return _finish_session(session, 'health_zero')
+    if int(session.get('current_age') or 0) >= 60:
+        return _finish_session(session, 'age_60')
     return False
+
+
+def _handle_retrospect_life(session: dict[str, Any]) -> None:
+    if session.get('phase') != 'life_simulation':
+        session['display_history'].append('【系统提示】只有正式开始人生模拟后，才能主动回望一生。')
+        return
+    _refresh_current_context(session)
+    age = str(session.get('current_age') or '')
+    half_label = str(session.get('current_half_label') or '')
+    session['major_events'].append(age + '岁' + half_label + '，你主动选择回望一生。')
+    _finish_session(session, 'retrospect')
 
 
 def _format_state_effect(changes: dict[str, Any]) -> str:
@@ -1736,6 +1770,8 @@ async def _process_player_action_async(current_user: dict[str, Any], action: Any
             _handle_accept_prelude(session)
         elif action_type in ['annual_action', 'year_action']:
             await _handle_annual_action_async(session, payload)
+        elif action_type in ['retrospect_life', 'look_back_life', 'finish_life']:
+            _handle_retrospect_life(session)
         elif action_type in ACTION_OPTIONS:
             await _handle_annual_action_async(session, action_type)
         else:

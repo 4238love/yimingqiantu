@@ -243,6 +243,34 @@ def test_ending_contains_life_archive(monkeypatch):
     assert '主要成就' in ending['summary']
 
 
+def test_player_can_retrospect_life_before_age_60(monkeypatch):
+    monkeypatch.setattr(game_logic.openai_client, 'is_text_ai_enabled', lambda *args, **kwargs: False)
+    session = game_logic._new_session('retrospect_player')
+    game_logic._handle_generate_chart(
+        session,
+        {
+            'birth_info': {
+                'birth_date': '2000-03-15',
+                'birth_time': '08:30',
+                'gender': 'male',
+                'start_age': 22,
+                'calendar': 'solar',
+            }
+        },
+    )
+    game_logic._handle_generate_prelude(session)
+    game_logic._handle_accept_prelude(session)
+
+    game_logic._handle_retrospect_life(session)
+
+    assert session['phase'] == 'ending'
+    assert session['is_finished'] is True
+    assert session['ending_reason'] == 'retrospect'
+    assert session['ending']['reason'] == 'retrospect'
+    assert '主动选择停下脚步' in session['ending']['summary']
+    assert any(item.startswith('【回望一生：') for item in session['display_history'])
+
+
 def test_reaching_age_60_finishes_immediately(monkeypatch):
     monkeypatch.setattr(game_logic.openai_client, 'is_text_ai_enabled', lambda *args, **kwargs: False)
     session = game_logic._new_session('age_60_player')

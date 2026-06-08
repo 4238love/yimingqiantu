@@ -214,6 +214,7 @@
     "roll_event": { "type": ["object", "null"] },
     "is_processing": { "type": "boolean" },
     "is_finished": { "type": "boolean" },
+    "ending_reason": { "type": "string" },
     "ending": {
       "anyOf": [
         { "type": "null" },
@@ -222,6 +223,7 @@
           "additionalProperties": true,
           "properties": {
             "title": { "type": "string" },
+            "reason": { "type": "string" },
             "summary": { "type": "string" },
             "final_state": { "type": "object" },
             "dimensions": { "type": "object" },
@@ -282,6 +284,7 @@
     "roll_event",
     "is_processing",
     "is_finished",
+    "ending_reason",
     "ending",
     "action_options",
     "current_life"

@@ -880,6 +880,12 @@ input, select {
     gap: 1rem;
 }
 
+.ending-reason {
+    margin: -0.2rem 0 0.15rem;
+    color: var(--muted);
+    font-weight: 800;
+}
+
 .ending-grid {
     display: grid;
     grid-template-columns: repeat(7, minmax(0, 1fr));
@@ -1127,6 +1133,21 @@ meter { width: 100%; height: 0.72rem; }
     cursor: pointer;
     font: inherit;
     font-weight: 800;
+}
+.retrospect-button {
+    min-height: 44px;
+    white-space: nowrap;
+    border-color: rgba(93, 64, 55, 0.26);
+    background:
+        linear-gradient(135deg, rgba(255,248,223,0.94), rgba(224,207,170,0.9)),
+        radial-gradient(circle at 20% 20%, rgba(201,154,66,0.18), transparent 9rem);
+    color: var(--ink);
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.32);
+}
+.retrospect-button:not(:disabled):hover {
+    transform: translateY(-1px);
+    border-color: rgba(159,61,49,0.36);
+    box-shadow: 0 10px 22px rgba(93,64,55,0.14);
 }
 button:disabled, input:disabled { opacity: 0.58; cursor: not-allowed; }
 

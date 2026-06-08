@@ -13,6 +13,7 @@ assert.match(html, /id='status-toggle-button'/, 'status toggle button should exi
 assert.match(html, /aria-controls='status-panel'/, 'status toggle should target status panel');
 assert.match(html, /id='api-settings-button'/, 'game header should expose custom AI API settings');
 assert.match(html, /id='export-archive-button'/, 'game header should expose life archive export');
+assert.match(html, /id='retrospect-button'/, 'action area should expose manual life retrospection');
 assert.match(html, /id='api-settings-panel'/, 'custom AI API settings panel should exist after login');
 assert.match(html, /id='api-settings-backdrop'/, 'custom AI API settings should use a modal backdrop');
 assert.match(html, /role='dialog'/, 'custom AI API settings should render as a dialog');
@@ -37,7 +38,7 @@ assert.match(html, /id='month-flow-board'/, 'simulation view should show current
 assert.match(html, /id='turn-guide'/, 'simulation view should show a turn decision guide');
 assert.match(html, /id='roll-stage-label'/, 'roll overlay should expose staged divination text');
 assert.match(html, /本半年行动/, 'free-text action placeholder should use half-year wording');
-assert.match(html, /experience-20260607/, 'main assets should be cache-busted for the experience optimization');
+assert.match(html, /retrospect-20260608/, 'main assets should be cache-busted for the retrospection optimization');
 assert.doesNotMatch(html, /Linux\.do|login\/linuxdo/, 'Linux.do login entry should be removed');
 assert.doesNotMatch(html, /id='fullscreen-button'/, 'fullscreen button should be removed');
 assert.doesNotMatch(html, /start-trial-button/, 'legacy start trial button should be removed');
@@ -70,11 +71,13 @@ assert.match(css, /\.goal-progress-card\s*{/, 'active life goal progress should 
 assert.match(css, /\.achievement-card\s*{/, 'unlocked achievements should render as status cards');
 assert.match(css, /\.milestone-card\s*{/, 'life milestones should render as status cards');
 assert.match(css, /\.ending-archive\s*{/, 'ending should render as a life archive section');
+assert.match(css, /\.ending-reason\s*{/, 'ending archive should show why the run ended');
 assert.match(css, /\.ending-goal-card\s*{/, 'ending archive should show life goal completion');
 assert.match(css, /\.history-toolbar\s*{/, 'narrative history should include filter/expand toolbar styling');
 assert.match(css, /\.history-filter-chip\s*{/, 'history filters should render as accessible chips');
 assert.match(css, /\.history-entry::before\s*{/, 'history entries should have type markers');
 assert.match(css, /\.stage-action-hint\s*{/, 'action area should explain current life stage');
+assert.match(css, /\.retrospect-button\s*{/, 'manual retrospection should have a distinct action button style');
 assert.match(css, /\.divination-loader\s*{/, 'processing loader should use divination-themed UI');
 assert.match(css, /#roll-overlay\.pending\s+\.dice-cup/, 'roll overlay should support a pending shake state');
 
@@ -109,6 +112,10 @@ assert.match(js, /HISTORY_COMPACT_LIMIT/, 'frontend should collapse long narrati
 assert.match(js, /function buildLifeArchiveMarkdown\(/, 'frontend should build a downloadable life archive');
 assert.match(js, /function exportLifeArchive\(/, 'frontend should export the current life archive');
 assert.match(js, /exportArchiveButton\.addEventListener\('click',\s*exportLifeArchive\)/, 'archive export button should be wired');
+assert.match(js, /retrospectButton:\s*document\.getElementById\('retrospect-button'\)/, 'manual retrospection button should be wired in DOMElements');
+assert.match(js, /function handleRetrospectLife\(\)/, 'frontend should handle manual life retrospection');
+assert.match(js, /type:\s*'retrospect_life'/, 'frontend should send the retrospection action');
+assert.match(js, /retrospectButton\.addEventListener\('click',\s*handleRetrospectLife\)/, 'manual retrospection button should be clickable');
 assert.match(js, /state\.life_systems/, 'frontend should render long-term systems from state');
 assert.match(js, /state\.relationships/, 'frontend should render relationship network from state');
 assert.match(js, /state\.current_stage/, 'frontend should consume current age-stage metadata');

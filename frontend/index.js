@@ -70,6 +70,7 @@ const DOMElements = {
     focusActions: document.getElementById('focus-actions'),
     actionInput: document.getElementById('action-input'),
     actionButton: document.getElementById('action-button'),
+    retrospectButton: document.getElementById('retrospect-button'),
     generatePreludeButton: document.getElementById('generate-prelude-button'),
     editBirthButton: document.getElementById('edit-birth-button'),
     acceptPreludeButton: document.getElementById('accept-prelude-button'),
@@ -571,13 +572,15 @@ function renderEndingArchive(ending) {
     if (!ending) return '';
     const dimensions = ending.dimensions || {};
     const goal = ending.life_goal || {};
+    const reasonLabels = { retrospect: '主动回望', health_zero: '健康归零', age_60: '六十岁终章', natural: '自然收束' };
+    const reasonBlock = ending.reason ? '<p class=\'ending-reason\'>收束方式：' + escapeHtml(reasonLabels[ending.reason] || ending.reason) + '</p>' : '';
     const goalBlock = goal.title ? '<article class=\'ending-goal-card\'><span>人生愿望</span><strong>' + escapeHtml(goal.title) + '</strong><p>' + escapeHtml(goal.achieved ? '最终达成' : '尚未完全达成') + ' · ' + Number(goal.score || 0) + '/' + Number(goal.threshold || 0) + ' · ' + escapeHtml(goal.status || '') + '</p></article>' : '';
     const dimensionCards = Object.values(dimensions).map(item => '<article><span>' + escapeHtml(item.label || '') + '</span><strong>' + escapeHtml(item.grade || '') + '</strong><small>' + Number(item.score || 0) + '分</small></article>').join('');
     const achievements = (ending.achievements || []).map(item => '<li>' + escapeHtml(item) + '</li>').join('');
     const regrets = (ending.regrets || []).map(item => '<li>' + escapeHtml(item) + '</li>').join('');
     const points = (ending.key_turning_points || []).map(item => '<li>' + escapeHtml(item) + '</li>').join('');
     const unlocked = (ending.achievements_unlocked || []).map(item => '<li><b>' + escapeHtml(item.title || '') + '</b>：' + escapeHtml(item.description || '') + '</li>').join('');
-    return '<section class=\'ending-archive\'><h3>人生档案</h3>' +
+    return '<section class=\'ending-archive\'><h3>人生档案</h3>' + reasonBlock +
         goalBlock +
         '<div class=\'ending-grid\'>' + dimensionCards + '</div>' +
         '<div class=\'ending-lists\'>' +
@@ -766,6 +769,7 @@ function render() {
     showPanel(DOMElements.simulationPanel, ['life_simulation', 'ending'].includes(phase));
     DOMElements.actionInput.disabled = phase !== 'life_simulation' || appState.gameState.is_finished || appState.gameState.is_processing;
     DOMElements.actionButton.disabled = DOMElements.actionInput.disabled;
+    DOMElements.retrospectButton.disabled = DOMElements.actionInput.disabled;
     showLoading(appState.gameState.is_processing);
 }
 
@@ -995,6 +999,15 @@ function handleTypedAction() {
     socketManager.sendAction({ type: 'annual_action', focuses: [value] });
 }
 
+function handleRetrospectLife() {
+    const state = appState.gameState;
+    if (!state || state.phase !== 'life_simulation' || state.is_finished || state.is_processing) return;
+    const ageText = [state.current_age ? state.current_age + '岁' : '', state.current_half_label || ''].filter(Boolean).join('');
+    const ok = window.confirm('确定要在' + (ageText || '此刻') + '回望一生并生成结局档案吗？本周目会结束，但仍可导出档案或重开。');
+    if (!ok) return;
+    socketManager.sendAction({ type: 'retrospect_life' });
+}
+
 function handleUnknownTimeToggle() {
     DOMElements.birthTime.disabled = DOMElements.unknownTime.checked;
 }
@@ -1216,6 +1229,7 @@ function init() {
     DOMElements.acceptPreludeButton.addEventListener('click', () => socketManager.sendAction({ type: 'accept_prelude' }));
     DOMElements.actionButton.addEventListener('click', handleTypedAction);
     DOMElements.actionInput.addEventListener('keydown', event => { if (event.key === 'Enter') handleTypedAction(); });
+    DOMElements.retrospectButton.addEventListener('click', handleRetrospectLife);
     document.addEventListener('keydown', handleGlobalKeydown);
     initializeGame();
 }

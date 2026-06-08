@@ -52,6 +52,8 @@ Retrofit `YiMingQianTu` to match the design document: a birth-info driven Bazi +
 
 38. [complete] Add player-experience helpers: beginner guide, term glossary, current-turn decision guide, filterable/collapsible narrative history, and Markdown life-archive export.
 
+39. [complete] Add active life retrospection: let players voluntarily end the current run, generate an ending archive with a retrospection reason, and expose the action in the simulation UI.
+
 ## Decisions
 
 - Keep changes in `YiMingQianTu` only.
