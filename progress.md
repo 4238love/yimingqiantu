@@ -274,3 +274,8 @@
 - `frontend/index.js` 的全局 `render()` 不再手写 chart/prelude/simulation panel 可见性规则，而是调用 `applyPhaseView()`；主资源缓存版本提升到 `phase-view-20260608`。
 - 新增 `tests/frontend_phase_behaviour_check.mjs`：在设置 `YMQT_BASE_URL` 且安装 Playwright 时，会真实进入 life_simulation 并断言 `chart/prelude` 旧面板隐藏、`simulation` 面板可见、行动区高度比例、主内容高度、横向溢出和 console error。
 - 静态检查更新为读取 `frontend/phase_views.js` 与行为式 smoke 脚本；验证通过：`node --check frontend\phase_views.js`、`node --check frontend\index.js`、`node --check frontend\live.js`、`node --check tests\frontend_phase_behaviour_check.mjs`、`node tests\frontend_layout_check.mjs`、`node tests\frontend_phase_behaviour_check.mjs`（未设置 `YMQT_BASE_URL` 时按设计跳过）。
+
+- 最终完整回归通过：`python -m py_compile backend\app\half_year_resolution.py backend\app\life_session.py backend\app\ai_enrichment.py backend\app\state_publication.py backend\app\game_logic.py backend\app\main.py backend\app\state_manager.py`、全部前端 Node 检查、`git diff --check`、非沙箱 `python -B -m pytest -p no:cacheprovider backend\tests`（42 passed）。
+- Docker 最终验证通过：`docker compose up -d --build` 成功，`docker compose ps -a` 显示 `yimingqiantu` healthy，容器内 `python -B -m pytest -p no:cacheprovider backend/tests` 42 passed / 1 warning。
+- 部署页 `http://127.0.0.1:7650/?v=phase-view-final` 返回 200 并加载 `index.css?v=phase-view-20260608`、`index.js?v=phase-view-20260608`、`phase_views.js?v=phase-view-20260608`。
+- in-app Browser 行为复测：当前部署进入 `life_simulation` 后 `#game-view[data-phase=life_simulation]`，`chart-panel` / `prelude-panel` 均 hidden，`simulation-panel` 可见；1044×660 视口下行动区 140.8px / 21.3%，主内容 422.8px，无横向溢出，console error 为 0。
