@@ -79,3 +79,5 @@ Retrofit `YiMingQianTu` to match the design document: a birth-info driven Bazi +
 40. [complete] Add hidden ending system: classify rare/hidden/legendary endings from final-state combinations, display the unlocked ending in the archive, and include it in Markdown export.
 
 41. [complete] Add ending codex collection: persist unlocked endings across reset for the same visitor, show collection progress and locked-ending clues, and include codex progress in archive export.
+
+42. [complete] 将阶段事件池模块化到 `backend/app/event_pool.py`，并加入连续行动反馈：D100 加成、状态惯性、机会成本提醒、前端状态卡、档案导出、schema 与测试覆盖。

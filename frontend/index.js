@@ -481,6 +481,33 @@ function renderNarrative() {
     scheduleSceneBackgroundUpdate();
 }
 
+function getStreakView(state) {
+    const streak = state.focus_streak || {};
+    const memory = state.focus_memory || {};
+    const action = streak.action || memory.last_focus || '';
+    const count = Number(streak.count || memory.streak || 0);
+    const bonus = Number(streak.streak_bonus || 0);
+    const warning = state.streak_warning || streak.streak_warning || '';
+    return {
+        action,
+        count,
+        bonus,
+        warning,
+        label: action ? ('连续 ' + Math.max(1, count) + ' 次 · ' + action) : '尚未形成行动惯性',
+        hint: action
+            ? (warning || '继续相同主重点会获得 D100 加成，也会记录机会成本。')
+            : '完成第一次半年度行动后，这里会显示连续选择反馈。',
+    };
+}
+
+function renderStreakStatusCard(state) {
+    const view = getStreakView(state || {});
+    if (!view.action) return '';
+    const bonusText = view.bonus > 0 ? 'D100 +' + view.bonus : '观察中';
+    return '<article class=\'streak-card\'><div><b>' + escapeHtml(view.label) + '</b><span>' + escapeHtml(bonusText) + '</span></div>' +
+        '<small>' + escapeHtml(view.hint) + '</small></article>';
+}
+
 function renderStatus() {
     const state = appState.gameState || {};
     const lifeState = state.life_state || {};
@@ -509,8 +536,10 @@ function renderStatus() {
     const achievementCards = achievements.slice(-5).reverse().map(item => '<article class=\'achievement-card\'><span>' + escapeHtml(item.category || '成就') + '</span><b>' + escapeHtml(item.title || '') + '</b><small>' + escapeHtml(item.unlocked_at || '') + ' · ' + escapeHtml(item.description || '') + '</small></article>').join('');
     const milestones = state.milestones || [];
     const milestoneCards = milestones.slice(-4).reverse().map(item => '<article class=\'milestone-card\'><b>' + escapeHtml(item.title || '') + '</b><small>' + escapeHtml(item.text || '') + '</small></article>').join('');
+    const streakCard = renderStreakStatusCard(state);
     DOMElements.characterStatus.innerHTML = chartInfo +
         (goalCard ? '<div class=\'status-section\'><h3>人生愿望</h3>' + goalCard + '</div>' : '') +
+        (streakCard ? '<div class=\'status-section\'><h3>连续选择反馈</h3>' + streakCard + '</div>' : '') +
         (achievementCards ? '<div class=\'status-section\'><h3>已解锁成就</h3>' + achievementCards + '</div>' : '') +
         (milestoneCards ? '<div class=\'status-section\'><h3>人生里程碑</h3>' + milestoneCards + '</div>' : '') +
         (systemCards ? '<div class=\'status-section\'><h3>长期系统</h3>' + systemCards + '</div>' : '') +
@@ -562,6 +591,8 @@ function renderTurnGuide() {
     const opportunity = collect('opportunity', '稳步推进');
     const risk = collect('risk', '贪多冒进');
     const goalText = goal.title ? goal.title + ' · ' + Number(goal.percent || 0) + '%' : '未选择人生愿望';
+    const streakView = getStreakView(state);
+    const streakBonus = streakView.bonus > 0 ? 'D100 +' + streakView.bonus : '暂未加成';
     DOMElements.turnGuide.innerHTML = '<section class=\'turn-guide-card\'>' +
         '<div class=\'turn-guide-heading\'><div><span>本半年决策提示</span><strong>' + escapeHtml(stage.label || '人生阶段') + '</strong></div><p>' + escapeHtml(stage.summary || '选择会影响长期状态、愿望进度与结局档案。') + '</p></div>' +
         '<div class=\'turn-guide-grid\'>' +
@@ -569,6 +600,7 @@ function renderTurnGuide() {
             '<article><span>时势</span><b>' + escapeHtml((luck.pillar || '-') + ' 大运 / ' + (annual.pillar || '-') + ' 流年') + '</b><small>大运看十年基调，流年看当年事件倾向。</small></article>' +
             '<article><span>流月机会</span><b>' + escapeHtml(opportunity) + '</b><small>可优先选择能承接机会的行动。</small></article>' +
             '<article><span>风险提醒</span><b>' + escapeHtml(risk) + '</b><small>压力过高会拖累 D100 目标值。</small></article>' +
+            '<article class=\'streak-preview-card\'><span>连续投入</span><b>' + escapeHtml(streakView.label) + '</b><small>' + escapeHtml(streakBonus + ' · ' + streakView.hint) + '</small></article>' +
         '</div>' +
         '<details class=\'turn-glossary\'><summary>术语速查</summary><p><b>起运</b>：从出生到进入第一步大运的年龄；<b>大运</b>：十年基调；<b>流年</b>：当年主题；<b>流月</b>：本半年每月机会/风险；<b>D100</b>：系统用百分骰判定行动成败。</p></details>' +
     '</section>';
@@ -863,6 +895,14 @@ function buildLifeArchiveMarkdown(state) {
     lines.push('');
     lines.push('## 当前状态');
     Object.entries(state.life_state || {}).forEach(([key, value]) => lines.push('- ' + key + '：' + value));
+    const streakView = getStreakView(state);
+    if (streakView.action) {
+        lines.push('');
+        lines.push('## 连续选择反馈');
+        lines.push('- 当前惯性：' + streakView.label);
+        lines.push('- 判定加成：' + (streakView.bonus > 0 ? 'D100 +' + streakView.bonus : '暂无'));
+        lines.push('- 提醒：' + streakView.hint);
+    }
     if (state.achievements?.length) {
         lines.push('');
         lines.push('## 解锁成就');

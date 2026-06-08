@@ -1059,6 +1059,7 @@ input, select {
 .ending-lists article,
 .system-card,
 .relationship-card,
+.streak-card,
 .achievement-card,
 .milestone-card {
     padding: 0.85rem;
@@ -1071,6 +1072,7 @@ input, select {
 .ending-grid small,
 .system-card small,
 .relationship-card small,
+.streak-card small,
 .achievement-card small,
 .milestone-card small {
     display: block;
@@ -1088,6 +1090,30 @@ input, select {
 .system-card { min-height: 5.6rem; }
 
 .relationship-card { min-height: 5.6rem; }
+
+.streak-card {
+    min-height: 5.8rem;
+    border-color: rgba(201,154,66,0.34);
+    background:
+        radial-gradient(circle at 100% 0, rgba(201,154,66,0.18), transparent 8rem),
+        rgba(255, 248, 223, 0.72);
+}
+.streak-card div {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.55rem;
+}
+.streak-card span {
+    flex: 0 0 auto;
+    color: #8b5f13;
+    font-size: 0.76rem;
+    font-weight: 900;
+}
+.streak-card b {
+    color: var(--ink);
+    line-height: 1.45;
+}
 
 .achievement-card,
 .milestone-card {

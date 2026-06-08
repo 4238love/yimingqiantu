@@ -1,6 +1,6 @@
 import asyncio
 
-from backend.app import bazi_engine, game_logic
+from backend.app import bazi_engine, event_pool, game_logic
 
 
 def _chart_session() -> dict:
@@ -208,6 +208,43 @@ def test_annual_action_accepts_custom_text(monkeypatch):
     assert '阶段事件' in stage_history
     assert '命盘与时势' in stage_history
     assert '判定细节' in latest_history
+
+
+def test_stage_event_pool_returns_structured_event():
+    stage = game_logic._age_stage(22)
+    picked = event_pool.pick_stage_event('event_pool_player', 22, 1, '发展事业', '成功', stage)
+
+    assert len(event_pool.STAGE_EVENT_POOL[stage['id']]['发展事业']) >= 3
+    assert picked['stage_id'] == stage['id']
+    assert picked['event_id']
+    assert picked['title']
+    assert picked['event']
+    assert picked['tags']
+    assert isinstance(picked['state_bias'], dict)
+    assert picked['clue']
+
+
+def test_repeated_focus_adds_streak_feedback_and_effect(monkeypatch):
+    monkeypatch.setattr(game_logic.openai_client, 'is_text_ai_enabled', lambda *args, **kwargs: False)
+    session = _chart_session()
+    game_logic._handle_generate_prelude(session)
+    game_logic._handle_accept_prelude(session)
+
+    game_logic._handle_annual_action(session, {'focuses': ['发展事业']})
+    first = session['annual_summaries'][-1]
+    game_logic._handle_annual_action(session, {'focuses': ['发展事业']})
+    second = session['annual_summaries'][-1]
+
+    assert first['focus_streak']['count'] == 1
+    assert first['streak_bonus'] == 0
+    assert second['focus_streak']['count'] == 2
+    assert second['streak_bonus'] == 3
+    assert second['roll_modifiers']['连续投入'] == 3
+    assert second['streak_effect']
+    assert session['focus_memory']['last_focus'] == '发展事业'
+    assert session['focus_memory']['streak'] == 2
+    assert '连续选择反馈' in second['summary']
+    assert any('连续选择反馈' in item for item in session['display_history'])
 
 
 def test_ending_contains_life_archive(monkeypatch):

@@ -11,7 +11,7 @@ from datetime import date
 from pathlib import Path
 from typing import Any
 
-from . import bazi_engine, fate_mapper, openai_client, state_manager
+from . import bazi_engine, event_pool, fate_mapper, openai_client, state_manager
 
 
 logger = logging.getLogger(__name__)
@@ -128,69 +128,6 @@ AGE_STAGE_PROFILES = [
     },
 ]
 
-STAGE_EVENT_POOL = {
-    'childhood': {
-        '专注学业': ['一次课堂展示让你第一次意识到努力会被看见。', '作业、兴趣班或阅读任务占据了你的上半年，你开始建立自己的学习节奏。'],
-        '陪伴家人': ['家里一次小小的变动让你更依赖熟悉的人，也更懂得观察大人的情绪。', '你把更多时间留在家庭日常里，安全感被修补，独立性也受到考验。'],
-        '调养身体': ['季节变化或体力消耗提醒你，身体底盘会影响学习和情绪。', '睡眠、饮食和运动被重新安排，你开始理解“照顾自己”不是大人的口号。'],
-        '社交拓展': ['新的同伴关系出现，你在合作、比较和小冲突里学习边界。', '一次集体活动让你看见自己在同龄人中的位置，也带来被接纳或被忽视的感受。'],
-        '搬迁远行': ['环境变化打乱了熟悉的节奏，你需要重新适应教室、同伴和作息。'],
-        '随缘而行': ['这个半年没有强烈目标，更多是观察、适应和在家庭保护下慢慢生长。'],
-    },
-    'adolescence': {
-        '专注学业': ['一次考试、竞赛或升学压力成为主线，你开始把自尊和成绩绑得更紧。', '老师或同学的评价刺中了你，也推动你重新安排努力的方式。'],
-        '经营感情': ['朦胧的好感、友情拉扯或关系误会让你第一次认真思考亲密与边界。'],
-        '陪伴家人': ['亲子期待与个人愿望发生摩擦，你需要在顺从、解释和反抗之间选择表达方式。'],
-        '调养身体': ['青春期的身体和情绪同时波动，作息与压力管理变成隐藏课题。'],
-        '社交拓展': ['新的朋友圈打开了视野，也带来比较、站队和自我证明的压力。'],
-        '搬迁远行': ['学校、班级或城市变化让你重新定义自己在群体中的位置。'],
-        '随缘而行': ['你暂时不想被目标推着走，留白让你恢复，也可能错过一次主动争取的机会。'],
-    },
-    'early_adult': {
-        '专注学业': ['专业选择、证书、作品或升学计划要求你把兴趣变成可证明的能力。'],
-        '发展事业': ['第一份岗位、实习或项目机会出现，你开始学习成人世界的规则。'],
-        '经营感情': ['亲密关系与未来规划开始绑定，甜蜜之外也出现现实条件的讨论。'],
-        '陪伴家人': ['离家或独立后，家庭支持与家庭期待同时变得更清晰。'],
-        '投资理财': ['收入、开销、租房或第一笔储蓄让你第一次直面金钱秩序。'],
-        '调养身体': ['熬夜、饮食和情绪压力开始在身体上留下反馈。'],
-        '社交拓展': ['同学、同事、行业圈和城市资源为你打开新的信息入口。'],
-        '搬迁远行': ['城市变化带来自由，也带来成本、孤独和身份重建。'],
-        '随缘而行': ['你给自己留出试错空间，在不确定中观察真正想走的路。'],
-    },
-    'building': {
-        '发展事业': ['项目、职位或合作机会要求你承担更明确的责任。'],
-        '经营感情': ['承诺、婚恋、共同生活或分离选择被推到台前。'],
-        '陪伴家人': ['父母、伴侣或孩子的需求改变了你的时间分配。'],
-        '投资理财': ['储蓄、房产、投资或债务决定了未来几年的安全感。'],
-        '创业冒险': ['一个不确定机会让你在稳定与主动权之间做取舍。'],
-        '调养身体': ['持续透支开始显形，你必须重新安排休息与恢复。'],
-        '社交拓展': ['合作网络能带来资源，也考验你的边界和判断。'],
-        '搬迁远行': ['为了机会、家庭或生活质量，你考虑改变城市与半径。'],
-        '专注学业': ['继续深造或升级技能，成为你突破瓶颈的路径。'],
-        '随缘而行': ['你暂时降低推进力度，先观察局势和修补消耗。'],
-    },
-    'midlife': {
-        '发展事业': ['职业结构到了需要升级或转向的节点。'],
-        '经营感情': ['长期关系里的沉默、责任和真实需求需要重新被看见。'],
-        '陪伴家人': ['子女、父母或伴侣的责任让你重新定义家庭秩序。'],
-        '投资理财': ['资产安全、现金流和风险偏好成为中年稳定感的核心。'],
-        '创业冒险': ['你试图把经验变成新的主动权，但代价也更高。'],
-        '调养身体': ['身体不再无条件配合，健康管理变成硬约束。'],
-        '社交拓展': ['你筛选真正可信的合作与支持网络。'],
-        '搬迁远行': ['环境变化可能带来转机，也会撬动家庭和资产结构。'],
-        '随缘而行': ['你放慢脚步，开始辨认哪些目标仍值得投入。'],
-    },
-    'late_life': {
-        '发展事业': ['你思考经验、名望和传承，而不是单纯追逐上升。'],
-        '经营感情': ['陪伴、和解与稳定感比激情更重要。'],
-        '陪伴家人': ['家庭关系进入照护、传承和告别感交织的阶段。'],
-        '投资理财': ['资产安全、医疗余量和晚年安排需要更谨慎。'],
-        '调养身体': ['健康成为所有选择的基础条件。'],
-        '社交拓展': ['你保留真正滋养自己的关系，减少无意义消耗。'],
-        '搬迁远行': ['一次迁移或远行更像对生活方式的重新选择。'],
-        '随缘而行': ['你开始把注意力转向精神安顿、经验整理与未竟心愿。'],
-    },
-}
 
 LIFE_GOAL_TEMPLATES = [
     {
@@ -483,23 +420,187 @@ def _stage_safe_action(age: int | None, action: str) -> str:
 
 def _pick_stage_event(player_id: str, age: int, half: int, action: str, outcome: str) -> dict[str, Any]:
     stage = _age_stage(age)
-    stage_pool = STAGE_EVENT_POOL.get(str(stage.get('id')), {})
-    options = stage_pool.get(action) or stage_pool.get('随缘而行') or ['这个半年没有单一的大事，却在日常细节里改变了你的惯性。']
-    seed = str(player_id) + str(age) + str(half) + str(action) + str(outcome)
-    index = sum(ord(char) for char in seed) % len(options)
-    event_text = options[index]
-    if outcome in ['大成功', '成功']:
-        result_note = '判定顺利让这件事成为可继续利用的经验。'
-    else:
-        result_note = '判定受阻让这件事留下需要后续修补的成本。'
+    return event_pool.pick_stage_event(player_id, age, half, action, outcome, stage)
+
+
+def _empty_focus_memory() -> dict[str, Any]:
+    return {'last_focus': '', 'streak': 0, 'total_counts': {}, 'recent_focuses': []}
+
+
+def _normalize_focus_memory(value: Any) -> dict[str, Any]:
+    memory = value if isinstance(value, dict) else {}
+    total_counts: dict[str, int] = {}
+    for key, count in (memory.get('total_counts') or {}).items():
+        if str(key) in ACTION_OPTIONS:
+            try:
+                total_counts[str(key)] = max(0, int(count))
+            except (TypeError, ValueError):
+                continue
+    recent_focuses = []
+    for item in memory.get('recent_focuses') or []:
+        if not isinstance(item, dict):
+            continue
+        focus = str(item.get('focus') or '')
+        if focus not in ACTION_OPTIONS:
+            continue
+        recent_focuses.append({
+            'age': item.get('age'),
+            'half': item.get('half'),
+            'half_label': str(item.get('half_label') or ''),
+            'focus': focus,
+            'outcome': str(item.get('outcome') or ''),
+            'streak': int(item.get('streak') or 1),
+        })
+    last_focus = str(memory.get('last_focus') or '')
+    if last_focus not in ACTION_OPTIONS:
+        last_focus = ''
+    try:
+        streak = max(0, int(memory.get('streak') or 0)) if last_focus else 0
+    except (TypeError, ValueError):
+        streak = 0
     return {
-        'stage_id': stage.get('id'),
-        'stage_label': stage.get('label'),
-        'stage_summary': stage.get('summary'),
-        'stage_goals': stage.get('goals') or [],
-        'event': event_text,
-        'result_note': result_note,
+        'last_focus': last_focus,
+        'streak': streak,
+        'total_counts': total_counts,
+        'recent_focuses': recent_focuses[-8:],
     }
+
+
+def _focus_streak_roll_bonus(count: int) -> int:
+    if count >= 4:
+        return 8
+    if count == 3:
+        return 5
+    if count == 2:
+        return 3
+    return 0
+
+
+def _focus_streak_state_effect(action: str, count: int) -> dict[str, int]:
+    if count < 2:
+        return {}
+    profile = fate_mapper.ACTION_PROFILES.get(action, fate_mapper.ACTION_PROFILES['随缘而行'])
+    effects: dict[str, int] = {}
+    primary = str(profile.get('primary') or '')
+    if primary:
+        effects[primary] = effects.get(primary, 0) + 1
+    if count >= 3:
+        if action in ['调养身体', '随缘而行']:
+            effects['压力'] = effects.get('压力', 0) - 1
+        elif action in ['经营感情', '陪伴家人']:
+            effects['情绪'] = effects.get('情绪', 0) + 1
+        else:
+            effects['压力'] = effects.get('压力', 0) + 1
+    if count >= 4:
+        opportunity_cost = {
+            '专注学业': '社交',
+            '发展事业': '健康',
+            '经营感情': '事业',
+            '陪伴家人': '事业',
+            '投资理财': '情绪',
+            '调养身体': '财富',
+            '社交拓展': '情绪',
+            '创业冒险': '健康',
+            '搬迁远行': '家庭',
+            '随缘而行': '事业',
+        }.get(action)
+        if opportunity_cost:
+            effects[opportunity_cost] = effects.get(opportunity_cost, 0) - 1
+        if action in ['专注学业', '发展事业', '投资理财', '创业冒险']:
+            effects['压力'] = effects.get('压力', 0) + 1
+    return {key: value for key, value in effects.items() if key in fate_mapper.BASE_LIFE_STATE and value != 0}
+
+
+def _build_focus_streak_feedback(session: dict[str, Any], action: str) -> dict[str, Any]:
+    memory = _normalize_focus_memory(session.get('focus_memory'))
+    previous_focus = str(memory.get('last_focus') or '')
+    previous_streak = int(memory.get('streak') or 0)
+    count = previous_streak + 1 if previous_focus == action else 1
+    bonus = _focus_streak_roll_bonus(count)
+    state_effect = _focus_streak_state_effect(action, count)
+    if count <= 1:
+        warning = '这是“' + action + '”的新一轮投入；如果后续继续选择同一重点，会逐步形成判定加成，也会积累机会成本。'
+    elif count == 2:
+        warning = '连续2个半年投入“' + action + '”，惯性开始成形：本次 D100 获得小幅加成。'
+    elif count == 3:
+        warning = '连续3个半年投入“' + action + '”，路线更清晰，判定加成提高，但生活其他面向开始要求补偿。'
+    else:
+        warning = '连续' + str(count) + '个半年投入“' + action + '”，专精已经明显；请留意压力、关系、健康或资产中的机会成本。'
+    return {
+        'action': action,
+        'count': count,
+        'previous_focus': previous_focus,
+        'is_continuing': previous_focus == action and count > 1,
+        'streak_bonus': bonus,
+        'streak_warning': warning,
+        'state_effect': state_effect,
+        'state_effect_text': _format_state_effect(state_effect) if state_effect else '无额外状态惯性',
+        'summary': '连续选择反馈：' + warning + (' 额外状态影响：' + _format_state_effect(state_effect) + '。' if state_effect else ''),
+    }
+
+
+def _commit_focus_streak(session: dict[str, Any], feedback: dict[str, Any], age: int, half: int, half_label: str, outcome: str) -> dict[str, Any]:
+    memory = _normalize_focus_memory(session.get('focus_memory'))
+    action = str(feedback.get('action') or '随缘而行')
+    total_counts = dict(memory.get('total_counts') or {})
+    total_counts[action] = int(total_counts.get(action, 0)) + 1
+    recent_focuses = list(memory.get('recent_focuses') or [])
+    recent_focuses.append({
+        'age': age,
+        'half': half,
+        'half_label': half_label,
+        'focus': action,
+        'outcome': outcome,
+        'streak': int(feedback.get('count') or 1),
+    })
+    memory = {
+        'last_focus': action,
+        'streak': int(feedback.get('count') or 1),
+        'total_counts': total_counts,
+        'recent_focuses': recent_focuses[-8:],
+    }
+    session['focus_memory'] = memory
+    session['focus_streak'] = deepcopy(feedback)
+    session['streak_warning'] = str(feedback.get('streak_warning') or '')
+    return memory
+
+
+def _merge_state_effect(changes: dict[str, int], extra: dict[str, Any]) -> dict[str, int]:
+    for key, value in (extra or {}).items():
+        if key not in fate_mapper.BASE_LIFE_STATE:
+            continue
+        try:
+            delta = int(value)
+        except (TypeError, ValueError):
+            continue
+        if delta:
+            changes[key] = int(changes.get(key, 0)) + delta
+    return changes
+
+
+def _stage_event_state_bias(stage_event: dict[str, Any], outcome: str) -> dict[str, int]:
+    raw = stage_event.get('state_bias') or {}
+    if not isinstance(raw, dict):
+        return {}
+    bias: dict[str, int] = {}
+    for key, value in raw.items():
+        if key not in fate_mapper.BASE_LIFE_STATE:
+            continue
+        try:
+            delta = int(value)
+        except (TypeError, ValueError):
+            continue
+        if outcome in ['大成功', '成功']:
+            applied = delta
+        elif key == '压力' and delta > 0:
+            applied = delta
+        elif delta < 0:
+            applied = delta
+        else:
+            applied = 0
+        if applied:
+            bias[str(key)] = applied
+    return bias
 
 
 def _score_label(score: int) -> str:
@@ -951,6 +1052,9 @@ def _new_session(player_id: str) -> dict[str, Any]:
         'ending_reason': '',
         'ending': None,
         'ending_codex': _normalize_ending_codex(),
+        'focus_memory': _empty_focus_memory(),
+        'focus_streak': {},
+        'streak_warning': '',
         'action_options': ACTION_OPTIONS,
         'current_life': None,
     }
@@ -967,6 +1071,9 @@ def _ensure_session_defaults(session: dict[str, Any]) -> dict[str, Any]:
     session.setdefault('milestones', [])
     session.setdefault('relationships', [])
     session.setdefault('ending_reason', '')
+    session['focus_memory'] = _normalize_focus_memory(session.get('focus_memory'))
+    session.setdefault('focus_streak', {})
+    session.setdefault('streak_warning', '')
     session['ending_codex'] = _normalize_ending_codex(session.get('ending_codex'))
     if session.get('life_state'):
         _ensure_life_goals(session)
@@ -1017,6 +1124,8 @@ def _refresh_current_context(session: dict[str, Any]) -> None:
         '人生愿望': session.get('goal_progress', {}),
         '长期系统': session.get('life_systems', {}),
         '关系': session.get('relationships', []),
+        '连续选择': session.get('focus_streak', {}),
+        '行动记忆': session.get('focus_memory', {}),
         '成就': session.get('achievements', []),
         '里程碑': session.get('milestones', [])[-10:],
         '性格': session.get('personality', []),
@@ -1271,6 +1380,9 @@ def _handle_accept_prelude(session: dict[str, Any]) -> None:
     session['current_age'] = int(session.get('start_age') or 22)
     session['current_half'] = 1
     session['current_half_label'] = '上半年'
+    session['focus_memory'] = _empty_focus_memory()
+    session['focus_streak'] = {}
+    session['streak_warning'] = ''
     if not session.get('current_year'):
         session['current_year'] = int(session['birth_info']['datetime'][:4]) + session['current_age']
     _ensure_life_goals(session)
@@ -1600,6 +1712,31 @@ def _format_modifier_detail(modifiers: dict[str, Any]) -> str:
     return '、'.join(parts) if parts else '无明显修正'
 
 
+def _format_streak_feedback(record: dict[str, Any]) -> str:
+    feedback = record.get('focus_streak') or {}
+    action = str(feedback.get('action') or record.get('main_focus') or '随缘而行')
+    try:
+        count = int(feedback.get('count') or 1)
+    except (TypeError, ValueError):
+        count = 1
+    try:
+        bonus = int(record.get('streak_bonus') if record.get('streak_bonus') is not None else feedback.get('streak_bonus') or 0)
+    except (TypeError, ValueError):
+        bonus = 0
+    warning = str(record.get('streak_warning') or feedback.get('streak_warning') or '')
+    effect = record.get('streak_effect') or feedback.get('state_effect') or {}
+    if count <= 1:
+        return '连续选择反馈：本次开启“' + action + '”的新节奏；若后续继续投入，会逐步形成 D100 加成，同时记录机会成本。'
+    detail = '连续选择反馈：你已连续' + str(count) + '个半年把主重点放在“' + action + '”'
+    if bonus:
+        detail += '，本次 D100 获得连续投入修正 +' + str(bonus)
+    if effect:
+        detail += '，状态惯性为' + _format_state_effect(effect)
+    if warning:
+        detail += '。' + warning
+    return detail + '。'
+
+
 def _format_cycle_detail(record: dict[str, Any]) -> str:
     luck = record.get('luck_cycle') or {}
     annual = record.get('annual_cycle') or {}
@@ -1641,11 +1778,23 @@ def _stage_narrative_body(record: dict[str, Any]) -> str:
         outcome_line = '这不是简单的顺利，而是你的既有积累、阶段运势和这次选择短暂站到了一起；它会让你在接下来的半年里更容易相信自己的判断。'
     else:
         outcome_line = '这次阻力让你看见短板：有些消耗不是立刻失败，而是会在之后几个半年里继续索取代价，提醒你调整节奏和求助方式。'
+    event_title = str(stage_event.get('title') or '')
+    event_clue = str(stage_event.get('clue') or '')
+    event_line = ''
+    if stage_event.get('event'):
+        event_line = (
+            '阶段事件：' +
+            ('《' + event_title + '》：' if event_title else '') +
+            str(stage_event.get('event')) +
+            str(stage_event.get('result_note') or '') +
+            (' 伏笔：' + event_clue if event_clue else '')
+        )
     return (
         ('人生阶段：' + stage_label + '。' + str(stage_event.get('stage_summary') or '') + '\n\n' if stage_label else '') +
         (_format_goal_progress(goal_progress) + '\n\n' if goal_progress else '') +
         '行动落点：你本阶段选择' + '、'.join(focuses) + '。' + action_detail + '\n\n' +
-        ('阶段事件：' + str(stage_event.get('event')) + str(stage_event.get('result_note') or '') + '\n\n' if stage_event.get('event') else '') +
+        (event_line + '\n\n' if event_line else '') +
+        _format_streak_feedback(record) + '\n\n' +
         '具体场景：' + scene_detail + '\n\n' +
         '命盘与时势：' + cycle_detail + '\n\n' +
         '判定结果：' + result_line + outcome_line + '\n\n' +
@@ -1668,11 +1817,14 @@ def _format_detailed_half_year_summary(record: dict[str, Any]) -> str:
     systems_after = record.get('life_systems_after') or {}
     goal_progress = record.get('goal_progress_after') or {}
     new_achievements = record.get('new_achievements') or []
+    event_title = str(stage_event.get('title') or '')
+    event_intro = ('《' + event_title + '》：' if event_title else '')
+    streak_detail = _format_streak_feedback(record)
     summary = (
         '半年回顾：' + age_half + '，你把本阶段重点放在' + '、'.join(focuses) + '。' +
         '这不是一次孤立行动，而是你在当前年龄、资源余量、关系压力和命盘节奏之间做出的取舍。' +
         ('本阶段属于“' + str(stage_event.get('stage_label')) + '”，核心课题是' + '、'.join(_string_list(stage_event.get('stage_goals'), [], 3)) + '。' if stage_event.get('stage_label') else '') +
-        ('具体触发事件是：' + str(stage_event.get('event')) + str(stage_event.get('result_note') or '') if stage_event.get('event') else '') +
+        ('具体触发事件是：' + event_intro + str(stage_event.get('event')) + str(stage_event.get('result_note') or '') + ('伏笔：' + str(stage_event.get('clue')) + '。' if stage_event.get('clue') else '') if stage_event.get('event') else '') +
         (_format_goal_progress(goal_progress) if goal_progress else '') +
         _format_cycle_detail(record)
     )
@@ -1695,7 +1847,7 @@ def _format_detailed_half_year_summary(record: dict[str, Any]) -> str:
         ('长期系统：' + '；'.join(str(item.get('label')) + str(item.get('score')) + '分，' + str(item.get('stage')) + '，趋势' + str(item.get('trend')) for item in systems_after.values()) + '。' if isinstance(systems_after, dict) and systems_after else '') +
         '后续伏笔：系统会把本次行动、判定结果和状态变化纳入长期历史；当相似的大运、流年或流月再次出现时，它们会成为新的加分、阻力或叙事回声。'
     )
-    return summary + '\n\n' + roll_detail + '\n\n' + state_detail + '\n\n' + impact
+    return summary + '\n\n' + roll_detail + '\n\n' + streak_detail + '\n\n' + state_detail + '\n\n' + impact
 
 
 def _ensure_summary_detail(record: dict[str, Any], summary: str) -> str:
@@ -1743,7 +1895,11 @@ def _handle_annual_action(session: dict[str, Any], action_payload: dict[str, Any
             normalized.append(safe_focus)
     focuses = normalized[:3] or ['随缘而行']
     main_focus = focuses[0]
+    focus_feedback = _build_focus_streak_feedback(session, main_focus)
     target, modifiers = fate_mapper.compute_roll_target(session, main_focus)
+    if int(focus_feedback.get('streak_bonus') or 0):
+        modifiers['连续投入'] = int(focus_feedback.get('streak_bonus') or 0)
+        target = fate_mapper.clamp(target + int(focus_feedback.get('streak_bonus') or 0), 20, 95)
     roll_event = _roll(session['player_id'], fate_mapper.ACTION_PROFILES[main_focus]['roll'], target, str(age) + '岁' + half_label + '行动')
     roll_event['modifiers'] = modifiers
     stage_event = _pick_stage_event(str(session.get('player_id') or 'guest'), age, half, main_focus, roll_event['outcome'])
@@ -1752,8 +1908,12 @@ def _handle_annual_action(session: dict[str, Any], action_payload: dict[str, Any
         profile = fate_mapper.ACTION_PROFILES[extra_focus]
         changes[profile['primary']] = changes.get(profile['primary'], 0) + 1
         changes['压力'] = changes.get('压力', 0) + 1
+    event_state_bias = _stage_event_state_bias(stage_event, roll_event['outcome'])
+    _merge_state_effect(changes, event_state_bias)
+    _merge_state_effect(changes, focus_feedback.get('state_effect') or {})
     session['life_state'] = fate_mapper.apply_changes(session.get('life_state', {}), changes)
     session['roll_event'] = roll_event
+    focus_memory_after = _commit_focus_streak(session, focus_feedback, age, half, half_label, roll_event['outcome'])
     month_pillars = '、'.join(str(item.get('month_name', '')) + str(item.get('pillar', '')) for item in monthly_cycles)
     summary = str(age) + '岁' + half_label + '，你选择' + '、'.join(focuses) + '。流年' + str(annual.get('pillar', '未知')) + '之下，流月经过' + month_pillars + '，判定结果为' + roll_event['outcome'] + '。'
     half_record = {
@@ -1767,6 +1927,12 @@ def _handle_annual_action(session: dict[str, Any], action_payload: dict[str, Any
         'main_focus': main_focus,
         'roll_event': roll_event,
         'roll_modifiers': modifiers,
+        'focus_streak': deepcopy(focus_feedback),
+        'streak_bonus': int(focus_feedback.get('streak_bonus') or 0),
+        'streak_warning': str(focus_feedback.get('streak_warning') or ''),
+        'streak_effect': deepcopy(focus_feedback.get('state_effect') or {}),
+        'focus_memory_after': deepcopy(focus_memory_after),
+        'event_state_bias': event_state_bias,
         'state_before': state_before,
         'state_after': dict(session.get('life_state', {})),
         'life_systems_before': life_systems_before,

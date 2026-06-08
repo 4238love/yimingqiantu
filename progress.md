@@ -221,3 +221,10 @@
 - Validation passed: frontend JS checks, layout assertions, and backend `pytest` (33 passed).
 - Rebuilt Docker; `yimingqiantu` is healthy on `0.0.0.0:7650->7650/tcp`, and deployed HTML contains `codex-20260608` plus `codex-button`.
 - Browser smoke with a fresh guest verified: initial `图鉴 0/13`, locked cards show clue-only entries, active retrospection unlocks `图鉴 1/13`, and `reset_game` preserves `图鉴 1/13` on the same guest session.
+
+- 继续优化游戏核心反馈：新增 `backend/app/event_pool.py`，把阶段事件池从 `game_logic.py` 拆出为结构化事件模块。事件现在带 `event_id`、标题、标签、伏笔和轻量 `state_bias`，并按阶段/行动稳定抽取。
+- 新增连续选择反馈系统：会话记录 `focus_memory`、`focus_streak` 和 `streak_warning`；连续 2/3/4+ 个半年投入同一主行动时，分别提供 D100 连续投入修正，并把状态惯性/机会成本合入 `state_effect`。
+- 半年度记录新增 `streak_bonus`、`streak_effect`、`focus_memory_after`、`event_state_bias` 等字段；阶段叙事和半年度总结会显示“连续选择反馈”、事件标题与伏笔。
+- 前端状态栏新增连续选择反馈卡，当前回合决策提示新增“连续投入”预览，Markdown 人生档案导出包含当前行动惯性。
+- 更新 schema、README、task_plan、静态前端断言和后端测试；验证通过：`node --check frontend/index.js`、`node --check frontend/live.js`、`node tests/frontend_layout_check.mjs`、`python -B -m pytest -p no:cacheprovider backend\tests`（35 passed）。
+- Rebuilt Docker with `docker compose up -d --build`; deployed container is healthy on `0.0.0.0:7650->7650/tcp`. Browser smoke on `http://127.0.0.1:7650/?v=streak-smoke` verified two consecutive `发展事业` actions show `连续 2 次 · 发展事业`, `D100 +3`, event伏笔, and `codex-20260608-streak` assets.

@@ -71,6 +71,7 @@ assert.match(css, /\.system-card\s*{/, 'long-term systems should render as statu
 assert.match(css, /\.relationship-card\s*{/, 'relationship network should render as status cards');
 assert.match(css, /\.life-goal-card\s*{/, 'life goals should render as selectable cards');
 assert.match(css, /\.goal-progress-card\s*{/, 'active life goal progress should render in status');
+assert.match(css, /\.streak-card\s*{/, 'continuous focus streaks should render as status cards');
 assert.match(css, /\.achievement-card\s*{/, 'unlocked achievements should render as status cards');
 assert.match(css, /\.milestone-card\s*{/, 'life milestones should render as status cards');
 assert.match(css, /\.ending-archive\s*{/, 'ending should render as a life archive section');
@@ -111,6 +112,11 @@ assert.match(js, /function joinCleanList\(/, 'frontend should clean sparse list 
 assert.match(js, /function formatLegacyStateEffectLine\(/, 'frontend should prettify old persisted state-effect dict strings');
 assert.match(js, /function renderMonthFlowBoard\(/, 'frontend should render flowing-month cards');
 assert.match(js, /function renderTurnGuide\(/, 'frontend should render a decision guide for the current half-year');
+assert.match(js, /function getStreakView\(/, 'frontend should normalize continuous focus streak state');
+assert.match(js, /function renderStreakStatusCard\(/, 'frontend should render continuous choice feedback in status');
+assert.match(js, /focus_streak/, 'frontend should consume focus streak state');
+assert.match(js, /focus_memory/, 'frontend should consume focus memory state');
+assert.match(js, /连续选择反馈/, 'frontend should label continuous choice feedback');
 assert.match(js, /function renderEndingArchive\(/, 'frontend should render enhanced ending archive');
 assert.match(js, /function renderEndingCodex\(/, 'frontend should render the ending codex collection');
 assert.match(js, /ending_codex/, 'frontend should consume ending codex state');
