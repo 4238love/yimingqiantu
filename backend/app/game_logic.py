@@ -2,20 +2,17 @@ from __future__ import annotations
 
 import asyncio
 import ast
-import json
 import logging
 from copy import deepcopy
 from datetime import date
-from pathlib import Path
 from typing import Any
 
-from . import bazi_engine, fate_mapper, half_year_resolution, openai_client, state_manager, state_publication
+from . import ai_enrichment, bazi_engine, fate_mapper, half_year_resolution, openai_client, state_manager, state_publication
 
 
 logger = logging.getLogger(__name__)
 
 ACTION_OPTIONS = half_year_resolution.ACTION_OPTIONS
-PROMPT_DIR = Path(__file__).parent / 'prompts'
 
 ENDING_CODEX_CATALOG = [
     {'id': 'early_broken', 'title': '命途早折之局', 'rarity': '普通', 'category': '基础结局', 'hint': '身体底盘被长期透支，人生会提前收束。', 'description': '健康归零时触发的提前终局，提醒玩家照看身体与压力。'},
@@ -72,34 +69,6 @@ ACTION_SCENE_DETAIL = {
 AGE_STAGE_PROFILES = half_year_resolution.AGE_STAGE_PROFILES
 LIFE_GOAL_TEMPLATES = half_year_resolution.LIFE_GOAL_TEMPLATES
 ACHIEVEMENT_DEFINITIONS = half_year_resolution.ACHIEVEMENT_DEFINITIONS
-
-
-def _load_prompt(filename: str) -> str:
-    try:
-        return (PROMPT_DIR / filename).read_text(encoding='utf-8')
-    except OSError:
-        return ''
-
-
-def _extract_json_object(text: str) -> dict[str, Any] | None:
-    raw = str(text or '').strip()
-    if not raw:
-        return None
-    if '```json' in raw:
-        start = raw.find('```json') + 7
-        end = raw.find('```', start)
-        if end != -1:
-            raw = raw[start:end].strip()
-    else:
-        start = raw.find('{')
-        end = raw.rfind('}')
-        if start != -1 and end != -1 and end > start:
-            raw = raw[start:end + 1]
-    try:
-        data = json.loads(raw)
-    except json.JSONDecodeError:
-        return None
-    return data if isinstance(data, dict) else None
 
 
 def _string_list(value: Any, fallback: list[str] | None = None, limit: int = 12) -> list[str]:
@@ -646,25 +615,8 @@ def _handle_generate_chart(session: dict[str, Any], payload: dict[str, Any]) -> 
 
 
 async def _try_ai_chart_analysis(session: dict[str, Any]) -> None:
-    user_id = str(session.get('player_id') or 'guest')
-    if not openai_client.is_text_ai_enabled(user_id) or not session.get('bazi_chart'):
-        return
-    prompt = _load_prompt('bazi_analyst.txt')
-    if not prompt:
-        return
-    request_data = {
-        'birth_info': session.get('birth_info', {}),
-        'bazi_chart': session.get('bazi_chart', {}),
-        'luck_cycles': session.get('luck_cycles', [])[:6],
-        'annual_cycles': session.get('annual_cycles', [])[:10],
-        'deterministic_analysis': session.get('bazi_analysis', {}),
-    }
-    response = await openai_client.get_ai_response(
-        prompt + '\n\n输入 JSON：\n' + json.dumps(request_data, ensure_ascii=False),
-        force_json=True,
-        user_id=user_id,
-    )
-    data = _extract_json_object(response)
+    adapter = ai_enrichment.adapter_for_session(session)
+    data = await adapter.enrich_chart_analysis(session, session.get('bazi_analysis', {}))
     if not data:
         return
     _apply_chart_analysis(session, data, 'ai')
@@ -696,40 +648,11 @@ def _handle_generate_prelude(session: dict[str, Any]) -> None:
 
 
 async def _try_ai_prelude(session: dict[str, Any]) -> None:
-    user_id = str(session.get('player_id') or 'guest')
-    if not openai_client.is_text_ai_enabled(user_id) or not session.get('prelude'):
-        return
     fallback = session['prelude']
-    prompt = _load_prompt('life_prelude.txt')
-    if not prompt:
+    adapter = ai_enrichment.adapter_for_session(session)
+    prelude = await adapter.enrich_prelude(session, fallback)
+    if not prelude:
         return
-    request_data = {
-        'birth_info': session.get('birth_info', {}),
-        'bazi_chart': session.get('bazi_chart', {}),
-        'bazi_analysis': session.get('bazi_analysis', {}),
-        'chart_tags': session.get('chart_tags', []),
-        'luck_cycles': session.get('luck_cycles', [])[:4],
-        'annual_cycles': session.get('annual_cycles', [])[:8],
-        'start_age': session.get('start_age'),
-        'fallback_state': fallback,
-    }
-    response = await openai_client.get_ai_response(
-        prompt + '\n\n输入 JSON：\n' + json.dumps(request_data, ensure_ascii=False),
-        force_json=True,
-        user_id=user_id,
-    )
-    data = _extract_json_object(response)
-    if not data:
-        return
-    prelude = {
-        'text': str(data.get('text') or fallback.get('text') or ''),
-        'personality': _string_list(data.get('personality'), fallback.get('personality', []), 8),
-        'life_state': _coerce_life_state(data.get('life_state'), fallback.get('life_state', {})),
-        'early_events': _event_string_list(data.get('early_events'), fallback.get('early_events', []), 12),
-        'hidden_strengths': _string_list(data.get('hidden_strengths'), fallback.get('hidden_strengths', []), 8),
-        'hidden_weaknesses': _string_list(data.get('hidden_weaknesses'), fallback.get('hidden_weaknesses', []), 8),
-        'source': 'ai',
-    }
     prelude = _ensure_prelude_detail(prelude, fallback, int(session.get('start_age') or 22))
     prelude['source'] = 'ai'
     session['prelude'] = prelude
@@ -1277,40 +1200,11 @@ def _handle_annual_action(session: dict[str, Any], action_payload: dict[str, Any
 
 
 async def _try_ai_life_gm_latest_narrative(session: dict[str, Any]) -> None:
-    user_id = str(session.get('player_id') or 'guest')
-    if not openai_client.is_text_ai_enabled(user_id) or not session.get('annual_summaries'):
-        return
-    prompt = _load_prompt('life_game_master.txt')
-    if not prompt:
+    if not session.get('annual_summaries'):
         return
     latest = session['annual_summaries'][-1]
-    request_data = {
-        'mode': 'post_authoritative_roll',
-        'instruction': 'D100 判定和 state_effect 已由后端完成。只生成年度叙事；state_update 仅作为建议记录，不会直接写入玩家状态。',
-        'bazi_analysis': session.get('bazi_analysis', {}),
-        'personality': session.get('personality', []),
-        'latest_year': latest,
-        'authoritative_roll_event': latest.get('roll_event', {}),
-        'authoritative_state_effect': latest.get('state_effect', {}),
-        'state_before': latest.get('state_before', {}),
-        'state_after': latest.get('state_after', {}),
-        'current_stage': session.get('current_stage', {}),
-        'stage_event': latest.get('stage_event', {}),
-        'goal_progress': session.get('goal_progress', {}),
-        'life_systems': session.get('life_systems', {}),
-        'relationships': session.get('relationships', []),
-        'achievements': session.get('achievements', []),
-        'latest_achievements': latest.get('new_achievements', []),
-        'milestone': latest.get('milestone', {}),
-        'recent_summaries': session.get('annual_summaries', [])[-5:],
-        'major_events': session.get('major_events', [])[-8:],
-    }
-    response = await openai_client.get_ai_response(
-        prompt + '\n\n请按第二阶段输出 JSON，字段可包含 scene_title、narrative、state_update、memory_tags。\n\n输入 JSON：\n' + json.dumps(request_data, ensure_ascii=False),
-        force_json=True,
-        user_id=user_id,
-    )
-    data = _extract_json_object(response)
+    adapter = ai_enrichment.adapter_for_session(session)
+    data = await adapter.enrich_half_year_narrative(session, latest)
     if not data:
         return
     narrative = str(data.get('narrative') or '').strip()
@@ -1320,7 +1214,7 @@ async def _try_ai_life_gm_latest_narrative(session: dict[str, Any]) -> None:
     latest['gm_narrative'] = narrative
     latest['gm_scene_title'] = str(data.get('scene_title') or '')
     latest['gm_memory_tags'] = _string_list(data.get('memory_tags'), [], 8)
-    latest['gm_state_update_suggestion'] = data.get('state_update') if isinstance(data.get('state_update'), dict) else {}
+    latest['gm_state_update_suggestion'] = data.get('state_update_suggestion') if isinstance(data.get('state_update_suggestion'), dict) else {}
     latest['gm_source'] = 'ai'
     title = latest['gm_scene_title'] or str(latest.get('age', '')) + '岁' + str(latest.get('half_label', '')) + '叙事'
     display_text = '【阶段叙事】' + title + '\n\n' + narrative
@@ -1330,34 +1224,11 @@ async def _try_ai_life_gm_latest_narrative(session: dict[str, Any]) -> None:
 
 
 async def _try_ai_latest_annual_summary(session: dict[str, Any]) -> None:
-    user_id = str(session.get('player_id') or 'guest')
-    if not openai_client.is_text_ai_enabled(user_id) or not session.get('annual_summaries'):
-        return
-    prompt = _load_prompt('annual_summary.txt')
-    if not prompt:
+    if not session.get('annual_summaries'):
         return
     latest = session['annual_summaries'][-1]
-    request_data = {
-        'latest_year': latest,
-        'life_state': session.get('life_state', {}),
-        'current_stage': session.get('current_stage', {}),
-        'goal_progress': session.get('goal_progress', {}),
-        'life_systems': session.get('life_systems', {}),
-        'relationships': session.get('relationships', []),
-        'achievements': session.get('achievements', []),
-        'latest_achievements': latest.get('new_achievements', []),
-        'milestone': latest.get('milestone', {}),
-        'current_luck_cycle': session.get('current_luck_cycle', {}),
-        'current_annual_cycle': session.get('current_annual_cycle', {}),
-        'recent_summaries': session.get('annual_summaries', [])[-5:],
-        'major_events': session.get('major_events', [])[-10:],
-    }
-    response = await openai_client.get_ai_response(
-        prompt + '\n\n输入 JSON：\n' + json.dumps(request_data, ensure_ascii=False),
-        force_json=True,
-        user_id=user_id,
-    )
-    data = _extract_json_object(response)
+    adapter = ai_enrichment.adapter_for_session(session)
+    data = await adapter.enrich_half_year_summary(session, latest)
     if not data:
         return
     original_summary = str(latest.get('summary') or '').strip()
