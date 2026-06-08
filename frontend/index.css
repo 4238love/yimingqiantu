@@ -386,7 +386,8 @@ textarea:focus-visible,
     backdrop-filter: blur(10px);
 }
 
-#api-settings-panel {
+#api-settings-panel,
+#codex-panel {
     position: fixed;
     left: 50%;
     top: 50%;
@@ -402,12 +403,122 @@ textarea:focus-visible,
     box-shadow: 0 36px 120px rgba(0,0,0,0.48), inset 0 0 0 1px rgba(255,255,255,0.62);
 }
 
+.codex-modal-title,
 .api-modal-title {
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
     gap: 1rem;
 }
+
+#codex-panel {
+    width: min(980px, calc(100vw - 2rem));
+}
+
+#api-settings-panel {
+    position: fixed;
+    transform: translate(-50%, -50%);
+}
+
+.codex-summary {
+    display: grid;
+    gap: 0.7rem;
+    padding: 1rem;
+    border: 1px solid rgba(201,154,66,0.28);
+    border-radius: 22px;
+    background:
+        linear-gradient(135deg, rgba(255,248,223,0.84), rgba(237,225,194,0.68)),
+        radial-gradient(circle at 12% 0%, rgba(201,154,66,0.2), transparent 12rem);
+}
+.codex-summary div {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+}
+.codex-summary span {
+    color: var(--muted);
+    font-weight: 900;
+}
+.codex-summary strong {
+    font-family: var(--font-serif);
+    font-size: clamp(1.8rem, 4vw, 3rem);
+    color: var(--red);
+}
+.codex-summary p,
+.codex-empty {
+    margin: 0;
+    color: var(--muted);
+    line-height: 1.7;
+}
+.codex-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 0.8rem;
+    margin-top: 1rem;
+}
+.codex-card {
+    position: relative;
+    overflow: hidden;
+    min-height: 12.5rem;
+    padding: 0.95rem;
+    display: grid;
+    align-content: start;
+    gap: 0.45rem;
+    border: 1px solid rgba(108,82,46,0.2);
+    border-radius: 18px;
+    background: rgba(255,248,223,0.64);
+}
+.codex-card::after {
+    content: '卷';
+    position: absolute;
+    right: 0.4rem;
+    bottom: -0.9rem;
+    color: rgba(108,82,46,0.08);
+    font-family: var(--font-serif);
+    font-size: 5rem;
+    font-weight: 900;
+}
+.codex-card.unlocked {
+    border-color: rgba(201,154,66,0.46);
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.42), 0 12px 24px rgba(93,64,55,0.08);
+}
+.codex-card.locked {
+    filter: saturate(0.72);
+    background:
+        repeating-linear-gradient(-45deg, rgba(108,82,46,0.035), rgba(108,82,46,0.035) 6px, transparent 6px, transparent 12px),
+        rgba(242,233,205,0.58);
+}
+.codex-card span {
+    justify-self: start;
+    padding: 0.16rem 0.5rem;
+    border-radius: 999px;
+    background: rgba(201,154,66,0.16);
+    color: #7b5721;
+    font-size: 0.74rem;
+    font-weight: 900;
+}
+.codex-card strong {
+    position: relative;
+    z-index: 1;
+    font-family: var(--font-serif);
+    font-size: 1.18rem;
+}
+.codex-card p,
+.codex-card small {
+    position: relative;
+    z-index: 1;
+    margin: 0;
+    color: var(--muted);
+    line-height: 1.58;
+}
+.codex-card small { align-self: end; font-weight: 800; }
+.codex-card.rarity-传奇 {
+    background: linear-gradient(145deg, rgba(52,40,28,0.96), rgba(116,78,39,0.9));
+    color: #fff8df;
+}
+.codex-card.rarity-传奇 p,
+.codex-card.rarity-传奇 small { color: rgba(255,248,223,0.78); }
 
 .modal-close-button {
     width: 2.45rem;
@@ -1411,7 +1522,7 @@ button:disabled, input:disabled { opacity: 0.58; cursor: not-allowed; }
     }
 
     #game-view.status-collapsed #status-rail-button { display: none; }
-    #birth-form, #api-settings-form, #api-profile-manager, #chart-grid, #year-banner, .timeline-track, .prelude-event-list, .life-goal-grid, .term-grid, .turn-guide-grid, .month-flow-grid, .ending-grid, .ending-lists { grid-template-columns: 1fr; }
+    #birth-form, #api-settings-form, #api-profile-manager, #chart-grid, #year-banner, .timeline-track, .prelude-event-list, .life-goal-grid, .term-grid, .turn-guide-grid, .month-flow-grid, .ending-grid, .ending-lists, .codex-grid { grid-template-columns: 1fr; }
     .chart-card.wide { grid-column: span 1; }
     .turn-guide-heading { display: grid; }
     .history-toolbar { grid-template-columns: 1fr; }

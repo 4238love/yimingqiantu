@@ -300,6 +300,37 @@ def test_hidden_ending_unlocks_from_final_state():
     assert '隐藏结局' in ending['summary']
 
 
+def test_ending_codex_records_first_unlock():
+    session = game_logic._new_session('codex_player')
+    session['phase'] = 'life_simulation'
+    session['current_age'] = 60
+    session['current_half_label'] = '下半年'
+    session['life_state'] = {
+        '健康': 70,
+        '心智': 60,
+        '情绪': 62,
+        '学识': 55,
+        '事业': 42,
+        '财富': 44,
+        '家庭': 48,
+        '感情': 45,
+        '社交': 40,
+        '名望': 30,
+        '福德': 20,
+        '压力': 38,
+    }
+
+    game_logic._finish_session(session, 'age_60')
+
+    codex = session['ending_codex']
+    assert codex['total_count'] == len(game_logic.ENDING_CODEX_CATALOG)
+    assert codex['unlocked_count'] == 1
+    assert codex['latest_unlocks'][0]['title'] == '一生多变，晚景自明'
+    assert session['ending']['codex_progress']['unlocked_count'] == 1
+    assert session['ending']['codex_unlocks'][0]['id'] == 'many_changes'
+    assert any(item.startswith('【结局图鉴】首次解锁') for item in session['display_history'])
+
+
 def test_reaching_age_60_finishes_immediately(monkeypatch):
     monkeypatch.setattr(game_logic.openai_client, 'is_text_ai_enabled', lambda *args, **kwargs: False)
     session = game_logic._new_session('age_60_player')

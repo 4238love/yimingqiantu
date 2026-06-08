@@ -6,6 +6,7 @@ const appState = {
     selectedFocuses: [],
     aiSettings: null,
     apiSettingsVisible: false,
+    codexVisible: false,
     selectedApiProfileId: '',
     historyFilter: 'all',
     historyExpanded: false,
@@ -25,6 +26,11 @@ const DOMElements = {
     guestLoginButton: document.getElementById('guest-login-button'),
     logoutButton: document.getElementById('logout-button'),
     resetButton: document.getElementById('reset-button'),
+    codexButton: document.getElementById('codex-button'),
+    codexBackdrop: document.getElementById('codex-backdrop'),
+    codexPanel: document.getElementById('codex-panel'),
+    codexCloseButton: document.getElementById('codex-close-button'),
+    codexContent: document.getElementById('codex-content'),
     apiSettingsButton: document.getElementById('api-settings-button'),
     exportArchiveButton: document.getElementById('export-archive-button'),
     apiSettingsBackdrop: document.getElementById('api-settings-backdrop'),
@@ -629,6 +635,47 @@ function cleanActionOptions(state) {
     return Array.from(new Set(options));
 }
 
+function renderEndingCodex() {
+    const codex = appState.gameState?.ending_codex || {};
+    const entries = Array.isArray(codex.entries) ? codex.entries : [];
+    const total = Number(codex.total_count || entries.length || 0);
+    const unlocked = Number(codex.unlocked_count || 0);
+    DOMElements.codexButton.textContent = '图鉴 ' + unlocked + '/' + total;
+    DOMElements.codexButton.setAttribute('aria-expanded', String(appState.codexVisible));
+    DOMElements.codexPanel.classList.toggle('hidden', !appState.codexVisible);
+    DOMElements.codexBackdrop.classList.toggle('hidden', !appState.codexVisible);
+    DOMElements.codexPanel.setAttribute('aria-hidden', String(!appState.codexVisible));
+    DOMElements.codexBackdrop.setAttribute('aria-hidden', String(!appState.codexVisible));
+    document.body.classList.toggle('modal-open', appState.apiSettingsVisible || appState.codexVisible);
+    if (!appState.codexVisible) return;
+    if (!entries.length) {
+        DOMElements.codexContent.innerHTML = '<p class=\'codex-empty\'>图鉴正在等待第一段人生结局。</p>';
+        return;
+    }
+    const latest = (codex.latest_unlocks || []).map(item => item.title).filter(Boolean).join('、');
+    const progress = total ? Math.round((unlocked / total) * 100) : 0;
+    const cards = entries.map(entry => {
+        const unlockedClass = entry.unlocked ? ' unlocked' : ' locked';
+        const rarityClass = ' rarity-' + String(entry.rarity || '普通').toLowerCase();
+        const title = entry.unlocked ? entry.title : '未解锁';
+        const body = entry.unlocked ? entry.description : entry.hint;
+        const meta = entry.unlocked
+            ? ('已解锁' + (entry.unlock_count > 1 ? ' ×' + entry.unlock_count : '') + (entry.unlocked_at ? ' · 首次 ' + entry.unlocked_at : ''))
+            : '线索';
+        return '<article class=\'codex-card' + unlockedClass + rarityClass + '\'>' +
+            '<span>' + escapeHtml(entry.rarity || '普通') + ' · ' + escapeHtml(entry.category || '结局') + '</span>' +
+            '<strong>' + escapeHtml(title) + '</strong>' +
+            '<p>' + escapeHtml(body || '') + '</p>' +
+            '<small>' + escapeHtml(meta) + '</small>' +
+        '</article>';
+    }).join('');
+    DOMElements.codexContent.innerHTML =
+        '<section class=\'codex-summary\'><div><span>收集进度</span><strong>' + unlocked + '/' + total + '</strong></div>' +
+        '<meter min=\'0\' max=\'100\' value=\'' + progress + '\'></meter>' +
+        '<p>' + escapeHtml(latest ? '本次新解锁：' + latest : '完成不同人生路线，点亮更多结局。未解锁卡片只显示线索。') + '</p></section>' +
+        '<div class=\'codex-grid\'>' + cards + '</div>';
+}
+
 function renderFocusActions() {
     const state = appState.gameState || {};
     const canAct = state.phase === 'life_simulation' && !state.is_finished;
@@ -664,7 +711,7 @@ function renderApiSettings() {
     DOMElements.apiSettingsPanel.setAttribute('aria-hidden', String(!appState.apiSettingsVisible));
     DOMElements.apiSettingsBackdrop.setAttribute('aria-hidden', String(!appState.apiSettingsVisible));
     DOMElements.apiSettingsButton.setAttribute('aria-expanded', String(appState.apiSettingsVisible));
-    document.body.classList.toggle('modal-open', appState.apiSettingsVisible);
+    document.body.classList.toggle('modal-open', appState.apiSettingsVisible || appState.codexVisible);
     if (!appState.apiSettingsVisible) return;
     renderApiProfileList();
     DOMElements.apiSettingsStatus.className = 'api-settings-status' + (settings.custom_enabled ? ' enabled' : '');
@@ -739,6 +786,8 @@ function startNewApiProfile() {
 function setApiSettingsVisible(visible) {
     appState.apiSettingsVisible = visible;
     if (visible) {
+        appState.codexVisible = false;
+        renderEndingCodex();
         DOMElements.customApiKey.value = '';
         if (!appState.selectedApiProfileId) {
             appState.selectedApiProfileId = appState.aiSettings?.active_profile_id || apiProfiles()[0]?.id || '';
@@ -764,6 +813,7 @@ function render() {
     renderMonthFlowBoard();
     renderNarrative();
     renderFocusActions();
+    renderEndingCodex();
     renderApiSettings();
     showPanel(DOMElements.birthPanel, phase === 'birth_input');
     showPanel(DOMElements.chartPanel, ['chart_ready', 'prelude_ready', 'life_simulation', 'ending'].includes(phase));
@@ -832,6 +882,15 @@ function buildLifeArchiveMarkdown(state) {
             if (ending.hidden_ending.unlock_reason) lines.push('- 解锁条件：' + ending.hidden_ending.unlock_reason);
         }
         if (ending.summary) lines.push(ending.summary);
+    }
+    const codex = state.ending_codex || {};
+    if (codex.entries?.length) {
+        lines.push('');
+        lines.push('## 结局图鉴');
+        lines.push('- 收集进度：' + Number(codex.unlocked_count || 0) + '/' + Number(codex.total_count || codex.entries.length || 0));
+        codex.entries.filter(item => item.unlocked).forEach(item => {
+            lines.push('- ' + (item.title || '') + '（' + (item.rarity || '普通') + '）：' + (item.description || ''));
+        });
     }
     lines.push('');
     lines.push('## 叙事记录');
@@ -1037,22 +1096,45 @@ function toggleApiSettingsPanel() {
     setApiSettingsVisible(!appState.apiSettingsVisible);
 }
 
+function setCodexVisible(visible) {
+    appState.codexVisible = visible;
+    if (visible) {
+        appState.apiSettingsVisible = false;
+        renderEndingCodex();
+        renderApiSettings();
+        setTimeout(() => DOMElements.codexCloseButton.focus(), 0);
+    } else {
+        renderEndingCodex();
+        DOMElements.codexButton.focus();
+    }
+}
+
+function toggleCodexPanel() {
+    setCodexVisible(!appState.codexVisible);
+}
+
+function closeCodexPanel() {
+    setCodexVisible(false);
+}
+
 function closeApiSettingsPanel() {
     setApiSettingsVisible(false);
 }
 
 function modalFocusableElements() {
-    if (!appState.apiSettingsVisible) return [];
-    return Array.from(DOMElements.apiSettingsPanel.querySelectorAll(
+    const activePanel = appState.apiSettingsVisible ? DOMElements.apiSettingsPanel : appState.codexVisible ? DOMElements.codexPanel : null;
+    if (!activePanel) return [];
+    return Array.from(activePanel.querySelectorAll(
         'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
     )).filter(element => Boolean(element.offsetWidth || element.offsetHeight || element.getClientRects().length));
 }
 
 function handleGlobalKeydown(event) {
-    if (!appState.apiSettingsVisible) return;
+    if (!appState.apiSettingsVisible && !appState.codexVisible) return;
     if (event.key === 'Escape') {
         event.preventDefault();
-        closeApiSettingsPanel();
+        if (appState.apiSettingsVisible) closeApiSettingsPanel();
+        else closeCodexPanel();
         return;
     }
     if (event.key === 'Tab') {
@@ -1060,13 +1142,14 @@ function handleGlobalKeydown(event) {
         if (!focusable.length) return;
         const first = focusable[0];
         const last = focusable[focusable.length - 1];
+        const activePanel = appState.apiSettingsVisible ? DOMElements.apiSettingsPanel : DOMElements.codexPanel;
         if (event.shiftKey && document.activeElement === first) {
             event.preventDefault();
             last.focus();
         } else if (!event.shiftKey && document.activeElement === last) {
             event.preventDefault();
             first.focus();
-        } else if (!DOMElements.apiSettingsPanel.contains(document.activeElement)) {
+        } else if (!activePanel.contains(document.activeElement)) {
             event.preventDefault();
             first.focus();
         }
@@ -1212,6 +1295,9 @@ function init() {
     DOMElements.logoutButton.addEventListener('click', () => api.logout());
     DOMElements.resetButton.addEventListener('click', () => socketManager.sendAction({ type: 'reset_game' }));
     DOMElements.exportArchiveButton.addEventListener('click', exportLifeArchive);
+    DOMElements.codexButton.addEventListener('click', toggleCodexPanel);
+    DOMElements.codexBackdrop.addEventListener('click', closeCodexPanel);
+    DOMElements.codexCloseButton.addEventListener('click', closeCodexPanel);
     DOMElements.apiSettingsButton.addEventListener('click', toggleApiSettingsPanel);
     DOMElements.apiSettingsBackdrop.addEventListener('click', closeApiSettingsPanel);
     DOMElements.apiSettingsCloseButton.addEventListener('click', closeApiSettingsPanel);

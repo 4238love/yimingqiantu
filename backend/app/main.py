@@ -206,6 +206,7 @@ async def websocket_endpoint(websocket: WebSocket):
         user_info = await auth.get_current_user(token)
         session = await state_manager.get_session(user_info["username"])
         if session:
+            game_logic._ensure_session_defaults(session)
             await websocket_manager.send_json_to_player(
                 user_info["username"], {"type": "full_state", "data": session}
             )

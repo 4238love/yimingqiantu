@@ -145,6 +145,12 @@ def test_guest_websocket_can_retrospect_life(monkeypatch):
                 assert state['ending_reason'] == 'retrospect'
                 assert state['ending']['reason'] == 'retrospect'
                 assert any(item.startswith('【回望一生：') for item in state['display_history'])
+                assert state['ending_codex']['unlocked_count'] == 1
+
+                websocket.send_json({'action': {'type': 'reset_game'}})
+                state = _apply_ws_message(state, websocket.receive_json())
+                assert state['phase'] == 'birth_input'
+                assert state['ending_codex']['unlocked_count'] == 1
 
 
 def test_guest_can_manage_custom_ai_settings(monkeypatch):

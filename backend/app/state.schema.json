@@ -215,6 +215,7 @@
     "is_processing": { "type": "boolean" },
     "is_finished": { "type": "boolean" },
     "ending_reason": { "type": "string" },
+    "ending_codex": { "type": "object" },
     "ending": {
       "anyOf": [
         { "type": "null" },
@@ -236,6 +237,8 @@
             "life_goal_achieved": { "type": "boolean" },
             "hidden_ending": { "type": "object" },
             "hidden_endings": { "type": "array" },
+            "codex_unlocks": { "type": "array" },
+            "codex_progress": { "type": "object" },
             "achievements_unlocked": { "type": "array" },
             "milestones": { "type": "array" }
           }
@@ -287,6 +290,7 @@
     "is_processing",
     "is_finished",
     "ending_reason",
+    "ending_codex",
     "ending",
     "action_options",
     "current_life"

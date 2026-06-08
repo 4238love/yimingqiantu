@@ -212,3 +212,12 @@
 - Static asset URLs were bumped to `hidden-ending-20260608`; README, schema, backend tests, and layout assertions were updated.
 - Validation passed: frontend JS checks, layout assertions, and backend `pytest` (32 passed).
 - Rebuilt Docker with `docker compose up -d --build`; deployed `http://127.0.0.1:7650/?v=hidden-ending-check` returned HTTP 200 and served the `hidden-ending-20260608` assets.
+
+- Added multi-run ending codex collection. Every session now carries `ending_codex` with catalog entries, unlocked IDs, latest first-time unlocks, and total/unlocked counts.
+- Ending finalization registers either the unlocked hidden ending or the base ending title into the codex, appends a `【结局图鉴】首次解锁` history entry on first unlock, and includes `codex_unlocks` / `codex_progress` in the ending payload.
+- `reset_game` now preserves the current visitor's `ending_codex`, so unlocked endings survive new runs under the same guest session.
+- Frontend header now has a `图鉴 X/Y` button and a dedicated codex modal. Unlocked cards show full title/description; locked cards only show clue text. Archive export now includes collection progress and unlocked endings.
+- Static assets were bumped to `codex-20260608`; README, schema, backend tests, WebSocket reset test, and layout assertions were updated.
+- Validation passed: frontend JS checks, layout assertions, and backend `pytest` (33 passed).
+- Rebuilt Docker; `yimingqiantu` is healthy on `0.0.0.0:7650->7650/tcp`, and deployed HTML contains `codex-20260608` plus `codex-button`.
+- Browser smoke with a fresh guest verified: initial `图鉴 0/13`, locked cards show clue-only entries, active retrospection unlocks `图鉴 1/13`, and `reset_game` preserves `图鉴 1/13` on the same guest session.

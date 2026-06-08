@@ -77,3 +77,5 @@ Retrofit `YiMingQianTu` to match the design document: a birth-info driven Bazi +
 | Browser smoke found blank age-6 action chips after reset/chart/prelude WebSocket patch sequence | Experience-helper deployment validation | Added `cleanActionOptions()` so sparse/blank action option patches fall back to `current_stage.action_options`; redeployed and verified no blank chips |
 
 40. [complete] Add hidden ending system: classify rare/hidden/legendary endings from final-state combinations, display the unlocked ending in the archive, and include it in Markdown export.
+
+41. [complete] Add ending codex collection: persist unlocked endings across reset for the same visitor, show collection progress and locked-ending clues, and include codex progress in archive export.

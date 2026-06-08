@@ -38,7 +38,10 @@ assert.match(html, /id='month-flow-board'/, 'simulation view should show current
 assert.match(html, /id='turn-guide'/, 'simulation view should show a turn decision guide');
 assert.match(html, /id='roll-stage-label'/, 'roll overlay should expose staged divination text');
 assert.match(html, /本半年行动/, 'free-text action placeholder should use half-year wording');
-assert.match(html, /hidden-ending-20260608/, 'main assets should be cache-busted for the hidden-ending optimization');
+assert.match(html, /id='codex-button'/, 'game header should expose ending codex collection');
+assert.match(html, /id='codex-panel'/, 'ending codex should render as a modal panel');
+assert.match(html, /id='codex-content'/, 'ending codex modal should contain collection content');
+assert.match(html, /codex-20260608/, 'main assets should be cache-busted for the codex optimization');
 assert.doesNotMatch(html, /Linux\.do|login\/linuxdo/, 'Linux.do login entry should be removed');
 assert.doesNotMatch(html, /id='fullscreen-button'/, 'fullscreen button should be removed');
 assert.doesNotMatch(html, /start-trial-button/, 'legacy start trial button should be removed');
@@ -73,6 +76,9 @@ assert.match(css, /\.milestone-card\s*{/, 'life milestones should render as stat
 assert.match(css, /\.ending-archive\s*{/, 'ending should render as a life archive section');
 assert.match(css, /\.ending-reason\s*{/, 'ending archive should show why the run ended');
 assert.match(css, /\.hidden-ending-card\s*{/, 'hidden endings should render as a distinct unlock card');
+assert.match(css, /\.codex-grid\s*{/, 'ending codex should render collection cards in a grid');
+assert.match(css, /\.codex-card\.locked\s*{/, 'locked codex entries should show clue-only styling');
+assert.match(css, /\.codex-summary\s*{/, 'ending codex should show collection progress');
 assert.match(css, /\.ending-goal-card\s*{/, 'ending archive should show life goal completion');
 assert.match(css, /\.history-toolbar\s*{/, 'narrative history should include filter/expand toolbar styling');
 assert.match(css, /\.history-filter-chip\s*{/, 'history filters should render as accessible chips');
@@ -106,6 +112,8 @@ assert.match(js, /function formatLegacyStateEffectLine\(/, 'frontend should pret
 assert.match(js, /function renderMonthFlowBoard\(/, 'frontend should render flowing-month cards');
 assert.match(js, /function renderTurnGuide\(/, 'frontend should render a decision guide for the current half-year');
 assert.match(js, /function renderEndingArchive\(/, 'frontend should render enhanced ending archive');
+assert.match(js, /function renderEndingCodex\(/, 'frontend should render the ending codex collection');
+assert.match(js, /ending_codex/, 'frontend should consume ending codex state');
 assert.match(js, /function cleanActionOptions\(/, 'frontend should clean sparse or blank action option patches before rendering chips');
 assert.match(js, /function classifyHistoryItem\(/, 'frontend should classify narrative history entries');
 assert.match(js, /data-history-filter/, 'frontend should render narrative history filter buttons');
@@ -113,6 +121,8 @@ assert.match(js, /HISTORY_COMPACT_LIMIT/, 'frontend should collapse long narrati
 assert.match(js, /function buildLifeArchiveMarkdown\(/, 'frontend should build a downloadable life archive');
 assert.match(js, /function exportLifeArchive\(/, 'frontend should export the current life archive');
 assert.match(js, /exportArchiveButton\.addEventListener\('click',\s*exportLifeArchive\)/, 'archive export button should be wired');
+assert.match(js, /codexButton\.addEventListener\('click',\s*toggleCodexPanel\)/, 'ending codex button should be wired');
+assert.match(js, /codexBackdrop\.addEventListener\('click',\s*closeCodexPanel\)/, 'ending codex backdrop should close the modal');
 assert.match(js, /retrospectButton:\s*document\.getElementById\('retrospect-button'\)/, 'manual retrospection button should be wired in DOMElements');
 assert.match(js, /function handleRetrospectLife\(\)/, 'frontend should handle manual life retrospection');
 assert.match(js, /type:\s*'retrospect_life'/, 'frontend should send the retrospection action');
@@ -128,6 +138,7 @@ assert.match(js, /state\.milestones/, 'frontend should render life milestones');
 assert.match(js, /achievements_unlocked/, 'ending archive should render unlocked achievements');
 assert.match(js, /ending\.hidden_ending/, 'ending archive should render hidden ending unlocks');
 assert.match(js, /隐藏结局/, 'life archive export should include hidden ending labels');
+assert.match(js, /结局图鉴/, 'life archive export should include ending codex progress');
 assert.match(js, /joinCleanList\(month\.theme,\s*'平稳推进'\)/, 'flowing-month cards should avoid sparse-array punctuation artifacts');
 assert.match(js, /function showRollPending\(/, 'frontend should show a pending roll animation immediately after submit');
 assert.match(js, /Array\.isArray\(target\)\)\s*target\.splice\(Number\(key\),\s*1\)/, 'JSON Patch remove should splice arrays instead of leaving holes');
