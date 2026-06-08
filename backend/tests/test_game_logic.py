@@ -219,7 +219,7 @@ def test_half_year_resolution_core_returns_authoritative_record(monkeypatch):
     game_logic._handle_accept_prelude(session)
     game_logic._refresh_current_context(session)
 
-    record = half_year_resolution.resolve_core(session, {'focuses': ['发展事业', '投资理财']})
+    record = half_year_resolution.resolve_authoritative_record(session, {'focuses': ['发展事业', '投资理财']})
 
     assert record['half_label'] == '上半年'
     assert record['main_focus'] == '发展事业'
@@ -231,6 +231,30 @@ def test_half_year_resolution_core_returns_authoritative_record(monkeypatch):
     assert record['goal_progress_before']['goal_id'] == session['active_life_goal_id']
     assert session['roll_event'] == record['roll_event']
     assert session['focus_memory']['last_focus'] == '发展事业'
+
+
+def test_half_year_resolution_owns_system_projection_and_cursor(monkeypatch):
+    monkeypatch.setattr(half_year_resolution.random, 'randint', lambda start, end: 42)
+    session = _chart_session()
+    game_logic._handle_generate_prelude(session)
+    game_logic._handle_accept_prelude(session)
+    game_logic._refresh_current_context(session)
+
+    record = half_year_resolution.resolve_authoritative_record(session, {'focuses': ['发展事业']})
+    half_year_resolution.refresh_life_systems(session, record)
+
+    assert session['life_systems']['career']['stage'].startswith('职业入口')
+    assert session['life_systems']['career']['notes']
+    assert session['relationships'][1]['name'] == '伴侣/亲密关系'
+
+    half_year_resolution.advance_turn_cursor(session, record)
+    assert session['current_half'] == 2
+    assert session['current_age'] == 22
+
+    half_year_resolution.advance_turn_cursor(session, {'half': 2, 'age': 22, 'year': session['current_year']})
+    assert session['current_half'] == 1
+    assert session['current_age'] == 23
+    assert session['current_year'] == 2023
 
 
 def test_stage_event_pool_returns_structured_event():

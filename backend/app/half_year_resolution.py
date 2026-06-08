@@ -198,6 +198,167 @@ def format_state_effect(changes: dict[str, Any]) -> str:
     return '、'.join(parts) if parts else '无明显变化'
 
 
+def score_label(score: int) -> str:
+    if score >= 80:
+        return '稳固'
+    if score >= 65:
+        return '向好'
+    if score >= 45:
+        return '摇摆'
+    if score >= 25:
+        return '吃紧'
+    return '危急'
+
+
+def trend_label(delta: int) -> str:
+    if delta >= 3:
+        return '上升'
+    if delta <= -3:
+        return '下滑'
+    return '平稳'
+
+
+def average_state(state: dict[str, Any], keys: list[str], fallback: int = 50) -> int:
+    values = []
+    for key in keys:
+        try:
+            values.append(int(state.get(key, fallback)))
+        except (TypeError, ValueError):
+            values.append(fallback)
+    return fate_mapper.clamp(round(sum(values) / max(1, len(values))))
+
+
+def system_stage(kind: str, age: int, score: int) -> str:
+    if kind == 'career':
+        if age <= 12:
+            base = '启蒙学习'
+        elif age <= 18:
+            base = '升学准备'
+        elif age <= 25:
+            base = '职业入口'
+        elif age <= 35:
+            base = '事业定型'
+        elif age <= 50:
+            base = '转型经营'
+        else:
+            base = '经验传承'
+    elif kind == 'assets':
+        if age <= 18:
+            base = '家庭供养'
+        elif age <= 25:
+            base = '独立起步'
+        elif age <= 35:
+            base = '资产起盘'
+        elif age <= 50:
+            base = '结构配置'
+        else:
+            base = '安全守成'
+    else:
+        if age <= 12:
+            base = '家庭依附'
+        elif age <= 18:
+            base = '同伴成形'
+        elif age <= 25:
+            base = '亲密探索'
+        elif age <= 40:
+            base = '承诺经营'
+        else:
+            base = '关系修复'
+    return base + ' · ' + score_label(score)
+
+
+def _string_list(value: Any, fallback: list[str] | None = None, limit: int = 12) -> list[str]:
+    if not isinstance(value, list):
+        return list(fallback or [])
+    result = [str(item).strip() for item in value if str(item).strip()]
+    return result[:limit] or list(fallback or [])
+
+
+def ensure_life_systems(session: dict[str, Any]) -> dict[str, Any]:
+    systems = session.get('life_systems')
+    if isinstance(systems, dict) and {'relationship', 'career', 'assets'} <= set(systems):
+        return systems
+    session['life_systems'] = {
+        'relationship': {'label': '关系网络', 'score': 50, 'stage': '未展开', 'trend': '平稳', 'notes': []},
+        'career': {'label': '学业/职业', 'score': 50, 'stage': '未展开', 'trend': '平稳', 'notes': []},
+        'assets': {'label': '资产基础', 'score': 50, 'stage': '未展开', 'trend': '平稳', 'notes': []},
+    }
+    return session['life_systems']
+
+
+def refresh_relationships(session: dict[str, Any]) -> None:
+    state = session.get('life_state') or {}
+    age = int(session.get('current_age') or session.get('start_age') or 22)
+    peer_name = '同伴关系' if age <= 18 else '伴侣/亲密关系'
+    mentor_name = '师长支持' if age <= 18 else '贵人与合作'
+    session['relationships'] = [
+        {
+            'name': '家庭支持',
+            'type': '家庭',
+            'closeness': fate_mapper.clamp(int(state.get('家庭', 50))),
+            'status': score_label(int(state.get('家庭', 50))),
+        },
+        {
+            'name': peer_name,
+            'type': '同伴/亲密',
+            'closeness': average_state(state, ['感情', '社交', '情绪']),
+            'status': score_label(average_state(state, ['感情', '社交', '情绪'])),
+        },
+        {
+            'name': mentor_name,
+            'type': '机会',
+            'closeness': average_state(state, ['社交', '名望', '事业']),
+            'status': score_label(average_state(state, ['社交', '名望', '事业'])),
+        },
+    ]
+
+
+def refresh_life_systems(session: dict[str, Any], record: dict[str, Any] | None = None) -> None:
+    systems = ensure_life_systems(session)
+    state = session.get('life_state') or {}
+    age = int(session.get('current_age') or session.get('start_age') or 22)
+    scores = {
+        'relationship': average_state(state, ['家庭', '感情', '社交', '情绪']),
+        'career': average_state(state, ['学识', '事业', '名望', '心智']),
+        'assets': average_state(state, ['财富', '事业', '福德']),
+    }
+    note = ''
+    if record:
+        stage_event = record.get('stage_event') or {}
+        note = (
+            str(record.get('age')) + '岁' + str(record.get('half_label') or '') +
+            ' · ' + str(record.get('main_focus') or '随缘而行') +
+            '：' + str(stage_event.get('event') or record.get('summary') or '')[:48]
+        )
+    for key, score in scores.items():
+        previous = int((systems.get(key) or {}).get('score', score))
+        item = systems.get(key) or {}
+        item['score'] = score
+        item['stage'] = system_stage(key, age, score)
+        item['trend'] = trend_label(score - previous)
+        item['label'] = item.get('label') or {'relationship': '关系网络', 'career': '学业/职业', 'assets': '资产基础'}[key]
+        notes = _string_list(item.get('notes'), [], 8)
+        if note and note not in notes:
+            notes.append(note)
+        item['notes'] = notes[-5:]
+        systems[key] = item
+    session['life_systems'] = systems
+    refresh_relationships(session)
+
+
+def advance_turn_cursor(session: dict[str, Any], record: dict[str, Any]) -> None:
+    half = int(record.get('half') or session.get('current_half') or 1)
+    age = int(record.get('age') or session.get('current_age') or session.get('start_age') or 22)
+    if half == 1:
+        session['current_half'] = 2
+        session['current_half_label'] = '下半年'
+        return
+    session['current_half'] = 1
+    session['current_half_label'] = '上半年'
+    session['current_age'] = age + 1
+    session['current_year'] = int(session.get('current_year') or record.get('year') or 0) + 1
+
+
 def build_focus_streak_feedback(session: dict[str, Any], action: str) -> dict[str, Any]:
     memory = normalize_focus_memory(session.get('focus_memory'))
     previous_focus = str(memory.get('last_focus') or '')
@@ -327,7 +488,7 @@ def normalize_focuses(action_payload: dict[str, Any] | str) -> list[str]:
     return cleaned[:3] or ['随缘而行']
 
 
-def resolve_core(session: dict[str, Any], action_payload: dict[str, Any] | str) -> dict[str, Any]:
+def resolve_authoritative_record(session: dict[str, Any], action_payload: dict[str, Any] | str) -> dict[str, Any]:
     """Resolve the authoritative deterministic half-year choice.
 
     Interface invariants:
@@ -399,8 +560,7 @@ def resolve_core(session: dict[str, Any], action_payload: dict[str, Any] | str) 
         'focus_memory_after': deepcopy(focus_memory_after),
         'event_state_bias': event_state_bias,
         'state_before': state_before,
-        'state_after': dict(session.get('life_state', {}),
-        ),
+        'state_after': dict(session.get('life_state', {})),
         'life_systems_before': life_systems_before,
         'relationships_before': relationships_before,
         'goal_progress_before': goal_progress_before,
@@ -410,3 +570,7 @@ def resolve_core(session: dict[str, Any], action_payload: dict[str, Any] | str) 
         'stage_label': stage_event.get('stage_label'),
         'stage_event': stage_event,
     }
+
+
+def resolve_core(session: dict[str, Any], action_payload: dict[str, Any] | str) -> dict[str, Any]:
+    return resolve_authoritative_record(session, action_payload)
