@@ -234,6 +234,8 @@
             "relationships": { "type": "array" },
             "life_goal": { "type": "object" },
             "life_goal_achieved": { "type": "boolean" },
+            "hidden_ending": { "type": "object" },
+            "hidden_endings": { "type": "array" },
             "achievements_unlocked": { "type": "array" },
             "milestones": { "type": "array" }
           }

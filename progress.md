@@ -205,3 +205,10 @@
 - Validation passed: `node --check frontend/index.js`, `node --check frontend/live.js`, `node tests/frontend_layout_check.mjs`, and `python -B -m pytest -p no:cacheprovider backend\tests` (31 passed).
 - Rebuilt Docker with `docker compose up -d --build`; container is healthy on `0.0.0.0:7650->7650/tcp`.
 - Browser smoke on `http://127.0.0.1:7650/?v=retrospect-smoke` verified guest start -> chart -> prelude -> life start -> `回望一生` confirmation -> `phase=结局`, disabled retrospection button, and archive reason `收束方式：主动回望`.
+
+- Added hidden-ending evaluation during ending generation. Current rules can unlock rare/hidden/legendary endings such as `云路留名之命`, `灯火可亲之一生`, `厚土藏金之局`, `无名有福之人`, `孤峰照雪之命`, `万里随心之途`, and `千途自明之卷` based on final state, goal completion, and achievement count.
+- Ending payloads now include `hidden_ending` and `hidden_endings`; the primary hidden ending can become the final title unless the run ended from health-zero.
+- Frontend ending archives now render a high-emphasis `hidden-ending-card`, and Markdown export includes hidden-ending title/rarity/unlock condition.
+- Static asset URLs were bumped to `hidden-ending-20260608`; README, schema, backend tests, and layout assertions were updated.
+- Validation passed: frontend JS checks, layout assertions, and backend `pytest` (32 passed).
+- Rebuilt Docker with `docker compose up -d --build`; deployed `http://127.0.0.1:7650/?v=hidden-ending-check` returned HTTP 200 and served the `hidden-ending-20260608` assets.

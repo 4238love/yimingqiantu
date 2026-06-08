@@ -81,7 +81,7 @@ def test_state_schema_tracks_stage_systems_and_ending_archive():
 
     assert {'current_stage', 'life_systems', 'ending_reason'} <= set(properties)
     assert {'stage_event', 'stage_label', 'life_systems_after', 'relationships_after'} <= set(half_item)
-    assert {'reason', 'dimensions', 'achievements', 'regrets', 'key_turning_points', 'life_systems', 'relationships'} <= set(ending_props)
+    assert {'reason', 'dimensions', 'achievements', 'regrets', 'key_turning_points', 'life_systems', 'relationships', 'hidden_ending', 'hidden_endings'} <= set(ending_props)
 
 
 def test_state_schema_tracks_life_goal_fields():

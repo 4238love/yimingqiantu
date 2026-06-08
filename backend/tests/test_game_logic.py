@@ -271,6 +271,35 @@ def test_player_can_retrospect_life_before_age_60(monkeypatch):
     assert any(item.startswith('【回望一生：') for item in session['display_history'])
 
 
+def test_hidden_ending_unlocks_from_final_state():
+    session = game_logic._new_session('hidden_ending_player')
+    session['phase'] = 'life_simulation'
+    session['current_age'] = 60
+    session['life_state'] = {
+        '健康': 78,
+        '心智': 82,
+        '情绪': 72,
+        '学识': 86,
+        '事业': 92,
+        '财富': 64,
+        '家庭': 45,
+        '感情': 42,
+        '社交': 68,
+        '名望': 86,
+        '福德': 40,
+        '压力': 52,
+    }
+
+    game_logic._finish_session(session, 'age_60')
+
+    ending = session['ending']
+    assert ending['hidden_ending']['id'] in {'cloud_road_legacy', 'solitary_peak'}
+    assert ending['hidden_ending']['title'] == ending['title']
+    assert ending['hidden_ending']['rarity'] in {'稀有', '隐藏'}
+    assert ending['hidden_endings']
+    assert '隐藏结局' in ending['summary']
+
+
 def test_reaching_age_60_finishes_immediately(monkeypatch):
     monkeypatch.setattr(game_logic.openai_client, 'is_text_ai_enabled', lambda *args, **kwargs: False)
     session = game_logic._new_session('age_60_player')

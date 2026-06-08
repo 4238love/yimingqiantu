@@ -1278,6 +1278,94 @@ def _ending_achievements_and_regrets(state: dict[str, Any]) -> tuple[list[str], 
     return achievements[:6] or ['在反复选择中保留了继续修正人生的能力'], regrets[:6] or ['没有单一遗憾压倒整个人生，但仍有一些未完成的愿望']
 
 
+def _hidden_ending_candidates(session: dict[str, Any], state: dict[str, Any], goal_progress: dict[str, Any]) -> list[dict[str, Any]]:
+    def score(key: str) -> int:
+        return int(state.get(key, 0))
+
+    candidates: list[dict[str, Any]] = []
+    goal_id = str(goal_progress.get('goal_id') or session.get('active_life_goal_id') or '')
+    goal_achieved = bool(goal_progress.get('achieved'))
+    achievement_count = len(session.get('achievements') or [])
+
+    def add(ending_id: str, title: str, rarity: str, condition: bool, description: str, unlock_reason: str, priority: int) -> None:
+        if not condition:
+            return
+        candidates.append({
+            'id': ending_id,
+            'title': title,
+            'rarity': rarity,
+            'description': description,
+            'unlock_reason': unlock_reason,
+            'priority': priority,
+        })
+
+    add(
+        'cloud_road_legacy',
+        '云路留名之命',
+        '稀有',
+        score('事业') + score('名望') >= 165 and score('学识') >= 70,
+        '你把长期学习、专业交付和公开信誉连成一条路，最终留下可被他人引用或追随的名字。',
+        '事业与名望合计达到 165，且学识不低于 70。',
+        90,
+    )
+    add(
+        'warm_hearth',
+        '灯火可亲之一生',
+        '稀有',
+        score('家庭') + score('感情') >= 165 and score('压力') <= 60,
+        '你没有把圆满只押在外部成就上，而是在亲密关系与家庭责任里留下了可回去的灯火。',
+        '家庭与感情合计达到 165，且压力不高于 60。',
+        86,
+    )
+    add(
+        'hidden_gold',
+        '厚土藏金之局',
+        '稀有',
+        score('财富') >= 88 and score('健康') >= 60 and score('压力') <= 55,
+        '你守住身体和节奏，也把资产基础慢慢夯实，富足不是骤得，而是长期稳住的结果。',
+        '财富达到 88，同时健康不低于 60、压力不高于 55。',
+        82,
+    )
+    add(
+        'quiet_merit',
+        '无名有福之人',
+        '隐藏',
+        score('福德') >= 80 and score('名望') <= 60 and score('家庭') >= 60,
+        '你未必站在众人目光中央，却在一次次善意、照护和留白里积下了柔软的转机。',
+        '福德达到 80，名望不高于 60，且家庭不低于 60。',
+        88,
+    )
+    add(
+        'solitary_peak',
+        '孤峰照雪之命',
+        '隐藏',
+        score('事业') + score('名望') >= 170 and score('家庭') + score('感情') <= 95,
+        '你抵达了高处，也清楚高处的风会带走一些陪伴；这不是单纯胜利，而是一种有代价的成就。',
+        '事业与名望合计达到 170，但家庭与感情合计不高于 95。',
+        91,
+    )
+    add(
+        'free_roamer',
+        '万里随心之途',
+        '隐藏',
+        (goal_id == 'free_explorer' and goal_achieved) or (score('社交') + score('心智') >= 150 and score('压力') <= 50 and score('财富') >= 45),
+        '你没有把人生压缩成单一答案，而是在关系、见闻和自我节奏之间，活出可进可退的自由。',
+        '达成“自由探索”愿望，或社交与心智合计达到 150、压力不高于 50、财富不低于 45。',
+        84,
+    )
+    add(
+        'many_paths_master',
+        '千途自明之卷',
+        '传奇',
+        achievement_count >= 8 and goal_achieved and _average_state(state, ['心智', '情绪', '健康'], 0) >= 70,
+        '你不是只赢下一条线，而是在愿望、身体、心智和多次过程反馈之间，把人生经营成完整的卷轴。',
+        '解锁至少 8 项成就、人生愿望达成，且心智/情绪/健康平均不低于 70。',
+        100,
+    )
+    candidates.sort(key=lambda item: int(item.get('priority', 0)), reverse=True)
+    return candidates[:3]
+
+
 def _build_ending(session: dict[str, Any]) -> dict[str, Any]:
     state = session.get('life_state', {})
     goal_progress = _refresh_goal_progress(session) if state else {}
@@ -1294,8 +1382,12 @@ def _build_ending(session: dict[str, Any]) -> dict[str, Any]:
     achievements, regrets = _ending_achievements_and_regrets(state)
     turning_points = _ending_turning_points(session)
     systems = session.get('life_systems') or {}
+    hidden_endings = _hidden_ending_candidates(session, state, goal_progress)
+    primary_hidden = hidden_endings[0] if hidden_endings and reason != 'health_zero' else {}
     if int(state.get('健康', 0)) <= 0:
         title = '命途早折之局'
+    elif primary_hidden:
+        title = str(primary_hidden.get('title') or '隐藏结局')
     elif int(state.get('事业', 0)) + int(state.get('名望', 0)) >= 150:
         title = '高处见山之一生'
     elif int(state.get('财富', 0)) >= 85:
@@ -1320,6 +1412,7 @@ def _build_ending(session: dict[str, Any]) -> dict[str, Any]:
         ('长期系统收束为：' + system_line + '。' if system_line else '') +
         (_format_goal_progress(goal_progress) + ('这个愿望最终达成。' if goal_progress.get('achieved') else '这个愿望尚未完全达成。') if goal_progress else '') +
         ('一生共解锁' + str(len(session.get('achievements') or [])) + '项成就。' if session.get('achievements') else '') +
+        (('隐藏结局“' + str(primary_hidden.get('title')) + '”已点亮：' + str(primary_hidden.get('description')) + '。') if primary_hidden else '') +
         '主要成就：' + '；'.join(achievements) + '。' +
         '主要遗憾：' + '；'.join(regrets) + '。' +
         ('关键转折包括：' + '；'.join(turning_points[:4]) + '。' if turning_points else '') +
@@ -1338,6 +1431,8 @@ def _build_ending(session: dict[str, Any]) -> dict[str, Any]:
         'relationships': deepcopy(session.get('relationships') or []),
         'life_goal': deepcopy(goal_progress),
         'life_goal_achieved': bool(goal_progress.get('achieved')),
+        'hidden_ending': deepcopy(primary_hidden),
+        'hidden_endings': deepcopy(hidden_endings),
         'achievements_unlocked': deepcopy(session.get('achievements') or []),
         'milestones': deepcopy(session.get('milestones') or []),
     }

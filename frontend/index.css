@@ -886,6 +886,58 @@ input, select {
     font-weight: 800;
 }
 
+.hidden-ending-card {
+    position: relative;
+    overflow: hidden;
+    padding: 1.05rem 1.15rem;
+    border: 1px solid rgba(201,154,66,0.42);
+    border-radius: 22px;
+    background:
+        linear-gradient(135deg, rgba(54,44,31,0.94), rgba(116,78,39,0.86)),
+        radial-gradient(circle at 18% 12%, rgba(255,226,146,0.24), transparent 11rem);
+    color: #fff8df;
+    box-shadow: 0 18px 42px rgba(48,34,21,0.22);
+}
+.hidden-ending-card::after {
+    content: '藏';
+    position: absolute;
+    right: 0.8rem;
+    top: -0.55rem;
+    color: rgba(255,248,223,0.1);
+    font-family: var(--font-serif);
+    font-size: 6.8rem;
+    font-weight: 900;
+    line-height: 1;
+}
+.hidden-ending-card span {
+    display: inline-flex;
+    padding: 0.18rem 0.55rem;
+    border-radius: 999px;
+    background: rgba(255,248,223,0.14);
+    color: #f6d98d;
+    font-size: 0.76rem;
+    font-weight: 900;
+}
+.hidden-ending-card strong {
+    position: relative;
+    z-index: 1;
+    display: block;
+    margin: 0.5rem 0 0.35rem;
+    font-family: var(--font-serif);
+    font-size: clamp(1.25rem, 2.4vw, 1.8rem);
+    letter-spacing: 0.08em;
+}
+.hidden-ending-card p,
+.hidden-ending-card small {
+    position: relative;
+    z-index: 1;
+    display: block;
+    margin: 0;
+    color: rgba(255,248,223,0.82);
+    line-height: 1.65;
+}
+.hidden-ending-card small { margin-top: 0.45rem; color: rgba(246,217,141,0.9); }
+
 .ending-grid {
     display: grid;
     grid-template-columns: repeat(7, minmax(0, 1fr));

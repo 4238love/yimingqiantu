@@ -574,6 +574,8 @@ function renderEndingArchive(ending) {
     const goal = ending.life_goal || {};
     const reasonLabels = { retrospect: '主动回望', health_zero: '健康归零', age_60: '六十岁终章', natural: '自然收束' };
     const reasonBlock = ending.reason ? '<p class=\'ending-reason\'>收束方式：' + escapeHtml(reasonLabels[ending.reason] || ending.reason) + '</p>' : '';
+    const hidden = ending.hidden_ending || {};
+    const hiddenBlock = hidden.title ? '<article class=\'hidden-ending-card\'><span>' + escapeHtml(hidden.rarity || '隐藏') + '结局</span><strong>' + escapeHtml(hidden.title) + '</strong><p>' + escapeHtml(hidden.description || '') + '</p><small>解锁条件：' + escapeHtml(hidden.unlock_reason || '达成特殊人生组合') + '</small></article>' : '';
     const goalBlock = goal.title ? '<article class=\'ending-goal-card\'><span>人生愿望</span><strong>' + escapeHtml(goal.title) + '</strong><p>' + escapeHtml(goal.achieved ? '最终达成' : '尚未完全达成') + ' · ' + Number(goal.score || 0) + '/' + Number(goal.threshold || 0) + ' · ' + escapeHtml(goal.status || '') + '</p></article>' : '';
     const dimensionCards = Object.values(dimensions).map(item => '<article><span>' + escapeHtml(item.label || '') + '</span><strong>' + escapeHtml(item.grade || '') + '</strong><small>' + Number(item.score || 0) + '分</small></article>').join('');
     const achievements = (ending.achievements || []).map(item => '<li>' + escapeHtml(item) + '</li>').join('');
@@ -581,7 +583,7 @@ function renderEndingArchive(ending) {
     const points = (ending.key_turning_points || []).map(item => '<li>' + escapeHtml(item) + '</li>').join('');
     const unlocked = (ending.achievements_unlocked || []).map(item => '<li><b>' + escapeHtml(item.title || '') + '</b>：' + escapeHtml(item.description || '') + '</li>').join('');
     return '<section class=\'ending-archive\'><h3>人生档案</h3>' + reasonBlock +
-        goalBlock +
+        hiddenBlock + goalBlock +
         '<div class=\'ending-grid\'>' + dimensionCards + '</div>' +
         '<div class=\'ending-lists\'>' +
         '<article><h4>主要成就</h4><ul>' + achievements + '</ul></article>' +
@@ -825,6 +827,10 @@ function buildLifeArchiveMarkdown(state) {
         lines.push('');
         lines.push('## 结局');
         if (ending.title) lines.push('### ' + ending.title);
+        if (ending.hidden_ending?.title) {
+            lines.push('- 隐藏结局：' + ending.hidden_ending.title + '（' + (ending.hidden_ending.rarity || '隐藏') + '）');
+            if (ending.hidden_ending.unlock_reason) lines.push('- 解锁条件：' + ending.hidden_ending.unlock_reason);
+        }
         if (ending.summary) lines.push(ending.summary);
     }
     lines.push('');

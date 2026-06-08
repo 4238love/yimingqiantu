@@ -38,7 +38,7 @@ assert.match(html, /id='month-flow-board'/, 'simulation view should show current
 assert.match(html, /id='turn-guide'/, 'simulation view should show a turn decision guide');
 assert.match(html, /id='roll-stage-label'/, 'roll overlay should expose staged divination text');
 assert.match(html, /本半年行动/, 'free-text action placeholder should use half-year wording');
-assert.match(html, /retrospect-20260608/, 'main assets should be cache-busted for the retrospection optimization');
+assert.match(html, /hidden-ending-20260608/, 'main assets should be cache-busted for the hidden-ending optimization');
 assert.doesNotMatch(html, /Linux\.do|login\/linuxdo/, 'Linux.do login entry should be removed');
 assert.doesNotMatch(html, /id='fullscreen-button'/, 'fullscreen button should be removed');
 assert.doesNotMatch(html, /start-trial-button/, 'legacy start trial button should be removed');
@@ -72,6 +72,7 @@ assert.match(css, /\.achievement-card\s*{/, 'unlocked achievements should render
 assert.match(css, /\.milestone-card\s*{/, 'life milestones should render as status cards');
 assert.match(css, /\.ending-archive\s*{/, 'ending should render as a life archive section');
 assert.match(css, /\.ending-reason\s*{/, 'ending archive should show why the run ended');
+assert.match(css, /\.hidden-ending-card\s*{/, 'hidden endings should render as a distinct unlock card');
 assert.match(css, /\.ending-goal-card\s*{/, 'ending archive should show life goal completion');
 assert.match(css, /\.history-toolbar\s*{/, 'narrative history should include filter/expand toolbar styling');
 assert.match(css, /\.history-filter-chip\s*{/, 'history filters should render as accessible chips');
@@ -125,6 +126,8 @@ assert.match(js, /state\.goal_progress/, 'frontend should render active life goa
 assert.match(js, /state\.achievements/, 'frontend should render unlocked achievements');
 assert.match(js, /state\.milestones/, 'frontend should render life milestones');
 assert.match(js, /achievements_unlocked/, 'ending archive should render unlocked achievements');
+assert.match(js, /ending\.hidden_ending/, 'ending archive should render hidden ending unlocks');
+assert.match(js, /隐藏结局/, 'life archive export should include hidden ending labels');
 assert.match(js, /joinCleanList\(month\.theme,\s*'平稳推进'\)/, 'flowing-month cards should avoid sparse-array punctuation artifacts');
 assert.match(js, /function showRollPending\(/, 'frontend should show a pending roll animation immediately after submit');
 assert.match(js, /Array\.isArray\(target\)\)\s*target\.splice\(Number\(key\),\s*1\)/, 'JSON Patch remove should splice arrays instead of leaving holes');
