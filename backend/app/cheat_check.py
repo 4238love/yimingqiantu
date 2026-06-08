@@ -3,7 +3,7 @@ import asyncio
 import re
 
 from . import openai_client
-from . import state_manager
+from . import state_manager, state_publication
 from .config import settings
 
 # --- Logging ---
@@ -105,8 +105,6 @@ async def run_cheat_check(player_id: str, inputs_to_check: list[str]) -> str:
     session = await state_manager.get_session(player_id)
     if session:
         session["unchecked_rounds_count"] = 0
-        await state_manager.save_session(
-            player_id, session
-        )  # Use save_session to persist and notify
+        await state_publication.commit_session(player_id, session)
 
     return level

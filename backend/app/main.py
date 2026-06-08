@@ -13,9 +13,8 @@ from fastapi.responses import RedirectResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
-from . import ai_settings, auth, game_logic, openai_client, state_manager, security
+from . import ai_settings, auth, game_logic, openai_client, state_manager, security, state_publication
 from .websocket_manager import manager as websocket_manager
-from .live_system import live_manager
 from .config import settings
 
 # --- Logging Configuration ---
@@ -207,9 +206,7 @@ async def websocket_endpoint(websocket: WebSocket):
         session = await state_manager.get_session(user_info["username"])
         if session:
             game_logic._ensure_session_defaults(session)
-            await websocket_manager.send_json_to_player(
-                user_info["username"], {"type": "full_state", "data": session}
-            )
+            await state_publication.publish_game_state(user_info["username"], session)
 
         while True:
             data = await websocket.receive_json()
@@ -248,17 +245,15 @@ async def live_websocket_endpoint(websocket: WebSocket):
                         logger.warning(f"Received invalid encrypted ID from {viewer_id}")
                         continue
                     
-                    live_manager.add_viewer(viewer_id, target_id)
+                    state_publication.add_live_viewer(viewer_id, target_id)
                     # Send the current state of the watched player immediately
                     target_state = await state_manager.get_session(target_id)
                     if target_state:
-                        await websocket_manager.send_json_to_player(
-                            viewer_id, {"type": "live_update", "data": target_state}
-                        )
+                        await state_publication.publish_live_snapshot(viewer_id, target_state)
 
     except WebSocketDisconnect:
         websocket_manager.disconnect(viewer_id)
-        live_manager.remove_viewer(viewer_id)
+        state_publication.remove_live_viewer(viewer_id)
 
 
 # --- Include API Router and Mount Static Files ---

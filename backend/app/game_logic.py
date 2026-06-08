@@ -9,7 +9,7 @@ from datetime import date
 from pathlib import Path
 from typing import Any
 
-from . import bazi_engine, fate_mapper, half_year_resolution, openai_client, state_manager
+from . import bazi_engine, fate_mapper, half_year_resolution, openai_client, state_manager, state_publication
 
 
 logger = logging.getLogger(__name__)
@@ -1431,7 +1431,7 @@ async def _process_player_action_async(current_user: dict[str, Any], action: Any
         session['display_history'].append('【命书紊乱】本次行动处理失败，请检查输入后重试。')
     finally:
         session['is_processing'] = False
-        await state_manager.save_session(player_id, session)
+        await state_publication.commit_session(player_id, session)
 
 
 async def process_player_action(current_user: dict[str, Any], action: Any) -> None:
@@ -1445,5 +1445,5 @@ async def process_player_action(current_user: dict[str, Any], action: Any) -> No
     if session.get('is_finished') and not (isinstance(action, dict) and action.get('type') == 'reset_game'):
         return
     session['is_processing'] = True
-    await state_manager.save_session(player_id, session)
+    await state_publication.commit_session(player_id, session)
     asyncio.create_task(_process_player_action_async(current_user, action))

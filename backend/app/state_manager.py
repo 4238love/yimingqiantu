@@ -10,8 +10,6 @@ from typing import Any
 import aiofiles
 import aiofiles.os
 
-from .websocket_manager import manager as websocket_manager
-from .live_system import live_manager
 from . import security
 
 # --- Logging ---
@@ -494,7 +492,12 @@ async def get_session(player_id: str) -> dict | None:
 
 
 async def save_session(player_id: str, session_data: dict):
-    """保存完整会话数据"""
+    """保存完整会话数据。
+
+    This Module owns durable persistence only. Real-time gameplay/live
+    publication is handled by state_publication.py so callers can choose
+    whether a write should also notify connected clients.
+    """
     global _index_modified
     
     # 复制一份，避免修改原始数据
@@ -541,17 +544,7 @@ async def save_session(player_id: str, session_data: dict):
             # 历史被重置或清空，重写整个文件
             await _write_jsonl_file(_get_display_history_path(player_id), display_history)
     
-    # 保存元数据
     await _save_meta(player_id, data_to_save)
-    
-    # 推送更新（使用原始 session_data，包含历史记录）
-    tasks = [
-        websocket_manager.send_json_to_player(
-            player_id, {"type": "full_state", "data": session_data}
-        ),
-        live_manager.broadcast_state_update(player_id, session_data)
-    ]
-    await asyncio.gather(*tasks)
 
 
 async def get_last_n_inputs(player_id: str, n: int) -> list[str]:
