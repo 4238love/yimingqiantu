@@ -1,0 +1,196 @@
+# Progress
+
+## 2026-06-07
+
+- Read design document in parent directory.
+- Listed `YiMingQianTu` project files.
+- Created persistent planning files for the retrofit.
+- Inspected current `main.py`, `game_logic.py`, `state_manager.py`, `openai_client.py`, and frontend `index.*` files.
+- Inspected auth and README; searched reference projects for reusable roll/Bazi pieces.
+- Added backend `bazi_engine.py`, `fate_mapper.py`, rewrote `game_logic.py`, added guest login, and switched WebSocket sends to text JSON.
+- Replaced frontend with birth info, chart, prelude, and yearly simulation UI.
+- Added AI prompt role files and updated README/state schema.
+- Validation passed: Python compileall, JSON schema parse, frontend JS parse, frontend layout check, backend unit tests, FastAPI app import, guest/init smoke.
+- Removed generated smoke-test session files and Python bytecode caches from the workspace.
+- Rewrote legacy prompt files and `main.py` source title to remove old project terminology.
+- Resumed project from the completed retrofit plan and audited remaining legacy terms.
+- Added main-flow UX upgrades: calendar selector, unknown-time input disabling, start-age quick chips, expanded chart cards, five-element board, luck-cycle timeline, and a reset path from chart back to birth input.
+- Removed the unused legacy `start-trial-button`/`startTrialButton` frontend wiring.
+- Rebuilt the live observer page with YiMingQianTu branding, local escaped text rendering, and no CDN dependencies.
+- Renamed backend session initialization helper from `get_or_create_daily_session` to `get_or_create_session` and updated `/api/game/init` docstring.
+- Extended `tests/frontend_layout_check.mjs` to cover the new birth/chart/live observer UI expectations.
+- Updated README with start-age presets, expanded chart display, and `/live.html` observer notes.
+- Validation passed: legacy-term scan for source/assets (excluding planning/test assertion text), `node --check frontend/index.js`, `node --check frontend/live.js`, `node tests/frontend_layout_check.mjs`, `python -m compileall backend/app`, `python -m pytest backend/tests`, FastAPI app import, and Bazi chart smoke.
+- Installed `pytest` after approval because it was missing from the user Python environment; removed generated `__pycache__` and `.pytest_cache` after validation.
+- Cleaned old fantasy-themed image-generation prompt text in `backend/app/openai_client.py` and changed the failure banner in `game_logic.py` to `【命书紊乱】`.
+- Deleted unused old-named `backend/app/prompts/start_trial_prompt.txt`; filename scan no longer finds old trial/project-theme terms.
+- Final no-cache validation passed: old-theme scan across `backend/app` and `frontend`, `node --check frontend/index.js`, `node --check frontend/live.js`, `node tests/frontend_layout_check.mjs`, FastAPI/openai_client import, and `python -B -m pytest -p no:cacheprovider backend/tests`.
+- Continued completion audit against the design document.
+- Verified pure core-flow smoke: generated chart, generated prelude, accepted prelude, advanced yearly actions to age 60, produced ending, and retained all required state keys/life-state attributes.
+- Verified API smoke with storage redirected to a temp directory: unauthenticated `/api/game/init` returns 401, `/api/guest` sets a token, authenticated `/api/game/init` returns `birth_input`, and `/api/live/players` returns a list.
+- Fixed stale `run.sh` old-project path and made it start `backend.app.main:app` from the current script directory.
+- Added `pytest` to `backend/requirements.txt` and added README validation commands plus `openai_client.py`/`websocket_manager.py` structure notes.
+- Extended `tests/frontend_layout_check.mjs` to assert `run.sh` starts the correct app and does not reference the old path.
+- Latest validation passed: legacy scan (excluding planning/test assertion text), `node --check frontend/index.js`, `node --check frontend/live.js`, `node tests/frontend_layout_check.mjs`, `python -B -m pytest -p no:cacheprovider backend/tests`, and temp-dir API smoke.
+- Confirmed no `__pycache__` or `.pytest_cache` remained; project `game_data` contains only empty directories from previous smoke/setup and no old-theme text.
+- Continued modifications after completion audit: added keyword-based free-text action mapping in `fate_mapper.py` and updated `_normalize_focuses` so custom yearly actions map to the closest D100 category.
+- Added optional AI enhancement hooks in `game_logic.py`: prelude and latest annual summary first use deterministic fallback, then attempt structured AI JSON if text AI is configured.
+- Added `openai_client.is_text_ai_enabled()` helper.
+- Annual summary records now include year, focuses, roll event, and annual cycle metadata.
+- Added `backend/tests/test_game_logic.py` covering custom text mapping, no-AI prelude fallback, and custom annual action behavior.
+- Updated frontend action input placeholder and README to explain automatic action categorization plus optional AI enhancement.
+- Validation passed: `python -B -m pytest -p no:cacheprovider backend/tests` (8 passed), `node --check frontend/index.js`, `node --check frontend/live.js`, `node tests/frontend_layout_check.mjs`, temp-dir API smoke, old-theme scan, and cache check.
+- Removed unused legacy database/兑换码 modules: deleted `backend/app/db.py` and `backend/app/redemption.py`, removed `DATABASE_URL`, removed SQL/MySQL dependencies, and dropped redemption-code masking from live payload preparation.
+- Tightened `backend/app/state.schema.json` to cover all top-level session keys, MVP life-state attributes, Bazi chart fields, luck/annual cycle structures, and annual summary metadata.
+- Added AI override tests for prelude and annual summary, plus schema coverage tests.
+- Latest validation passed: `python -B -m pytest -p no:cacheprovider backend/tests` (13 passed), `node --check frontend/index.js`, `node --check frontend/live.js`, `node tests/frontend_layout_check.mjs`, temp-dir API smoke, app import, DB/兑换码 reference scan, old-theme scan, and cache check.
+- Removed unused backend image generation/storage infrastructure: deleted `backend/app/image_store.py`, removed image settings and generated-image static mount, and rewrote `openai_client.py` as text-AI-only.
+- Deleted image-specific backend tests that no longer match MVP scope and updated README to describe `openai_client.py` as text AI only.
+- Added `backend/tests/test_api_websocket.py` covering guest login, `/api/ws` connection, and WebSocket-driven chart generation.
+- Cleaned empty generated image/session directories left from prior smoke checks; `game_data` now only contains the runtime `sessions` directory.
+- Latest validation passed: `python -B -m pytest -p no:cacheprovider backend/tests` (9 passed), `node --check frontend/index.js`, `node --check frontend/live.js`, `node tests/frontend_layout_check.mjs`, temp-dir API smoke, app import, image/DB/兑换码 reference scan, old-theme scan, and cache check.
+- Re-audited completion after cleanup: file structure, backend flow, frontend flow, optional text AI hooks, three-pillar mode, free-text action mapping, and live observer coverage remain aligned with MVP scope.
+- Validation passed again: `python -B -m pytest -p no:cacheprovider backend/tests` (9 passed), `node --check frontend/index.js`, `node --check frontend/live.js`, `node tests/frontend_layout_check.mjs`, temp-dir API smoke, legacy/image/DB reference scan, cache check, and `game_data` contains only the runtime `sessions` directory.
+- Continued completion check against `一命千途-游戏设计规划.md` and current project files.
+- Verified current structure still contains required MVP modules and prompt assets; extra prompt files remain harmless compatibility assets.
+- Validation passed: `python -B -m pytest -p no:cacheprovider backend/tests` (9 passed), `node --check frontend/index.js`, `node --check frontend/live.js`, and `node tests/frontend_layout_check.mjs`.
+- Legacy/reference scan found only the intentional old-path negative assertion in `tests/frontend_layout_check.mjs`; no active source hit for old theme/path, DB/redemption, or backend image generation/storage.
+- Verified no `__pycache__` or `.pytest_cache` directories are present, and `game_data` contains only the runtime `sessions` directory.
+- Direct core-flow smoke passed after avoiding PowerShell Unicode false negatives: generated chart, generated prelude, accepted prelude, advanced yearly actions to ending, and verified unknown-time three-pillar mode.
+- Implemented optional AI Bazi analyst integration: chart generation now stores deterministic `bazi_analysis` and optionally enriches it through `bazi_analyst.txt`.
+- Added top-level chart-analysis state fields (`chart_tags`, `life_topics`, `suitable_directions`, `high_risk_fields`) and rendered life topics/suitable directions/high-risk fields in the chart panel.
+- Updated `state.schema.json`, `README.md`, `backend/tests/test_game_logic.py`, `backend/tests/test_state_schema.py`, `backend/tests/test_api_websocket.py`, and `tests/frontend_layout_check.mjs` for the new chart-analysis role.
+- Validation passed: `python -B -m pytest -p no:cacheprovider backend/tests` (12 passed), `node --check frontend/index.js`, `node --check frontend/live.js`, `node tests/frontend_layout_check.mjs`, direct chart-analysis core-flow smoke, app import, legacy scan, and cache-dir checks.
+- Implemented optional AI life GM integration: annual action now stores authoritative roll modifiers, before/after state, luck cycle metadata, and can add an AI `【年度叙事】` entry through `life_game_master.txt`.
+- Preserved backend authority: AI `state_update` from the GM is saved only as `gm_state_update_suggestion` and is not applied to `life_state`.
+- Updated `life_game_master.txt`, `state.schema.json`, `README.md`, and backend tests for the GM role and annual metadata.
+- Validation passed: `python -B -m pytest -p no:cacheprovider backend/tests` (13 passed), `node --check frontend/index.js`, `node --check frontend/live.js`, `node tests/frontend_layout_check.mjs`, GM metadata smoke, app import, legacy scan, and cache-dir checks.
+- Expanded `backend/tests/test_api_websocket.py` from chart-only smoke to a full guest WebSocket E2E: chart -> prelude -> accept prelude -> annual action -> second annual action -> ending.
+- Added WebSocket test handling for both `full_state` and JSON Patch `patch` messages with `jsonpatch.apply_patch`.
+- Validation passed: `python -B -m pytest -p no:cacheprovider backend/tests` (13 passed), `node --check frontend/index.js`, `node --check frontend/live.js`, `node tests/frontend_layout_check.mjs`, app import, legacy scan, cache-dir checks, and `game_data` still only contains runtime `sessions`.
+- Re-checked completion after AI role and WebSocket E2E work: read current plan/findings/progress, scanned key backend/frontend coverage, and reviewed README plus requirements.
+- Validation passed again: `python -B -m pytest -p no:cacheprovider backend/tests` (13 passed), `node --check frontend/index.js`, `node --check frontend/live.js`, `node tests/frontend_layout_check.mjs`, app import, direct completion smoke, legacy/reference scan, cache-dir checks, and `game_data` still only contains runtime `sessions`.
+- Completion estimate remained high; the one semantic refinement candidate was age-60 ending timing before the following fix.
+- Aligned age-60 ending semantics: annual action now re-checks ending after advancing age/year, so reaching age 60 immediately ends the run.
+- Updated WebSocket E2E and added a backend unit test for the immediate age-60 ending behavior.
+- Validation passed: `python -B -m pytest -p no:cacheprovider backend/tests` (14 passed), `node --check frontend/index.js`, `node --check frontend/live.js`, `node tests/frontend_layout_check.mjs`, direct age-60 smoke, legacy scan, cache-dir checks, and `game_data` still only contains runtime `sessions`.
+- Checked current project runnability: Python and Node are available, required Python dependencies import, `run.sh` starts `backend.app.main:app`, API/WebSocket smoke passes with temp storage, and Uvicorn lifecycle startup/shutdown smoke passes.
+- Validation passed again: `python -B -m pytest -p no:cacheprovider backend/tests` (14 passed), `node --check frontend/index.js`, `node --check frontend/live.js`, `node tests/frontend_layout_check.mjs`, app import, legacy scan, cache-dir checks, and default port 8000 is currently free.
+- Noted one false negative during smoke: a PowerShell piped script asserted the Chinese app title using a literal string and failed due shell encoding; the same check passed with Unicode escapes.
+- Added Docker deployment files: `Dockerfile`, `.dockerignore`, and `docker-compose.yml`.
+- Updated Docker port from the initial 8000 draft to the requested `7650` for both container listen port and host published port.
+- Built and started the Docker deployment with proxy variables set to `http://127.0.0.1:10808`: `docker compose up -d --build` succeeded and container `yimingqiantu` is healthy.
+- Verified deployed container on `http://127.0.0.1:7650`: homepage HTTP 200, `/api/guest`, `/api/game/init`, and a full WebSocket game flow ending at age 60 all passed.
+- Removed Linux.do OAuth login: deleted frontend login link, backend OAuth routes/client registration/settings, `SessionMiddleware`, and `Authlib`/`itsdangerous` requirements.
+- Added frontend layout assertion that Linux.do login text/path must not appear in `frontend/index.html`.
+- Validation passed after cleanup: `python -B -m pytest -p no:cacheprovider backend/tests` (14 passed), app route scan confirms no `/api/login/linuxdo` or `/callback`, and active-source scan only finds Linux.do in the negative test assertion.
+- Rebuilt Docker deployment on port `7650`; container is healthy, deployed HTML contains no Linux.do/login link, guest API works, and deployed WebSocket flow still reaches the age-60 ending.
+- Added an in-game custom AI API settings area after entering the game: `frontend/index.html` now exposes the `AI API` header button and `api-settings-panel` with API Key, Base URL, and model fields.
+- Added frontend save/load/clear wiring in `frontend/index.js` for `/api/settings/ai`, including masked-key display and error messages.
+- Added backend per-player AI settings persistence in `backend/app/ai_settings.py` plus `GET/POST/DELETE /api/settings/ai` routes in `backend/app/main.py`.
+- Updated `backend/app/openai_client.py` and `backend/app/game_logic.py` so optional AI generation can use the current player's custom API config while keeping deterministic fallback behavior.
+- Added backend and frontend assertions covering custom AI settings and updated README with game-internal custom API usage.
+- Validation passed: `python -B -m pytest -p no:cacheprovider backend/tests` (15 passed), `node --check frontend/index.js`, `node --check frontend/live.js`, and `node tests/frontend_layout_check.mjs`.
+- Docker status remains healthy on `0.0.0.0:7650->7650/tcp`; deployed HTTP checks confirmed the AI API panel is present, Linux.do references are absent, `/api/settings/ai` save/mask/clear works, and the deployed WebSocket flow still reaches `phase=ending` at age 60.
+- Added `POST /api/settings/ai/test` and a `测试连接` button in the AI API panel. The test uses current form values when present and otherwise falls back to saved/global config.
+- Fixed ugly prelude event rendering: backend normalizes AI object-shaped `early_events`, while frontend renders early events as `.prelude-event-card` cards and can parse legacy `{'age': ...}` strings.
+- Updated README and layout/backend tests for the test button and structured event display.
+- Validation passed: `python -B -m pytest -p no:cacheprovider backend/tests` (16 passed), `node --check frontend/index.js`, `node --check frontend/live.js`, and `node tests/frontend_layout_check.mjs`.
+- Rebuilt Docker with proxy, verified `http://127.0.0.1:7650` contains the test button and card CSS/JS, `/api/settings/ai/test` returns 400 when no key is available, and the deployed WebSocket flow still reaches `phase=ending` at age 60 with no raw dict event text.
+- Implemented flowing-month analysis: `backend/app/bazi_engine.py` now produces `monthly_cycles`, and `backend/app/game_logic.py` tracks `current_half`, `current_half_label`, `current_monthly_cycles`, and `half_year_summaries`.
+- Changed life simulation cadence to half-year choices while keeping the existing `annual_action` WebSocket action for compatibility. One action moves `上半年 -> 下半年`; the next action advances age/year.
+- Added flowing-month influence into D100 target calculation via a capped `流月` modifier in `backend/app/fate_mapper.py`; half-year state effects are scaled down from the previous yearly deltas.
+- Updated state schema and backend tests to document monthly cycle fields, half-year summaries, and the new two-step age-60 ending flow.
+- Updated frontend UI: `month-flow-board` renders six flowing-month cards for the current half-year, action wording now says `本半年`, and the roll/loading animation is a themed divination overlay with immediate pending feedback plus staged D100 reveal.
+- Updated README and frontend layout assertions for flowing-month and half-year behavior.
+- Validation passed: `python -B -m pytest -p no:cacheprovider backend/tests` (17 passed), `node --check frontend/index.js`, `node --check frontend/live.js`, and `node tests/frontend_layout_check.mjs`.
+- Docker rebuild initially failed twice due Docker Hub metadata timeouts/EOF in BuildKit. Retried with `DOCKER_BUILDKIT=0`, rebuilt successfully, and container `yimingqiantu` is healthy on `0.0.0.0:7650->7650/tcp`.
+- Deployed checks passed: homepage includes `month-flow-board`, `roll-stage-label`, half-year placeholder, flowing-month JS/CSS, and real WebSocket flow verified `59岁上半年 -> 59岁下半年 -> 60岁结局` with two summaries.
+- Updated README and active/compatibility AI prompt text from annual wording to stage/half-year wording, then re-ran backend tests and layout assertions successfully.
+- Rebuilt Docker again with `DOCKER_BUILDKIT=0` to include the prompt/README wording changes; container remains healthy and homepage returns HTTP 200.
+- Changed AI API settings from an inline `main-content` panel to a centered modal dialog with `api-settings-backdrop`, `role=dialog`, `api-settings-close-button`, Escape close behavior, and backdrop-click close behavior.
+- Updated frontend layout tests for modal semantics, fixed positioning, centered transform, backdrop, and close event wiring.
+- Validation passed: `node --check frontend/index.js`, `node --check frontend/live.js`, `node tests/frontend_layout_check.mjs`, and `python -B -m pytest -p no:cacheprovider backend/tests` (17 passed).
+- Rebuilt Docker with `DOCKER_BUILDKIT=0`; container stayed healthy on port `7650`.
+- Browser verification initially showed horizontal offset because cached HTML still had the dialog inside `main-content`. After cache-busting navigation to `/?v=modal-final`, DOM parent was `app-container`, modal was fixed with `offsetParent=null`, and centering measured `centerDeltaX=0`, `centerDeltaY=0`. Escape close also verified.
+- Implemented multi-profile custom AI API settings. Backend `ai_settings.py` now stores version-2 profile lists with one `active_profile_id`, migrates legacy single-key JSON in memory, masks keys in public responses, and supports save/delete/activate/profile-test operations.
+- Updated `openai_client.py` so game AI calls use the active profile, while profile-specific connection tests do not silently fall back to another active/global key when a profile id is provided.
+- Updated the AI API modal into a two-column profile manager: saved profile cards on the left, editor on the right, plus `新增配置`, `测试连接`, `设为默认`, `保存配置`, `清除 Key`, and `删除配置`.
+- Added frontend guards so a brand-new unsaved profile cannot accidentally test with the current default key, and saving duplicate names selects the newly created profile instead of the first matching old profile.
+- Extended backend and layout tests for multi-profile settings, including old single-key migration and profile CRUD wiring.
+- Validation passed: `node --check frontend/index.js`, `node --check frontend/live.js`, `node tests/frontend_layout_check.mjs`, and `python -B -m pytest -p no:cacheprovider backend/tests` (18 passed).
+- Rebuilt Docker with `DOCKER_BUILDKIT=0`; container `yimingqiantu` is healthy on `0.0.0.0:7650->7650/tcp`.
+- Deployed smoke passed on `http://127.0.0.1:7650`: profile create/create second/activate/delete API flow returned the expected active profile transitions and masked key. Browser smoke confirmed the centered modal shows the profile list/editor and the temporary test profile was deleted afterward.
+- Removed temporary `sk-test-*` API settings files created by the deployed CRUD smoke; a follow-up scan of `game_data` found no `sk-test`, `sk-browser`, or `Browser Smoke` leftovers.
+- Ran a full feature/UI/content verification pass. Existing checks passed: `node --check frontend/index.js`, `node --check frontend/live.js`, `node tests/frontend_layout_check.mjs`, and backend `pytest` (18 passed; needed unsandboxed execution because the sandbox denied `tempfile.TemporaryDirectory()` creation for TestClient).
+- Deployed WebSocket flow on `http://127.0.0.1:7650` passed from birth/chart/prelude/life start through two half-year actions to `phase=ending`, with action mapping verified as `专注学业` then `调养身体`.
+- Fixed half-year content formatting: `backend/app/game_logic.py` now formats `state_effect` as readable `属性 +/-数值` text instead of `{'属性': 值}`.
+- Browser UI testing found sparse-array punctuation in flowing-month cards after JSON Patch updates. Fixed `frontend/index.js` so JSON Patch array removals use `splice`, and `renderMonthFlowBoard()` uses `joinCleanList()` to clean holes/empty strings before joining.
+- Fresh browser context after Docker rebuild verified the fix: `当前半年=下半年`, six month cards render, `badCards=[]`, and sample cards show clean text like `平稳推进 / 机：守成 / 忌：体力透支`.
+- Added legacy display formatting in both `frontend/index.js` and `frontend/live.js`, so old persisted histories containing `状态变化：{'学识': 7, ...}` are rendered as `状态变化：学识 +7、...` without mutating saved data.
+- Desktop UI verified the AI API centered modal, no-key test error, Escape close, birth form, chart cards, prelude event cards, flowing-month board, half-year action, and readable D100 summary.
+- Mobile UI verified at `390x844`: header wraps without horizontal overflow, status panel is off-canvas/collapsed, main content is single-column, footer input remains within viewport, and AI API modal becomes a scrollable single-column panel.
+- Final Docker status remained healthy on `0.0.0.0:7650->7650/tcp`; logs showed normal startup and request/WebSocket activity with no application errors beyond the expected placeholder-key warning.
+- Final deployed script checks confirmed `index.js` contains `joinCleanList`, `formatLegacyStateEffectLine`, and array `splice` patch handling; `live.js` contains `formatLegacyStateEffectLine`.
+
+- Continued full deployed regression after the previous pass. Automatic checks passed again: `node --check frontend/index.js`, `node --check frontend/live.js`, `node tests/frontend_layout_check.mjs`, and `python -B -m pytest -p no:cacheprovider backend/tests` (18 passed).
+- Started a temporary OpenAI-compatible mock service and configured the in-game multi-profile API modal against `http://host.docker.internal:8765/v1` to prove Docker-deployed gameplay actually calls custom AI.
+- Desktop browser regression covered guest login, no Linux.do text, centered AI API modal, no-key test error, profile save/mask, test connection, multi-profile save/activate/clear-key, three-pillar birth chart, AI chart analysis, AI prelude, flowing-month board, D100 overlay, half-year progression, free-text action mapping, readable state effects, and age-60 ending.
+- Found a content regression during AI summary checks: AI-generated half-year summaries hid the explicit normalized action name. Patched `backend/app/game_logic.py` to preserve the authoritative focus line before AI summary text.
+- Rebuilt Docker with `DOCKER_BUILDKIT=0`; container `yimingqiantu` is healthy on `0.0.0.0:7650->7650/tcp`.
+- Focused post-fix browser validation passed: AI chart/prelude/GM/summary calls reached the mock endpoint; `????` and `????` action context remained visible in AI summaries; state changes stayed in readable text; temporary E2E API profiles were cleaned up.
+- Mobile browser validation passed at `390x844`: no horizontal overflow, status panel collapsed by default, API modal is in-viewport and scrollable, and status panel expand/collapse works.
+- Live observer smoke passed on `/live.html?test=postfix`: recent players list renders, a player can be selected, and no raw legacy dict/object strings appear.
+- Docker logs after rebuild showed normal startup, HTTP/WebSocket activity, and expected unauthenticated `/api/game/init` 401 probes before guest login; no application error beyond the expected placeholder `OPENAI_API_KEY` warning.
+- Cleaned temporary E2E AI profile artifacts; `rg "E2E Mock|E2E Focus" game_data/ai_settings` finds no leftovers.
+
+- Ran a page-design audit focusing on mobile ergonomics, accessibility, motion, modal behavior, and cache behavior.
+- Patched `frontend/index.css` for 44px touch targets, visible focus rings, reduced-motion support, 16px form controls, improved checkbox styling, and a styled `#action-button`.
+- Patched `frontend/index.html` with live regions, form names/autocomplete hints, and versioned static asset URLs (`index.css?v=ui-20260607`, `index.js?v=ui-20260607`, plus live page equivalents).
+- Patched `frontend/index.js` with a small modal focus-trap helper so Tab/Shift+Tab cannot escape the AI API dialog while it is open.
+- Validation passed: `node --check frontend/index.js`, `node --check frontend/live.js`, `node tests/frontend_layout_check.mjs`, and `python -B -m pytest -p no:cacheprovider backend/tests` (18 passed).
+- Rebuilt Docker with `DOCKER_BUILDKIT=0`; container remains healthy on `0.0.0.0:7650->7650/tcp`.
+- Browser verification on deployed `http://127.0.0.1:7650` confirmed no mobile horizontal overflow, no visible interactive target below 44px except the checkbox itself whose label is clickable, focus-visible/reduced-motion CSS loaded, `aria-live` regions loaded, and modal Tab focus stays inside the dialog.
+- Live page verification confirmed versioned `index.css`, `live.css`, and `live.js` load and no raw legacy dict/object text appears.
+
+- Fixed ???? logic so it is independent from `start_age`: `backend/app/bazi_engine.py` now derives ?? month count from birth datetime to the relevant approximate solar-term boundary and stores month-aware labels on every luck cycle.
+- Corrected the ???? stepping source by adding a real 60-cycle pillar index helper instead of deriving the index from separate stem/branch subtraction.
+- Updated `backend/app/fate_mapper.py` so `current_luck_cycle` matches integer current age against `age_start_months` / `age_end_months` when present.
+- Updated `frontend/index.js` to display `??` in the chart cards and render timeline ranges such as `9?11??-19?10??`.
+- Updated state schema and tests. Validation passed: `node --check frontend/index.js`, `node tests/frontend_layout_check.mjs`, and `python -B -m pytest -p no:cacheprovider backend/tests` (21 passed).
+- Rebuilt Docker with `DOCKER_BUILDKIT=0`; container remains healthy on `0.0.0.0:7650->7650/tcp`.
+- Browser verification on deployed page: birth `2000-02-05 08:30`, male, game start `30` produced `??9?11??`; the first timeline cycle did not start at `30`, and formal start at `30` used current ?? `??` from the correct `29?11??-39?10??` band.
+
+- Follow-up patch: expanded `ACTION_DETAIL`, added `ACTION_SCENE_DETAIL`, `_stage_narrative_body`, `_ensure_narrative_detail`, and stricter `_ensure_summary_detail` in `backend/app/game_logic.py`.
+- Follow-up patch: added `_ensure_prelude_detail` so AI prelude text/events are supplemented when too sparse; deterministic prelude in `backend/app/fate_mapper.py` now has at least 4 age-6 early events and a longer life-background paragraph.
+- Updated backend tests for age-6 prelude event count, detailed stage markers, and AI prelude supplementation; updated README to document age-6 detail behavior.
+- Validation passed: `node --check frontend/index.js`, `node --check frontend/live.js`, `node tests/frontend_layout_check.mjs`, and `python -B -m pytest -p no:cacheprovider backend/tests` (23 passed).
+- Rebuilt Docker with `DOCKER_BUILDKIT=0`; `yimingqiantu` is healthy on `0.0.0.0:7650->7650/tcp`. HTTP `/` returned 200 and contains `min=6`.
+- Deployed WebSocket smoke at age 6 passed with detailed content metrics: prelude_len=375, early_events=4, stage_len=515, summary_len=574, has_scene=true, has_roll_detail=true, has_state_detail=true.
+
+- Implemented age-stage profiles and stage-safe action mapping in `backend/app/game_logic.py`; age 6 now shows child-appropriate actions and maps free-text adult goals to safe alternatives.
+- Implemented stage event pool, life systems (`relationship`, `career`, `assets`), relationship snapshots, and added them to half-year records, AI prompt inputs, summaries, and current state.
+- Reworked ending generation to produce a richer life archive: dimensions, achievements, regrets, key turning points, final systems, and relationships.
+- Updated frontend status panel, year banner, action hint, and ending archive rendering; bumped main asset query string to `stage-20260607`.
+- Updated README, AI prompts, schema, backend tests, schema tests, and frontend layout assertions.
+- Validation passed: `node --check frontend/index.js`, `node --check frontend/live.js`, `node tests/frontend_layout_check.mjs`, and `python -B -m pytest -p no:cacheprovider backend/tests` (26 passed).
+- Rebuilt Docker with `DOCKER_BUILDKIT=0`; container `yimingqiantu` is healthy on `0.0.0.0:7650->7650/tcp`. Deployed WebSocket smoke verified age-6 stage gating and ending archive fields.
+
+- Implemented life-goal templates and progress helpers in `backend/app/game_logic.py`; generated goals after prelude, allowed `set_life_goal`, refreshed progress after each action, and included goal completion in ending.
+- Updated frontend prelude, status panel, and ending archive to show selectable goals, active goal progress, and final goal achievement. Main static URLs bumped to `goal-20260607`.
+- Updated schema, README, AI prompts, backend tests, schema tests, and frontend layout assertions for life-goal fields and UI.
+- Validation passed: `node --check frontend/index.js`, `node --check frontend/live.js`, `node tests/frontend_layout_check.mjs`, and `python -B -m pytest -p no:cacheprovider backend/tests` (28 passed).
+- Rebuilt Docker with `DOCKER_BUILDKIT=0`; container is healthy on `0.0.0.0:7650->7650/tcp`. Browser asset check confirmed `goal-20260607`; deployed WebSocket smoke confirmed goal selection/progress.
+
+- Recorded the completed achievements/milestone phase in `task_plan.md` as Phase 37 and started Phase 38 for player-experience helpers.
+- Added a birth-page guide card and term glossary in `frontend/index.html`; added a header `导出档案` button and a `turn-guide` mount point above the simulation board. Main static assets were bumped to `experience-20260607`.
+- Updated `frontend/index.js` with current-turn decision guide rendering, narrative history classification/filtering/collapse, and Markdown life-archive export.
+- Updated `frontend/index.css` with guide, glossary, turn guide, history toolbar/chips, history type markers, and mobile single-column behavior.
+- Updated `tests/frontend_layout_check.mjs` and `README.md` for the new experience helpers.
+- Validation passed for frontend/static checks: `node --check frontend/index.js`, `node --check frontend/live.js`, and `node tests/frontend_layout_check.mjs`.
+- A sandboxed backend pytest run failed with `PermissionError` while creating `C:\Users\23943\AppData\Local\Temp\...\game_data`; reran with approved elevated permissions and `python -B -m pytest -p no:cacheprovider backend\tests` passed with 29 tests.
+- Rebuilt Docker with `DOCKER_BUILDKIT=0`; container `yimingqiantu` is healthy on `0.0.0.0:7650->7650/tcp`.
+- Browser smoke after deployment covered fresh reset -> age-6 chart -> prelude -> life start -> half-year action. It verified the turn guide shows `童年启蒙`, filter chips render, archive export is enabled, half-year summaries are typed in the history, state effects remain readable, and no horizontal overflow appears.
+- Found blank action chips during the first deployed age-6 flow; patched `frontend/index.js` with `cleanActionOptions()` to fall back to `current_stage.action_options`, updated layout assertions, rebuilt Docker again, and re-ran the browser flow. Final action chips were `专注学业 / 陪伴家人 / 调养身体 / 社交拓展 / 搬迁远行 / 随缘而行` with `blankButtons=0`.
+- Mobile browser smoke at `390x844` passed: status panel starts collapsed, guide/history grids collapse to one column, `smallTargets=[]`, and there is no horizontal overflow.
+- Docker logs after validation showed normal startup and HTTP/WebSocket activity, with no application errors beyond the expected missing-placeholder `OPENAI_API_KEY` warning.

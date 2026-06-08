@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>一命千途 · 人生观测</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="index.css?v=ui-20260607">
+    <link rel="stylesheet" href="live.css?v=ui-20260607">
+</head>
+
+<body>
+    <div id="app-container">
+        <div id="live-view" class="view active">
+            <header id="game-header">
+                <div>
+                    <p class="eyebrow">Live Fate Observatory</p>
+                    <h1>人生观测</h1>
+                </div>
+                <div id="game-status">
+                    <a href="/" class="header-button live-back-link">返回游戏</a>
+                </div>
+            </header>
+
+            <aside id="status-panel">
+                <details open>
+                    <summary>【命途名册】</summary>
+                    <div id="player-list">
+                        <!-- Active players are rendered here. -->
+                    </div>
+                </details>
+            </aside>
+
+            <main id="main-content">
+                <div id="narrative-window">
+                    <div class="system-message">
+                        <p>请从左侧【命途名册】选择一位玩家，旁观其年度人生轨迹。</p>
+                    </div>
+                </div>
+            </main>
+
+            <aside id="live-character-panel">
+                 <details>
+                    <summary>【人生状态】</summary>
+                    <div id="character-status">
+                        <!-- Watched character state is rendered here. -->
+                    </div>
+                </details>
+            </aside>
+        </div>
+
+        <!-- Loading Spinner -->
+        <div id="loading-spinner" class="spinner-overlay" style="display: none;">
+            <div class="spinner"></div>
+        </div>
+    </div>
+    <script type="module" src="live.js?v=ui-20260607"></script>
+</body>
+
+</html>

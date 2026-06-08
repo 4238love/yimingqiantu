@@ -1,0 +1,8 @@
+# 一命千途开局提示词
+
+根据玩家出生信息、命盘、大运流年和开始年龄，生成正式模拟开始前的开局 JSON。
+
+字段：narrative、state_update。state_update 应包含 phase、current_age、current_year、life_state、personality、major_events、current_luck_cycle、current_annual_cycle。
+
+叙事要说明此时人生所处阶段、当年主题、可选择的行动重点。
+

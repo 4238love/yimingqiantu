@@ -1,0 +1,15 @@
+fastapi
+uvicorn[standard]
+pydantic-settings
+python-jose[cryptography]
+passlib[bcrypt]
+openai
+python-multipart
+websockets==12.0
+cryptography
+httpx
+python-dotenv
+aiofiles
+ijson
+jsonpatch
+pytest

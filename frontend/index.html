@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang='zh-CN'>
+<head>
+    <meta charset='UTF-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+    <title>一命千途</title>
+    <link rel='icon' href='/favicon.svg' type='image/svg+xml'>
+    <link rel='stylesheet' href='index.css?v=experience-20260607'>
+</head>
+<body>
+    <img id='scene-background-image' alt='' aria-hidden='true'>
+    <div id='app-container'>
+        <div id='login-view' class='view active'>
+            <section class='landing-card'>
+                <p class='eyebrow'>Bazi Life Simulator</p>
+                <h1>一命千途</h1>
+                <p>输入出生信息，生成命盘、大运、流年与流月。从你选择的年龄开始，每半年做出行动重点，看看这条人生会走向何处。</p>
+                <div class='login-actions'>
+                    <button id='guest-login-button' class='login-button'>访客开始</button>
+                </div>
+                <p id='login-error' class='error-message' aria-live='polite'></p>
+            </section>
+        </div>
+
+        <div id='game-view' class='view'>
+            <header id='game-header'>
+                <div>
+                    <p class='eyebrow'>命盘提供底色，选择改变路径</p>
+                    <h1>一命千途</h1>
+                </div>
+                <div id='game-status'>
+                    <span id='phase-pill' aria-live='polite'>待排盘</span>
+                    <button id='api-settings-button' class='header-button' type='button' aria-controls='api-settings-panel' aria-expanded='false'>AI API</button>
+                    <button id='status-toggle-button' class='header-button' type='button' aria-controls='status-panel' aria-expanded='true'>收起状态</button>
+                    <button id='export-archive-button' class='header-button' type='button' disabled>导出档案</button>
+                    <button id='reset-button' class='header-button'>重开</button>
+                    <button id='logout-button' class='header-button'>登出</button>
+                </div>
+            </header>
+
+            <aside id='status-panel'>
+                <div class='status-panel-header'>
+                    <p>人生状态</p>
+                    <button id='status-close-button' class='header-button' type='button' aria-controls='status-panel'>收起</button>
+                </div>
+                <button id='status-rail-button' type='button' aria-controls='status-panel' aria-label='展开人生状态'>人生状态</button>
+                <div id='character-status'></div>
+            </aside>
+
+            <main id='main-content'>
+                <section id='birth-panel' class='panel-card'>
+                    <div class='panel-title'>
+                        <p class='eyebrow'>Step 01</p>
+                        <h2>出生信息</h2>
+                    </div>
+                    <details class='guide-card' open>
+                        <summary>新手玩法提示</summary>
+                        <ol>
+                            <li>先填出生信息生成命盘，命盘只提供底色，不会锁死人生。</li>
+                            <li>生成前传后选择一个人生愿望，后续每半年都会追踪目标进度。</li>
+                            <li>正式开始后每半年选 1 到 3 个行动重点，也可以自由输入行动。</li>
+                            <li>叙事窗口支持按“判定 / 阶段 / 总结 / 成就”筛选，结局或中途可导出人生档案。</li>
+                        </ol>
+                        <div class='term-grid' aria-label='核心术语说明'>
+                            <span><b>大运</b>十年人生基调</span>
+                            <span><b>流年</b>当年事件倾向</span>
+                            <span><b>流月</b>本半年每月机会与风险</span>
+                            <span><b>D100</b>后端判定成败的百分骰</span>
+                        </div>
+                    </details>
+                    <form id='birth-form'>
+                        <label>出生日期<input id='birth-date' name='birth_date' type='date' required autocomplete='bday'></label>
+                        <label>日历类型<select id='calendar-type' name='calendar_type'><option value='solar'>公历</option><option value='lunar' disabled>农历（后续支持）</option></select></label>
+                        <label>出生时间<input id='birth-time' name='birth_time' type='time' value='08:00' autocomplete='off'></label>
+                        <label class='check-line'><input id='unknown-time' name='unknown_time' type='checkbox'> 不知道时辰（三柱模式）</label>
+                        <label>性别<select id='gender' name='gender'><option value='male'>男</option><option value='female'>女</option><option value='unknown'>不透露</option></select></label>
+                        <label>开始年龄<input id='start-age' name='start_age' type='number' min='6' max='60' value='22' inputmode='numeric' autocomplete='off'></label>
+                        <label>出生地<input id='birth-place' name='birth_place' type='text' placeholder='默认 Asia/Shanghai' autocomplete='off'></label>
+                        <div class='quick-age-row' aria-label='开始年龄快捷选项'>
+                            <span>快捷年龄</span>
+                            <button type='button' data-age='6'>6</button>
+                            <button type='button' data-age='8'>8</button>
+                            <button type='button' data-age='12'>12</button>
+                            <button type='button' data-age='16'>16</button>
+                            <button type='button' data-age='18'>18</button>
+                            <button type='button' data-age='22'>22</button>
+                            <button type='button' data-age='30'>30</button>
+                            <button type='button' data-age='40'>40</button>
+                            <button type='button' data-age='50'>50</button>
+                        </div>
+                        <button id='generate-chart-button' class='primary-button' type='submit'>生成命盘</button>
+                    </form>
+                </section>
+
+                <section id='chart-panel' class='panel-card hidden'>
+                    <div class='panel-title'><p class='eyebrow'>Step 02</p><h2>命盘</h2></div>
+                    <div id='chart-grid'></div>
+                    <div id='element-board'></div>
+                    <div id='luck-timeline'></div>
+                    <div class='panel-actions'>
+                        <button id='generate-prelude-button' class='primary-button'>生成人生前传</button>
+                        <button id='edit-birth-button' class='secondary-button'>重新输入出生信息</button>
+                    </div>
+                </section>
+
+                <section id='prelude-panel' class='panel-card hidden'>
+                    <div class='panel-title'><p class='eyebrow'>Step 03</p><h2>人生前传</h2></div>
+                    <div id='prelude-content'></div>
+                    <div class='panel-actions'>
+                        <button id='accept-prelude-button' class='primary-button'>开始一命千途</button>
+                        <button id='regen-prelude-button' class='secondary-button'>重新生成前传</button>
+                    </div>
+                </section>
+
+                <section id='simulation-panel' class='panel-card hidden'>
+                    <div id='turn-guide'></div>
+                    <div id='year-banner'></div>
+                    <div id='month-flow-board'></div>
+                    <div id='narrative-window'></div>
+                </section>
+            </main>
+
+            <footer id='action-area'>
+                <div id='focus-actions'></div>
+                <div class='action-input-row'>
+                    <input type='text' id='action-input' name='half_year_action' placeholder='也可以直接输入本半年行动，系统会自动归类...' autocomplete='off' disabled>
+                    <button id='action-button' disabled>行</button>
+                </div>
+            </footer>
+        </div>
+
+        <div id='api-settings-backdrop' class='modal-backdrop hidden' aria-hidden='true'></div>
+        <section id='api-settings-panel' class='panel-card hidden' role='dialog' aria-modal='true' aria-labelledby='api-settings-title' aria-hidden='true'>
+            <div class='panel-title api-modal-title'>
+                <div>
+                    <p class='eyebrow'>Optional AI</p>
+                    <h2 id='api-settings-title'>自定义 AI API</h2>
+                </div>
+                <button id='api-settings-close-button' class='modal-close-button' type='button' aria-label='关闭 AI API 设置'>×</button>
+            </div>
+            <p class='api-settings-note'>可保存多个兼容 OpenAI Chat Completions 的 API 配置。游戏会使用当前标记为“默认”的配置生成命盘分析、人生前传和阶段叙事。</p>
+            <div id='api-profile-manager'>
+                <aside class='api-profile-sidebar'>
+                    <div class='api-profile-toolbar'>
+                        <h3>配置档案</h3>
+                        <button id='add-api-profile-button' class='secondary-button compact-button' type='button'>新增配置</button>
+                    </div>
+                    <div id='api-profile-list'></div>
+                </aside>
+                <form id='api-settings-form' class='api-profile-editor'>
+                    <input id='custom-api-profile-id' name='custom_api_profile_id' type='hidden'>
+                    <label>配置名称<input id='custom-api-name' name='custom_api_name' type='text' placeholder='例如：OpenAI / DeepSeek / OpenRouter' autocomplete='off'></label>
+                    <label>API Key<input id='custom-api-key' name='custom_api_key' type='password' autocomplete='new-password' placeholder='sk-...'></label>
+                    <label>Base URL<input id='custom-api-base-url' name='custom_api_base_url' type='url' placeholder='https://api.openai.com/v1' autocomplete='off'></label>
+                    <label>模型名<input id='custom-api-model' name='custom_api_model' type='text' placeholder='gpt-4o-mini' autocomplete='off'></label>
+                    <label class='check-line'><input id='custom-api-enabled' name='custom_api_enabled' type='checkbox' checked> 启用此配置</label>
+                    <div class='panel-actions'>
+                        <button id='test-api-settings-button' class='secondary-button' type='button'>测试连接</button>
+                        <button id='activate-api-profile-button' class='secondary-button' type='button'>设为默认</button>
+                        <button class='primary-button' type='submit'>保存配置</button>
+                        <button id='clear-profile-key-button' class='secondary-button' type='button'>清除 Key</button>
+                        <button id='clear-api-settings-button' class='secondary-button danger-button' type='button'>删除配置</button>
+                    </div>
+                </form>
+            </div>
+            <p id='api-settings-status' class='api-settings-status' aria-live='polite'></p>
+        </section>
+
+        <div id='loading-spinner' class='spinner-overlay' style='display:none'>
+            <div class='divination-loader'>
+                <div class='loader-ring'>命</div>
+                <p>命书推演中</p>
+                <span>合参大运、流年与流月</span>
+            </div>
+        </div>
+        <div id='roll-overlay' class='hidden'>
+            <div id='roll-panel'>
+                <p id='roll-stage-label'>命书推演中</p>
+                <div class='dice-cup'><span>D100</span></div>
+                <div id='roll-details'><span id='roll-type'></span><span id='roll-target'></span></div>
+                <div id='roll-result-display' class='hidden'><span id='roll-outcome'></span><span id='roll-value'></span></div>
+            </div>
+        </div>
+    </div>
+    <script type='module' src='index.js?v=experience-20260607'></script>
+</body>
+</html>

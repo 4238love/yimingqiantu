@@ -1,0 +1,103 @@
+# 一命千途
+
+《一命千途》是一款结合八字排盘、大运流年与人生选择的文字模拟游戏。
+
+核心理念：命盘提供人生底色，选择改变人生路径。
+
+## 当前 MVP
+
+- 出生信息输入：公历日期、时间、性别、出生地、开始年龄。
+- 开始年龄范围：6 到 60 岁；快捷选项：6、8、12、16、18、22、30、40、50 岁。
+- 三柱模式：不知道时辰时仍可开始，但时柱为空。
+- 简化八字引擎：年柱、月柱、日柱、时柱、日主、五行、十神、喜忌。
+- 命盘展示：四柱、日主、五行分布、十神结构、命盘关键词和大运时间轴。
+- 大运、流年与流月：生成十年阶段主题、年度事件倾向，并在模拟中展示当前半年的 6 个流月。
+- 人生前传：根据命盘和开始年龄生成更细的初始性格、资源、早年事件与内在课题；即使从 6 岁开始，也会保留至少 4 条出生到开局前的具体事件。
+- 人生愿望：前传生成后可选择本周目的主愿望，例如稳定富足、事业有成、亲密圆满、身心安稳或自由探索；状态栏和总结会持续显示目标进度。
+- 半年模拟：每半年选择 1 到 3 个行动重点，或输入自由文本行动并自动归类；行动选项会根据童年、少年、成年起步、中年经营等年龄阶段动态调整，合参大运、流年与流月后执行 D100 判定并改变状态。
+- 长期系统：除基础属性外，持续追踪“关系网络 / 学业职业 / 资产基础”三条长期系统，并把阶段事件写入后续总结和结局档案。
+- 成就与里程碑：半年度行动可解锁成就，并把关键选择写入人生里程碑，状态栏和最终档案都会保留这些过程反馈。
+- 体验辅助：出生页提供玩法提示和术语速查；正式模拟页会汇总本半年目标、时势、流月机会与风险；叙事记录可按判定、阶段、总结、成就等类型筛选并折叠长历史。
+- 人生档案导出：生成命盘后即可点击顶部“导出档案”，把当前命盘、状态、愿望进度、成就、里程碑、结局与叙事记录保存为 Markdown。
+- 阶段叙事与总结：每次行动会生成包含行动落点、年龄阶段、具体事件、命盘时势、判定结果与状态余波的阶段叙事，并输出更详细的半年度总结。
+- 可选 AI 增强：配置 `OPENAI_API_KEY`，或进入游戏后点击“AI API”填写自定义 API Key/Base URL/模型名，命盘分析、前传、阶段 GM 叙事和半年度总结会尝试使用提示词生成；失败或未配置时自动回退到本地规则。
+- 结局：到 60 岁或健康归零时生成一生总结，并展示事业、财富、家庭、感情、健康、精神、名望等维度的人生档案、人生愿望达成情况、解锁成就、主要成就、主要遗憾和关键转折。
+- 访客模式：无需外部账号即可本地试玩。
+- 人生观测页：登录后访问 `/live.html`，可旁观最近活跃玩家的公开人生轨迹。
+
+## 运行
+
+```bash
+pip install -r backend/requirements.txt
+python -m uvicorn backend.app.main:app --host 127.0.0.1 --port 8000 --reload
+```
+
+打开 `http://127.0.0.1:8000`，点击“访客开始”。
+
+进入游戏后，点击右上角“AI API”会打开居中弹窗，可以为当前访客保存多个兼容 OpenAI Chat Completions 的 API 配置档案。每个档案包含名称、API Key、Base URL、模型名和启用状态；可测试连接并选择一个档案作为默认配置。配置保存在 `game_data/ai_settings`，API Key 不会出现在 WebSocket 游戏状态里。
+
+Linux/macOS 也可以直接运行：
+
+```bash
+./run.sh
+```
+
+## Docker 部署
+
+Docker 部署默认使用宿主机端口 `7650`，不会占用本地开发示例里的 `8000`。
+
+构建并启动：
+
+```bash
+docker compose up -d --build
+```
+
+打开 `http://127.0.0.1:7650`。玩家会话数据会持久化到宿主机的 `./game_data`。
+
+常用命令：
+
+```bash
+docker compose ps
+docker compose logs -f yimingqiantu
+docker compose down
+```
+
+可选 AI 增强可以通过环境变量传入：
+
+```bash
+OPENAI_API_KEY=sk-... docker compose up -d --build
+```
+
+## 验证
+
+```bash
+node --check frontend/index.js
+node --check frontend/live.js
+node tests/frontend_layout_check.mjs
+python -B -m pytest -p no:cacheprovider backend/tests
+```
+
+## 结构
+
+```text
+backend/app/
+  main.py              FastAPI 入口、访客登录、WebSocket
+  bazi_engine.py       简化八字、大运、流年生成
+  fate_mapper.py       命理参数到游戏状态、判定修正与年度变化
+  game_logic.py        一命千途阶段流转、可选 AI 命盘/GM 增强与半年模拟
+  state_manager.py     会话持久化
+  openai_client.py     文本 AI 请求封装
+  websocket_manager.py 实时状态推送
+  prompts/             AI 角色提示词草案
+frontend/
+  index.html           出生信息、命盘、前传、模拟界面
+  index.css            命书风格 UI
+  index.js             前端状态渲染与 WebSocket 交互
+  live.html/css/js      人生观测页
+Dockerfile             容器镜像构建
+docker-compose.yml     本地容器部署
+```
+
+## 说明
+
+当前八字计算采用 MVP 级近似节气边界，适合游戏原型。若要做生产级命理精度，应接入精确节气/历法库替换 `bazi_engine.py` 中的近似逻辑。

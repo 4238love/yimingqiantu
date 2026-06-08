@@ -1,0 +1,19 @@
+services:
+  yimingqiantu:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: yimingqiantu
+    ports:
+      - "7650:7650"
+    environment:
+      HOST: 0.0.0.0
+      PORT: 7650
+      UVICORN_RELOAD: "false"
+      SECRET_KEY: ${SECRET_KEY:-dev-secret-change-me}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_BASE_URL: ${OPENAI_BASE_URL:-https://api.openai.com/v1}
+      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-3.5-turbo}
+    volumes:
+      - ./game_data:/app/game_data
+    restart: unless-stopped
