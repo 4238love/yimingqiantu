@@ -243,3 +243,9 @@
 - 更新 `tests/frontend_layout_check.mjs`，加入静态断言锁定上述阶段面板规则，避免后续优化把旧面板重新带回模拟阶段。
 - 浏览器复测部署页 `http://127.0.0.1:7650/?v=diagnose-panel-fix2`：完整流程进入“人生模拟”后，`chart-panel` 与 `prelude-panel` 均为 `display:none` / `hidden=true`，`simulation-panel` 为 `display:block`；1280×720 下底部行动区约 187px / 26%，主内容区约 436px。
 - 验证通过：`node --check frontend\index.js`、`node --check frontend\live.js`、`node tests\frontend_layout_check.mjs`、`git diff --check`；后端 `python -B -m pytest -p no:cacheprovider backend\tests` 初次在沙箱内因 Windows 临时目录写权限失败，按诊断流程使用非沙箱权限重跑后 36 passed。
+
+- 开始执行 `$improve-codebase-architecture` 候选 1：将半年度选择的确定性 resolution 从宽 `game_logic.py` 中抽出第一层内部 seam。
+- 新增 `backend/app/half_year_resolution.py`，集中年龄阶段、阶段行动限制、连续选择反馈、D100 投掷、阶段事件状态偏置、行动归一和 `resolve_core()`。`game_logic.py` 仍保留旧私有函数名作为兼容 wrapper，外部 WebSocket/前端字段不变。
+- 新增 `CONTEXT.md`，记录“半年度选择”和“权威半年度记录”等领域词，明确 AI enrichment 只能装饰权威记录，不能改写确定性状态变化。
+- 新增 `test_half_year_resolution_core_returns_authoritative_record`，直接跨 `half_year_resolution.resolve_core()` seam 验证半年度选择会生成权威记录并更新 session 的 roll/focus memory。
+- 验证通过：`python -m py_compile backend\app\half_year_resolution.py backend\app\game_logic.py`、`node --check frontend\index.js`、`node --check frontend\live.js`、`node tests\frontend_layout_check.mjs`、`python -B -m pytest -p no:cacheprovider backend\tests`（37 passed，非沙箱权限运行以避开 Windows Temp 权限假失败）。

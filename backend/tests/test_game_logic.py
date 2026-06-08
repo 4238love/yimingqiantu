@@ -1,6 +1,6 @@
 import asyncio
 
-from backend.app import bazi_engine, event_pool, game_logic
+from backend.app import bazi_engine, event_pool, game_logic, half_year_resolution
 
 
 def _chart_session() -> dict:
@@ -210,6 +210,27 @@ def test_annual_action_accepts_custom_text(monkeypatch):
     assert '阶段事件' in stage_history
     assert '命盘与时势' in stage_history
     assert '判定细节' in latest_history
+
+
+def test_half_year_resolution_core_returns_authoritative_record(monkeypatch):
+    monkeypatch.setattr(half_year_resolution.random, 'randint', lambda start, end: 42)
+    session = _chart_session()
+    game_logic._handle_generate_prelude(session)
+    game_logic._handle_accept_prelude(session)
+    game_logic._refresh_current_context(session)
+
+    record = half_year_resolution.resolve_core(session, {'focuses': ['发展事业', '投资理财']})
+
+    assert record['half_label'] == '上半年'
+    assert record['main_focus'] == '发展事业'
+    assert record['focuses'] == ['发展事业', '投资理财']
+    assert record['roll_event']['result'] == 42
+    assert record['roll_event']['modifiers'] == record['roll_modifiers']
+    assert record['stage_event']['event']
+    assert record['state_before'] != record['state_after']
+    assert record['goal_progress_before']['goal_id'] == session['active_life_goal_id']
+    assert session['roll_event'] == record['roll_event']
+    assert session['focus_memory']['last_focus'] == '发展事业'
 
 
 def test_stage_event_pool_returns_structured_event():

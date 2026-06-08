@@ -87,3 +87,5 @@ Retrofit `YiMingQianTu` to match the design document: a birth-info driven Bazi +
 44. [complete] 修复人生模拟阶段底部行动/聊天区过高遮挡主内容：加入紧凑行动栏、内部滚动、输入栏 sticky 和桌面/移动端高度上限。
 
 45. [complete] 继续诊断开始人生后的主展示区可见性：隐藏人生模拟阶段不再需要的命盘/前传面板，让模拟面板独占主内容流。
+
+46. [complete] 开始架构深化候选 1：新增半年度 resolution Module，先把半年度选择的确定性核心记录从 `game_logic.py` 中集中出来，并保留原外部行为。
