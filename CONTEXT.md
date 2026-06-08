@@ -11,9 +11,11 @@
 - **结局图鉴**：同一访客多周目之间保留的结局收集状态。
 - **状态发布**：把已经持久化或正在展示的权威 session 快照发送给当前玩家和观众的实时通知过程；它不是持久化本身。
 - **AI enrichment Adapter**：围绕命盘分析、前传、半年度叙事和半年度总结的可选装饰层；它接收权威 artifact，返回可展示叙事或分析字段，不拥有 D100、状态变化或终局判定。
+- **Life Session Model**：负责创建、补齐和归一化 session dict 的领域 Module；它维护 phase、history、ending codex、focus memory、行动选项和兼容默认值等 session invariants。
 
 ## 架构约定
 
 - 半年度选择的确定性推进应集中在半年度 resolution Module 中；WebSocket、持久化、AI 叙事和前端渲染不应重新实现 D100 或状态推进规则。
 - AI enrichment 只能装饰命盘、前传、半年度记录或结局档案；权威状态变化来自后端确定性规则；prompt、JSON 提取和 OpenAI 调用集中在 AI enrichment Adapter。
 - `state_manager.save_session()` 只负责 durable persistence；需要通知前端或直播观众时，通过状态发布 Module 显式 commit/publish。
+- session 构造与兼容默认值集中在 Life Session Model；其它 Module 不应散落重建 phase 字段、结局图鉴 shape 或行动记忆 shape。

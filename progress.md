@@ -250,17 +250,22 @@
 - 新增 `test_half_year_resolution_core_returns_authoritative_record`，直接跨 `half_year_resolution.resolve_core()` seam 验证半年度选择会生成权威记录并更新 session 的 roll/focus memory。
 - 验证通过：`python -m py_compile backend\app\half_year_resolution.py backend\app\game_logic.py`、`node --check frontend\index.js`、`node --check frontend\live.js`、`node tests\frontend_layout_check.mjs`、`python -B -m pytest -p no:cacheprovider backend\tests`（37 passed，非沙箱权限运行以避开 Windows Temp 权限假失败）。
 
-- ???????? 1?`backend/app/half_year_resolution.py` ????????????????????????/?????????????????????????????`game_logic.py` ???? wrapper ???/AI ?????
-- ????????????? decision dock?????????????????????????????????????????????????????
-- ?? `backend/tests/test_game_logic.py` ? `tests/frontend_layout_check.mjs`??? half-year resolution seam ??????/??/??????? decision dock ? CSS/????????
-- ?????`python -m py_compile backend\app\half_year_resolution.py backend\app\game_logic.py`?`node --check frontend\index.js`?`node --check frontend\live.js`?`node tests\frontend_layout_check.mjs`?`python -B -m pytest -p no:cacheprovider backend\tests`?38 passed??
+- 继续深化架构候选 1：`backend/app/half_year_resolution.py` 进一步接管人生愿望、行动预览、长期系统投影、成就/里程碑、当前上下文刷新、年龄终局判定和权威半年度记录补全；`game_logic.py` 保留兼容 wrapper 和叙事/AI 调用入口。
+- 前端同步把底部行动区优化为 decision dock：阶段说明与已选行动从按钮流中抽出，行动按钮横向滚动，提交按钮独立高亮，紧凑模式下进一步降低底部高度上限。
+- 更新 `backend/tests/test_game_logic.py` 与 `tests/frontend_layout_check.mjs`，验证 half-year resolution seam 直接生成投影/成就/里程碑，且前端 decision dock 的 CSS/缓存版本被锁定。
+- 验证通过：`python -m py_compile backend\app\half_year_resolution.py backend\app\game_logic.py`、`node --check frontend\index.js`、`node --check frontend\live.js`、`node tests\frontend_layout_check.mjs`、`python -B -m pytest -p no:cacheprovider backend\tests`（38 passed）。
 
-- ?????? 2??? `backend/app/state_publication.py`??? `publish_game_state`?`publish_live_state`?`publish_session_update`?`commit_session` ? live snapshot/viewer Adapter?`backend/app/state_manager.py` ???? WebSocket ? live manager?
-- `game_logic.process_player_action()` ?????????? mutation ??? `state_publication.commit_session()`?HTTP ???/???????? `state_manager.save_session()` ????`main.py` ??? full_state ? live snapshot ????????? Module?
-- ?? `backend/tests/test_state_publication.py`??? `save_session()` ??????????`commit_session()` ??? gameplay/live ?? Adapter?
-- ?????`python -m py_compile backend\app\state_manager.py backend\app\state_publication.py backend\app\game_logic.py backend\app\main.py backend\app\cheat_check.py`?`python -B -m pytest -p no:cacheprovider backend\tests\test_state_publication.py`?1 passed??
+- 完成架构候选 2：新增 `backend/app/state_publication.py`，集中 `publish_game_state`、`publish_live_state`、`publish_session_update`、`commit_session` 和 live snapshot/viewer Adapter；`backend/app/state_manager.py` 不再导入 WebSocket 或 live manager。
+- `game_logic.process_player_action()` 现在在需要前端通知的 mutation 上调用 `state_publication.commit_session()`；HTTP 初始化/默认迁移仍可只用 `state_manager.save_session()` 持久化。`main.py` 的初始 full_state 和 live snapshot 发送也改走状态发布 Module。
+- 新增 `backend/tests/test_state_publication.py`，证明 `save_session()` 只写入存储且不发布，`commit_session()` 才触发 gameplay/live 两个 Adapter。
+- 验证通过：`python -m py_compile backend\app\state_manager.py backend\app\state_publication.py backend\app\game_logic.py backend\app\main.py backend\app\cheat_check.py`、`python -B -m pytest -p no:cacheprovider backend\tests\test_state_publication.py`（1 passed）。
 
-- ?????? 4??? `backend/app/ai_enrichment.py`?? prompt ???OpenAI JSON ???JSON ???AI ??????????????GM ?? enrichment ?????? enrichment ??? Adapter seam?
-- `game_logic.py` ???? AI prompt ??? AI JSON??????/??/????????????? artifact ?? `ai_enrichment.adapter_for_session()` ?????`NoAiEnrichmentAdapter` ????? AI ?? no-op Adapter?
-- ?? `backend/tests/test_ai_enrichment.py`???????? AI ????????GM ????????????? AI state_update ?????????????????
-- ?????`python -m py_compile backend\app\ai_enrichment.py backend\app\game_logic.py`?AI ?? pytest 6 ????
+- 完成架构候选 4：新增 `backend/app/ai_enrichment.py`，把 prompt 加载、OpenAI JSON 请求、JSON 提取、AI 前传事件归一、命盘分析归一、GM 叙事 enrichment 和半年度总结 enrichment 集中到 Adapter seam。
+- `game_logic.py` 不再拼接 AI prompt 或解析 AI JSON；确定性命盘/前传/权威半年度记录先生成，再把 artifact 交给 `ai_enrichment.adapter_for_session()` 可选装饰。`NoAiEnrichmentAdapter` 明确表示无 AI 时的 no-op Adapter。
+- 新增 `backend/tests/test_ai_enrichment.py`，保留并通过现有 AI 前传、命盘分析、GM 叙事、半年度总结测试，确认 AI state_update 仍只是建议，不会改写权威状态变化。
+- 验证通过：`python -m py_compile backend\app\ai_enrichment.py backend\app\game_logic.py`、AI 相关 pytest 6 项通过。
+
+- 完成架构候选 5：新增 `backend/app/life_session.py`，集中 Life Session Model 的构造、兼容默认值归一、ending codex catalog/解锁归一、focus memory、phase/action invariants。
+- `game_logic.py` 的 `_new_session()`、`_ensure_session_defaults()`、ending codex helper 变为兼容 wrapper；真实实现迁移到 Life Session Model，减少 raw session dict invariant 在 gameplay Module 中散落。
+- 新增 `backend/tests/test_life_session.py`，验证 birth-input session 构造和 legacy life_simulation session 归一会补齐 action options、action guides、goal progress、ending codex 与 focus memory。
+- 验证通过：`python -m py_compile backend\app\life_session.py backend\app\game_logic.py`、`python -B -m pytest -p no:cacheprovider backend\tests\test_life_session.py`（2 passed）。
