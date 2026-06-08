@@ -62,6 +62,8 @@ Retrofit `YiMingQianTu` to match the design document: a birth-info driven Bazi +
 
 50. [complete] 架构候选 5：新增 Life Session Model Module，集中 session 构造、兼容默认值、ending codex、phase/action invariants 和 legacy simulation session 归一。
 
+51. [complete] 架构候选 3/6：新增前端 phase-owned View Module 与可选行为式 UI smoke，锁定 life_simulation 阶段主内容归属、旧面板隐藏和行动区高度比例。
+
 ## Decisions
 
 - Keep changes in `YiMingQianTu` only.

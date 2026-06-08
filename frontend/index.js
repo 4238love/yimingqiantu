@@ -1,3 +1,5 @@
+import { applyPhaseView, phaseLabel } from './phase_views.js?v=phase-view-20260608';
+
 const API_BASE_URL = '/api';
 
 const appState = {
@@ -312,14 +314,6 @@ function renderText(text) {
 
 function showLoading(isLoading) {
     DOMElements.loadingSpinner.style.display = isLoading ? 'flex' : 'none';
-}
-
-function phaseLabel(phase) {
-    return ({ birth_input: '出生信息', chart_ready: '命盘已成', prelude_ready: '前传已成', life_simulation: '人生模拟', ending: '结局' })[phase] || '待排盘';
-}
-
-function showPanel(panel, visible) {
-    panel.classList.toggle('hidden', !visible);
 }
 
 const elementLabels = { wood: '木', fire: '火', earth: '土', metal: '金', water: '水' };
@@ -892,9 +886,7 @@ function setApiSettingsVisible(visible) {
 
 function render() {
     if (!appState.gameState) return;
-    const phase = appState.gameState.phase;
-    DOMElements.phasePill.textContent = phaseLabel(phase);
-    DOMElements.exportArchiveButton.disabled = phase === 'birth_input';
+    applyPhaseView(DOMElements, appState.gameState);
     renderStatus();
     renderChart();
     renderPrelude();
@@ -905,13 +897,7 @@ function render() {
     renderFocusActions();
     renderEndingCodex();
     renderApiSettings();
-    showPanel(DOMElements.birthPanel, phase === 'birth_input');
-    showPanel(DOMElements.chartPanel, ['chart_ready', 'prelude_ready'].includes(phase));
-    showPanel(DOMElements.preludePanel, phase === 'prelude_ready');
-    showPanel(DOMElements.simulationPanel, ['life_simulation', 'ending'].includes(phase));
-    DOMElements.actionInput.disabled = phase !== 'life_simulation' || appState.gameState.is_finished || appState.gameState.is_processing;
-    DOMElements.actionButton.disabled = DOMElements.actionInput.disabled;
-    DOMElements.retrospectButton.disabled = DOMElements.actionInput.disabled;
+    applyPhaseView(DOMElements, appState.gameState);
     showLoading(appState.gameState.is_processing);
 }
 

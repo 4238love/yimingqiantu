@@ -269,3 +269,8 @@
 - `game_logic.py` 的 `_new_session()`、`_ensure_session_defaults()`、ending codex helper 变为兼容 wrapper；真实实现迁移到 Life Session Model，减少 raw session dict invariant 在 gameplay Module 中散落。
 - 新增 `backend/tests/test_life_session.py`，验证 birth-input session 构造和 legacy life_simulation session 归一会补齐 action options、action guides、goal progress、ending codex 与 focus memory。
 - 验证通过：`python -m py_compile backend\app\life_session.py backend\app\game_logic.py`、`python -B -m pytest -p no:cacheprovider backend\tests\test_life_session.py`（2 passed）。
+
+- 完成架构候选 3/6：新增 `frontend/phase_views.js`，把 phase label、panel visibility、导出按钮可用性、行动输入可用性和 `#game-view[data-phase]` 归到 phase-owned View Module。
+- `frontend/index.js` 的全局 `render()` 不再手写 chart/prelude/simulation panel 可见性规则，而是调用 `applyPhaseView()`；主资源缓存版本提升到 `phase-view-20260608`。
+- 新增 `tests/frontend_phase_behaviour_check.mjs`：在设置 `YMQT_BASE_URL` 且安装 Playwright 时，会真实进入 life_simulation 并断言 `chart/prelude` 旧面板隐藏、`simulation` 面板可见、行动区高度比例、主内容高度、横向溢出和 console error。
+- 静态检查更新为读取 `frontend/phase_views.js` 与行为式 smoke 脚本；验证通过：`node --check frontend\phase_views.js`、`node --check frontend\index.js`、`node --check frontend\live.js`、`node --check tests\frontend_phase_behaviour_check.mjs`、`node tests\frontend_layout_check.mjs`、`node tests\frontend_phase_behaviour_check.mjs`（未设置 `YMQT_BASE_URL` 时按设计跳过）。

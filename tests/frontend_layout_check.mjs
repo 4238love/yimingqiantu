@@ -6,7 +6,9 @@ const liveHtml = readFileSync('frontend/live.html', 'utf8');
 const css = readFileSync('frontend/index.css', 'utf8');
 const liveCss = readFileSync('frontend/live.css', 'utf8');
 const js = readFileSync('frontend/index.js', 'utf8');
+const phaseJs = readFileSync('frontend/phase_views.js', 'utf8');
 const liveJs = readFileSync('frontend/live.js', 'utf8');
+const phaseBehaviourSmoke = readFileSync('tests/frontend_phase_behaviour_check.mjs', 'utf8');
 const runScript = readFileSync('run.sh', 'utf8');
 
 assert.match(html, /id='status-toggle-button'/, 'status toggle button should exist');
@@ -41,7 +43,7 @@ assert.match(html, /本半年行动/, 'free-text action placeholder should use h
 assert.match(html, /id='codex-button'/, 'game header should expose ending codex collection');
 assert.match(html, /id='codex-panel'/, 'ending codex should render as a modal panel');
 assert.match(html, /id='codex-content'/, 'ending codex modal should contain collection content');
-assert.match(html, /decision-dock-20260608/, 'main assets should be cache-busted for the decision dock layout fix');
+assert.match(html, /phase-view-20260608/, 'main assets should be cache-busted for phase view modules');
 assert.doesNotMatch(html, /Linux\.do|login\/linuxdo/, 'Linux.do login entry should be removed');
 assert.doesNotMatch(html, /id='fullscreen-button'/, 'fullscreen button should be removed');
 assert.doesNotMatch(html, /start-trial-button/, 'legacy start trial button should be removed');
@@ -121,9 +123,14 @@ assert.match(js, /function joinCleanList\(/, 'frontend should clean sparse list 
 assert.match(js, /function formatLegacyStateEffectLine\(/, 'frontend should prettify old persisted state-effect dict strings');
 assert.match(js, /function renderMonthFlowBoard\(/, 'frontend should render flowing-month cards');
 assert.match(js, /function renderTurnGuide\(/, 'frontend should render a decision guide for the current half-year');
-assert.match(js, /showPanel\(DOMElements\.chartPanel,\s*\['chart_ready',\s*'prelude_ready'\]\.includes\(phase\)\)/, 'chart panel should not remain visible after life simulation starts');
-assert.match(js, /showPanel\(DOMElements\.preludePanel,\s*phase === 'prelude_ready'\)/, 'prelude panel should not remain visible after life simulation starts');
-assert.match(js, /showPanel\(DOMElements\.simulationPanel,\s*\['life_simulation',\s*'ending'\]\.includes\(phase\)\)/, 'simulation panel should own the main content after life start');
+assert.match(js, /import\s+\{\s*applyPhaseView,\s*phaseLabel\s*\}\s+from\s+'\.\/phase_views\.js\?v=phase-view-20260608'/, 'index.js should delegate phase visibility to phase view modules');
+assert.match(js, /applyPhaseView\(DOMElements,\s*appState\.gameState\)/, 'render should apply the phase-owned view module');
+assert.match(phaseJs, /life_simulation:\s*{[^}]*visiblePanels:\s*\['simulationPanel'\]/s, 'life simulation view module should hide chart and prelude panels');
+assert.match(phaseJs, /ending:\s*{[^}]*visiblePanels:\s*\['simulationPanel'\]/s, 'ending view module should keep simulation panel as main content');
+assert.match(phaseJs, /dataset\.phase\s*=\s*phase/, 'phase view module should expose active phase for behavioural checks');
+assert.match(phaseBehaviourSmoke, /actionAreaRatio/, 'behaviour smoke should assert action tray viewport ratio');
+assert.match(phaseBehaviourSmoke, /chartHidden/, 'behaviour smoke should assert old phase panels are hidden after life start');
+assert.match(phaseBehaviourSmoke, /horizontalOverflow/, 'behaviour smoke should assert no horizontal overflow');
 assert.match(js, /function getStreakView\(/, 'frontend should normalize continuous focus streak state');
 assert.match(js, /function renderStreakStatusCard\(/, 'frontend should render continuous choice feedback in status');
 assert.match(js, /function actionGuideMap\(/, 'frontend should map backend action guide previews by action');
