@@ -898,8 +898,8 @@ function render() {
     renderEndingCodex();
     renderApiSettings();
     showPanel(DOMElements.birthPanel, phase === 'birth_input');
-    showPanel(DOMElements.chartPanel, ['chart_ready', 'prelude_ready', 'life_simulation', 'ending'].includes(phase));
-    showPanel(DOMElements.preludePanel, ['prelude_ready', 'life_simulation', 'ending'].includes(phase));
+    showPanel(DOMElements.chartPanel, ['chart_ready', 'prelude_ready'].includes(phase));
+    showPanel(DOMElements.preludePanel, phase === 'prelude_ready');
     showPanel(DOMElements.simulationPanel, ['life_simulation', 'ending'].includes(phase));
     DOMElements.actionInput.disabled = phase !== 'life_simulation' || appState.gameState.is_finished || appState.gameState.is_processing;
     DOMElements.actionButton.disabled = DOMElements.actionInput.disabled;

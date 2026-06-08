@@ -85,3 +85,5 @@ Retrofit `YiMingQianTu` to match the design document: a birth-info driven Bazi +
 43. [complete] 新增行动预览系统：后端生成当前阶段每个行动的愿望同频、预计 D100 目标、属性走向、风险属性与连续投入预判；前端在提交前展示决策卡并标记愿望契合/连续可加成行动。
 
 44. [complete] 修复人生模拟阶段底部行动/聊天区过高遮挡主内容：加入紧凑行动栏、内部滚动、输入栏 sticky 和桌面/移动端高度上限。
+
+45. [complete] 继续诊断开始人生后的主展示区可见性：隐藏人生模拟阶段不再需要的命盘/前传面板，让模拟面板独占主内容流。

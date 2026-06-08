@@ -237,3 +237,9 @@
 - 修复开始人生后底部行动/聊天区挤占主展示区的问题：`#game-view` 在人生模拟阶段会切换 `action-tray-compact`，把底部命令栏限制在桌面约 26vh、移动端约 34vh，并让行动区内部滚动。
 - `#main-content` / `#status-panel` 现在显式 `min-height: 0`，避免 CSS Grid 子项撑破布局；自由输入栏在紧凑行动区内置顶 sticky，确保可见。
 - 桌面浏览器实测 1042×658：底部行动区从约 549px / 83% 降到约 171px / 26%，主内容区从约 58px 恢复到约 390px。移动端 390×844：行动区约 287px / 34%，输入框可见且无横向溢出。
+
+- `$diagnose` 继续排查后发现第二个展示问题：进入 `life_simulation` 后，命盘面板和前传面板仍在主内容流里可见，导致模拟面板被压到很下面；底部行动栏已不再遮挡，但主展示区仍混入旧阶段内容。
+- 修复 `frontend/index.js` 的阶段可见性：命盘面板只在 `chart_ready` / `prelude_ready` 显示，前传面板只在 `prelude_ready` 显示，`life_simulation` / `ending` 阶段由模拟面板接管主内容。
+- 更新 `tests/frontend_layout_check.mjs`，加入静态断言锁定上述阶段面板规则，避免后续优化把旧面板重新带回模拟阶段。
+- 浏览器复测部署页 `http://127.0.0.1:7650/?v=diagnose-panel-fix2`：完整流程进入“人生模拟”后，`chart-panel` 与 `prelude-panel` 均为 `display:none` / `hidden=true`，`simulation-panel` 为 `display:block`；1280×720 下底部行动区约 187px / 26%，主内容区约 436px。
+- 验证通过：`node --check frontend\index.js`、`node --check frontend\live.js`、`node tests\frontend_layout_check.mjs`、`git diff --check`；后端 `python -B -m pytest -p no:cacheprovider backend\tests` 初次在沙箱内因 Windows 临时目录写权限失败，按诊断流程使用非沙箱权限重跑后 36 passed。

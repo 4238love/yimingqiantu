@@ -118,6 +118,9 @@ assert.match(js, /function joinCleanList\(/, 'frontend should clean sparse list 
 assert.match(js, /function formatLegacyStateEffectLine\(/, 'frontend should prettify old persisted state-effect dict strings');
 assert.match(js, /function renderMonthFlowBoard\(/, 'frontend should render flowing-month cards');
 assert.match(js, /function renderTurnGuide\(/, 'frontend should render a decision guide for the current half-year');
+assert.match(js, /showPanel\(DOMElements\.chartPanel,\s*\['chart_ready',\s*'prelude_ready'\]\.includes\(phase\)\)/, 'chart panel should not remain visible after life simulation starts');
+assert.match(js, /showPanel\(DOMElements\.preludePanel,\s*phase === 'prelude_ready'\)/, 'prelude panel should not remain visible after life simulation starts');
+assert.match(js, /showPanel\(DOMElements\.simulationPanel,\s*\['life_simulation',\s*'ending'\]\.includes\(phase\)\)/, 'simulation panel should own the main content after life start');
 assert.match(js, /function getStreakView\(/, 'frontend should normalize continuous focus streak state');
 assert.match(js, /function renderStreakStatusCard\(/, 'frontend should render continuous choice feedback in status');
 assert.match(js, /function actionGuideMap\(/, 'frontend should map backend action guide previews by action');
