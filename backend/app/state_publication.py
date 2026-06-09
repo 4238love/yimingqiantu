@@ -3,7 +3,7 @@ from __future__ import annotations
 import asyncio
 from typing import Any
 
-from . import state_manager
+from . import state_manager, state_projection
 from .live_system import live_manager
 from .websocket_manager import manager as websocket_manager
 
@@ -12,13 +12,13 @@ async def publish_game_state(player_id: str, session_data: dict[str, Any]) -> No
     """Publish the authoritative session snapshot to the active player."""
     await websocket_manager.send_json_to_player(
         player_id,
-        {'type': 'full_state', 'data': session_data},
+        {'type': 'full_state', 'data': state_projection.build_player_state(session_data)},
     )
 
 
 async def publish_live_state(player_id: str, session_data: dict[str, Any]) -> None:
     """Publish the authoritative session snapshot to live observers."""
-    await live_manager.broadcast_state_update(player_id, session_data)
+    await live_manager.broadcast_state_update(player_id, state_projection.build_live_state(session_data))
 
 
 async def publish_session_update(player_id: str, session_data: dict[str, Any]) -> None:
@@ -43,7 +43,7 @@ async def publish_live_snapshot(viewer_id: str, session_data: dict[str, Any]) ->
     """Send one watched session snapshot to a live-viewer connection."""
     await websocket_manager.send_json_to_player(
         viewer_id,
-        {'type': 'live_update', 'data': session_data},
+        {'type': 'live_update', 'data': state_projection.build_live_state(session_data)},
     )
 
 

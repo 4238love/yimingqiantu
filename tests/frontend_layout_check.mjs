@@ -3,19 +3,43 @@ import { readFileSync } from 'node:fs';
 
 const html = readFileSync('frontend/index.html', 'utf8');
 const liveHtml = readFileSync('frontend/live.html', 'utf8');
-const css = readFileSync('frontend/index.css', 'utf8');
+const cssManifest = readFileSync('frontend/index.css', 'utf8');
+const css = cssManifest.replace(/@import url\('\.\/styles\/([^'?]+)(?:\?v=[^']*)?'\);/g, (_, file) => readFileSync('frontend/styles/' + file, 'utf8'));
 const liveCss = readFileSync('frontend/live.css', 'utf8');
-const js = readFileSync('frontend/index.js', 'utf8');
+const jsEntry = readFileSync('frontend/index.js', 'utf8');
+const viewModuleFiles = [
+    'frontend/index.js',
+    'frontend/app_state.js',
+    'frontend/dom_elements.js',
+    'frontend/api_client.js',
+    'frontend/socket_manager.js',
+    'frontend/layout_controller.js',
+    'frontend/modal_manager.js',
+    'frontend/view_helpers.js',
+    'frontend/chart_view.js',
+    'frontend/prelude_view.js',
+    'frontend/simulation_view.js',
+    'frontend/codex_view.js',
+    'frontend/api_settings_view.js',
+    'frontend/archive_view.js',
+];
+const js = viewModuleFiles.map(file => readFileSync(file, 'utf8')).join('\n');
 const phaseJs = readFileSync('frontend/phase_views.js', 'utf8');
 const liveJs = readFileSync('frontend/live.js', 'utf8');
 const phaseBehaviourSmoke = readFileSync('tests/frontend_phase_behaviour_check.mjs', 'utf8');
+const packageManifest = readFileSync('package.json', 'utf8');
 const runScript = readFileSync('run.sh', 'utf8');
 
 assert.match(html, /id='status-toggle-button'/, 'status toggle button should exist');
 assert.match(html, /aria-controls='status-panel'/, 'status toggle should target status panel');
+assert.match(html, /id='settings-menu-button'/, 'header should group secondary actions under a settings menu');
+assert.match(html, /id='settings-menu-panel'/, 'settings menu panel should exist');
 assert.match(html, /id='api-settings-button'/, 'game header should expose custom AI API settings');
 assert.match(html, /id='export-archive-button'/, 'game header should expose life archive export');
-assert.match(html, /id='retrospect-button'/, 'action area should expose manual life retrospection');
+assert.match(html, /可选 AI 增强/, 'AI API entry should be phrased as an optional enhancement');
+assert.match(html, /id='retrospect-button'/, 'settings menu should expose manual life retrospection');
+assert.match(html, /id='retrospect-panel'/, 'manual retrospection should use a custom confirmation dialog');
+assert.match(html, /id='retrospect-confirm-button'/, 'retrospection dialog should include an explicit confirm button');
 assert.match(html, /id='api-settings-panel'/, 'custom AI API settings panel should exist after login');
 assert.match(html, /id='api-settings-backdrop'/, 'custom AI API settings should use a modal backdrop');
 assert.match(html, /role='dialog'/, 'custom AI API settings should render as a dialog');
@@ -38,22 +62,39 @@ assert.match(html, /id='element-board'/, 'chart view should show five-element di
 assert.match(html, /id='luck-timeline'/, 'chart view should show luck cycle timeline');
 assert.match(html, /id='month-flow-board'/, 'simulation view should show current half-year flowing-month board');
 assert.match(html, /id='turn-guide'/, 'simulation view should show a turn decision guide');
+assert.match(html, /id='turn-resolution'/, 'simulation view should include a half-year settlement card mount');
 assert.match(html, /id='roll-stage-label'/, 'roll overlay should expose staged divination text');
 assert.match(html, /本半年行动/, 'free-text action placeholder should use half-year wording');
+assert.match(html, /加入重点/, 'free-text action button should add a focus instead of being a vague one-character submit');
 assert.match(html, /id='codex-button'/, 'game header should expose ending codex collection');
 assert.match(html, /id='codex-panel'/, 'ending codex should render as a modal panel');
 assert.match(html, /id='codex-content'/, 'ending codex modal should contain collection content');
-assert.match(html, /phase-view-20260608/, 'main assets should be cache-busted for phase view modules');
+assert.match(html, /arch-modules-20260608/, 'main JS asset should be cache-busted for view modules');
+assert.match(html, /arch-styles-20260608/, 'main CSS asset should be cache-busted for style modules');
+assert.match(cssManifest, /styles\/00-foundation\.css/, 'index.css should be a style Module manifest');
 assert.doesNotMatch(html, /Linux\.do|login\/linuxdo/, 'Linux.do login entry should be removed');
 assert.doesNotMatch(html, /id='fullscreen-button'/, 'fullscreen button should be removed');
 assert.doesNotMatch(html, /start-trial-button/, 'legacy start trial button should be removed');
 
 assert.match(css, /#app-container\s*{[^}]*height:\s*100vh/s, 'app should default to viewport height');
 assert.match(css, /#app-container\s*{[^}]*max-width:\s*none/s, 'app should default to full viewport width');
+assert.match(css, /::-webkit-scrollbar\s*{[^}]*width:\s*9px/s, 'app scrollbars should use a slim custom themed width');
+assert.match(css, /::-webkit-scrollbar-thumb\s*{[^}]*border-radius:\s*999px/s, 'app scrollbars should use rounded themed thumbs');
+assert.match(css, /::-webkit-scrollbar-button\s*{[^}]*display:\s*none/s, 'app scrollbars should hide default arrow buttons');
+assert.match(css, /#status-panel,\s*#main-content,\s*#action-area,\s*#narrative-window,\s*#api-settings-panel,\s*#codex-panel\s*{[^}]*scrollbar-gutter:\s*stable/s, 'major scroll surfaces should reserve a stable themed scrollbar gutter');
 assert.match(css, /#game-view\.status-collapsed\s*{[^}]*grid-template-columns:\s*48px\s+1fr/s, 'desktop collapsed status rail should keep the status panel on the left');
-assert.match(css, /#game-view\.action-tray-compact\s*{[^}]*grid-template-rows:\s*auto\s+minmax\(0,\s*1fr\)\s+minmax\(8\.8rem,\s*clamp\(8\.8rem,\s*21vh,\s*14rem\)\)/s, 'life-simulation action tray should be height-capped on desktop');
-assert.match(css, /#game-view\.action-tray-compact\s+#action-area\s*{[^}]*overflow:\s*auto/s, 'height-capped action tray should scroll internally instead of squeezing main content');
-assert.match(css, /#game-view\.action-tray-compact\s+\.action-input-row\s*{[^}]*order:\s*-1/s, 'free-text action input should stay visible at the top of the compact action tray');
+assert.match(css, /#game-view\.action-tray-compact\s*{[^}]*grid-template-rows:\s*auto\s+minmax\(0,\s*1fr\)\s+minmax\(8\.8rem,\s*clamp\(8\.8rem,\s*19vh,\s*12\.5rem\)\)/s, 'life-simulation action tray should be height-capped on desktop');
+assert.match(css, /#game-view\.action-tray-compact\s+#action-area\s*{[^}]*overflow:\s*hidden/s, 'height-capped action tray should not expose an internal vertical scroller');
+assert.match(css, /#game-view\.action-tray-compact\s+#action-area\s*{[^}]*grid-template-areas:\s*"\. action-command action-preview \."\s*"\. action-choices action-preview \."/s, 'height-capped action tray should use dock grid areas to prevent vertical overlap');
+assert.match(css, /#game-view\.action-tray-compact\s+#focus-actions\s*{[^}]*display:\s*contents/s, 'compact focus actions should dissolve wrapper so command, chips, and preview align in the dock grid');
+assert.match(css, /#game-view\.action-tray-compact\s+\.action-input-row\s*{[^}]*grid-area:\s*action-command[^}]*position:\s*relative/s, 'free-text action input should occupy the command rail without sticky overlap');
+assert.doesNotMatch(css, /#game-view\.action-tray-compact\s+\.action-input-row\s*{[^}]*position:\s*sticky/s, 'compact action input must not be sticky because it overlaps the scrolled decision content');
+assert.match(css, /@media\s*\(max-width:\s*850px\)[\s\S]*#game-view\.action-tray-compact\s*{[^}]*grid-template-rows:\s*auto\s+minmax\(0,\s*1fr\)\s+minmax\(8\.2rem,\s*clamp\(8\.2rem,\s*24vh,\s*13rem\)\)/s, 'mobile life-simulation action tray should stay below a quarter viewport');
+assert.match(css, /@media\s*\(max-width:\s*850px\)[\s\S]*#game-view\.action-tray-compact\s+#action-area\s*{[^}]*grid-template-areas:\s*'action-command'\s*'action-choices'\s*'action-preview'/s, 'mobile action dock should stack command, chips, and preview as separate rows instead of overlapping');
+assert.match(css, /@media\s*\(max-width:\s*850px\)[\s\S]*#game-header\s*{[^}]*flex-direction:\s*row/s, 'tablet/mobile header should stay compact before the narrow-phone breakpoint');
+assert.match(css, /@media\s*\(max-width:\s*850px\)[\s\S]*#game-view\.action-tray-compact\s+\.decision-action-rail\s*{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\)\s+auto/s, 'mobile decision controls should keep submit beside the scrollable action chips');
+assert.match(css, /@media\s*\(max-width:\s*850px\)[\s\S]*#game-view\.action-tray-compact\s+\.action-input-row\s*{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\)\s+auto/s, 'mobile free-text command row should not stack into a tall tray');
+assert.doesNotMatch(css, /#game-view\.action-tray-compact\s+\.retrospect-button::after/, 'retrospection should not live in the compact action dock');
 assert.match(css, /@media\s*\(max-width:\s*850px\)[\s\S]*#status-panel\s*{[^}]*position:\s*absolute/s, 'mobile status panel should overlay instead of consuming layout rows');
 assert.match(css, /@media\s*\(max-width:\s*850px\)[\s\S]*#game-view\.status-collapsed\s+#status-panel/s, 'mobile collapsed status panel should be hidden off-canvas');
 assert.match(css, /#scene-background-image\s*{[^}]*position:\s*fixed/s, 'scene background image should be fixed behind the app');
@@ -63,7 +104,9 @@ assert.match(css, /body\.has-scene-background\s+#scene-background-image\s*{[^}]*
 assert.match(css, /#app-container\s*{[^}]*z-index:\s*1/s, 'app content should render above the scene background layer');
 assert.match(css, /#api-settings-panel\s*{[^}]*position:\s*fixed/s, 'custom AI API settings should appear as a centered modal');
 assert.match(css, /#api-settings-panel\s*{[^}]*transform:\s*translate\(-50%,\s*-50%\)/s, 'custom AI API modal should be centered');
+assert.match(css, /#api-settings-panel,\s*#codex-panel,\s*#retrospect-panel\s*{[^}]*position:\s*fixed/s, 'custom retrospection confirmation should share modal positioning');
 assert.match(css, /\.modal-backdrop\s*{[^}]*position:\s*fixed/s, 'custom AI API modal should dim the page behind it');
+assert.match(css, /\.header-menu-panel\s*{/, 'secondary header actions should render in a compact menu');
 assert.match(css, /#api-profile-manager\s*{[^}]*grid-template-columns:\s*minmax\(220px,\s*0\.38fr\)\s+minmax\(0,\s*1fr\)/s, 'custom AI API modal should use profile list plus editor columns');
 assert.match(css, /\.api-profile-card\s*{/, 'saved AI API profiles should render as cards');
 assert.match(css, /\.guide-card\s*{/, 'beginner guide should be styled as a card');
@@ -71,6 +114,10 @@ assert.match(css, /\.term-grid\s*{/, 'term glossary should use a compact grid');
 assert.match(css, /\.prelude-event-card\s*{/, 'prelude structured events should render as cards instead of raw object text');
 assert.match(css, /\.turn-guide-card\s*{/, 'current turn guide should render as a decision card');
 assert.match(css, /\.turn-guide-grid\s*{/, 'turn guide should summarize goal, timing, opportunities, and risks');
+assert.match(css, /\.first-turn-coach\s*{/, 'first life turn should show a beginner decision coach');
+assert.match(css, /\.coach-action-button\s*{/, 'first-turn coach should expose recommended actions');
+assert.match(css, /\.term-chip\s*{/, 'simulation should offer clickable term explanations');
+assert.match(css, /\.month-flow-summary\s*{/, 'flowing months should be collapsed to a readable summary by default');
 assert.match(css, /\.month-flow-card\s*{/, 'flowing months should render as cards');
 assert.match(css, /\.system-card\s*{/, 'long-term systems should render as status cards');
 assert.match(css, /\.relationship-card\s*{/, 'relationship network should render as status cards');
@@ -79,10 +126,15 @@ assert.match(css, /\.goal-progress-card\s*{/, 'active life goal progress should 
 assert.match(css, /\.streak-card\s*{/, 'continuous focus streaks should render as status cards');
 assert.match(css, /\.action-preview-panel\s*{/, 'action previews should render as a distinct decision panel');
 assert.match(css, /\.action-preview-grid\s*{/, 'action previews should show target, goal alignment, effects, and streak prediction');
+assert.match(css, /\.turn-resolution-card\s*{/, 'half-year settlement should render as a distinct card');
+assert.match(css, /\.delta-pill,\s*\.turn-resolution-achievements/s, 'half-year settlement should summarize state deltas as pills');
 assert.match(css, /\.decision-dock-meta\s*{/, 'decision dock should separate stage context from controls');
 assert.match(css, /\.focus-chip-strip\s*{[^}]*overflow-x:\s*auto/s, 'decision dock action chips should scroll horizontally instead of wrapping into clutter');
+assert.match(css, /\.focus-chip-strip\s*{[^}]*touch-action:\s*pan-x/s, 'decision dock action chips should advertise horizontal pan intent');
 assert.match(css, /\.submit-focus-button\s*{/, 'decision dock should keep the main submit action visually distinct');
 assert.match(css, /\.focus-chip\.goal-fit\s*{/, 'goal-aligned action chips should be visually marked');
+assert.match(css, /\.focus-chip\.recommended-chip\s*{/, 'top recommended actions should be visually ranked');
+assert.match(css, /\.more-actions-chip\s*{/, 'non-recommended actions should be tucked behind a more-actions affordance');
 assert.match(css, /\.achievement-card\s*{/, 'unlocked achievements should render as status cards');
 assert.match(css, /\.milestone-card\s*{/, 'life milestones should render as status cards');
 assert.match(css, /\.ending-archive\s*{/, 'ending should render as a life archive section');
@@ -96,13 +148,17 @@ assert.match(css, /\.history-toolbar\s*{/, 'narrative history should include fil
 assert.match(css, /\.history-filter-chip\s*{/, 'history filters should render as accessible chips');
 assert.match(css, /\.history-entry::before\s*{/, 'history entries should have type markers');
 assert.match(css, /\.stage-action-hint\s*{/, 'action area should explain current life stage');
-assert.match(css, /\.retrospect-button\s*{/, 'manual retrospection should have a distinct action button style');
+assert.match(css, /\.retrospect-confirm-summary\s*{/, 'manual retrospection should use an explanatory confirmation summary');
 assert.match(css, /\.divination-loader\s*{/, 'processing loader should use divination-themed UI');
 assert.match(css, /#roll-overlay\.pending\s+\.dice-cup/, 'roll overlay should support a pending shake state');
 
 assert.match(js, /statusToggleButton:\s*document\.getElementById\('status-toggle-button'\)/, 'status toggle should be wired in DOMElements');
 assert.match(js, /function toggleStatusPanel\(\)/, 'status panel toggle handler should exist');
 assert.match(js, /window\.matchMedia\('\(max-width: 850px\)'\)\.matches/, 'mobile should start with the status panel collapsed');
+assert.match(js, /readingLayoutActivated/, 'life simulation should default to reading-priority layout once');
+assert.match(jsEntry, /setStatusPanelCollapsed\(true\)/, 'life simulation should collapse status by default for reading space');
+assert.match(js, /settingsMenuButton:\s*document\.getElementById\('settings-menu-button'\)/, 'settings menu should be wired in DOMElements');
+assert.match(js, /function toggleSettingsMenu\(\)/, 'settings menu should have a toggle handler');
 assert.match(js, /function scheduleSceneBackgroundUpdate\(\)/, 'scene background update should be scheduled after DOM rendering');
 assert.match(js, /function updateSceneBackground\(\)/, 'scene background updater should exist');
 assert.match(js, /function handleUnknownTimeToggle\(\)/, 'unknown time should disable the birth-time input');
@@ -116,14 +172,25 @@ assert.match(js, /function renderApiProfileList\(/, 'frontend should render save
 assert.match(js, /function startNewApiProfile\(/, 'frontend should create a blank AI API profile draft');
 assert.match(js, /function activateApiProfile\(/, 'frontend should activate a selected AI API profile');
 assert.match(js, /function setApiSettingsVisible\(/, 'frontend should control custom AI API modal visibility');
-assert.match(js, /apiSettingsBackdrop\.addEventListener\('click',\s*closeApiSettingsPanel\)/, 'clicking modal backdrop should close custom AI API settings');
+assert.match(jsEntry, /apiSettingsBackdrop\.addEventListener\('click',\s*modalManager\.closeApiSettingsPanel\)/, 'clicking modal backdrop should close custom AI API settings');
 assert.match(js, /event\.key === 'Escape'/, 'Escape should close custom AI API modal');
 assert.match(js, /function renderPreludeEvent\(/, 'frontend should render prelude events as structured cards');
 assert.match(js, /function joinCleanList\(/, 'frontend should clean sparse list values before joining display text');
 assert.match(js, /function formatLegacyStateEffectLine\(/, 'frontend should prettify old persisted state-effect dict strings');
 assert.match(js, /function renderMonthFlowBoard\(/, 'frontend should render flowing-month cards');
 assert.match(js, /function renderTurnGuide\(/, 'frontend should render a decision guide for the current half-year');
-assert.match(js, /import\s+\{\s*applyPhaseView,\s*phaseLabel\s*\}\s+from\s+'\.\/phase_views\.js\?v=phase-view-20260608'/, 'index.js should delegate phase visibility to phase view modules');
+assert.match(js, /function renderFirstTurnCoach\(/, 'frontend should render first-turn guidance');
+assert.match(js, /function renderTurnResolutionCard\(/, 'frontend should render half-year settlement cards');
+assert.match(js, /function focusPendingResolution\(/, 'frontend should move focus to the newest settlement card');
+assert.match(js, /function wireTermChips\(/, 'frontend should wire clickable term explanations');
+assert.match(jsEntry, /import\s+\{\s*applyPhaseView,\s*phaseLabel\s*\}\s+from\s+'\.\/phase_views\.js\?v=phase-view-20260608'/, 'index.js should delegate phase visibility to phase view modules');
+assert.match(jsEntry, /import\s+\{\s*appState,\s*scrollState\s*\}\s+from\s+'\.\/app_state\.js\?v=runtime-20260608'/, 'index.js should import app state runtime module');
+assert.match(jsEntry, /import\s+\{\s*createApiClient\s*\}\s+from\s+'\.\/api_client\.js\?v=runtime-20260608'/, 'index.js should import API runtime module');
+assert.match(jsEntry, /import\s+\{\s*createSocketManager\s*\}\s+from\s+'\.\/socket_manager\.js\?v=runtime-20260608'/, 'index.js should import socket runtime module');
+assert.match(jsEntry, /import\s+\{\s*createModalManager\s*\}\s+from\s+'\.\/modal_manager\.js\?v=runtime-20260608'/, 'index.js should import modal runtime module');
+assert.match(jsEntry, /createChartView|createPreludeView|createSimulationView|createCodexView|createApiSettingsView/, 'index.js should compose domain View Modules');
+assert.doesNotMatch(jsEntry, /function renderChart\(|function renderPrelude\(|function renderFocusActions\(/, 'index.js should not own domain View render implementations');
+assert.doesNotMatch(jsEntry, /function applyPatch\(/, 'index.js should not own JSON Patch runtime implementation');
 assert.match(js, /applyPhaseView\(DOMElements,\s*appState\.gameState\)/, 'render should apply the phase-owned view module');
 assert.match(phaseJs, /life_simulation:\s*{[^}]*visiblePanels:\s*\['simulationPanel'\]/s, 'life simulation view module should hide chart and prelude panels');
 assert.match(phaseJs, /ending:\s*{[^}]*visiblePanels:\s*\['simulationPanel'\]/s, 'ending view module should keep simulation panel as main content');
@@ -131,10 +198,24 @@ assert.match(phaseJs, /dataset\.phase\s*=\s*phase/, 'phase view module should ex
 assert.match(phaseBehaviourSmoke, /actionAreaRatio/, 'behaviour smoke should assert action tray viewport ratio');
 assert.match(phaseBehaviourSmoke, /chartHidden/, 'behaviour smoke should assert old phase panels are hidden after life start');
 assert.match(phaseBehaviourSmoke, /horizontalOverflow/, 'behaviour smoke should assert no horizontal overflow');
+assert.match(phaseBehaviourSmoke, /requires YMQT_BASE_URL/, 'behaviour smoke should fail by default instead of silently skipping without a live app');
+assert.match(phaseBehaviourSmoke, /requires the playwright package/, 'behaviour smoke should fail by default instead of silently skipping without Playwright');
+assert.match(packageManifest, /"test:frontend:behaviour":\s*"node tests\/frontend_phase_behaviour_check\.mjs"/, 'package manifest should expose a default live UI behaviour harness');
+assert.match(packageManifest, /"playwright":/, 'package manifest should declare Playwright for repeatable browser behaviour checks');
 assert.match(js, /function getStreakView\(/, 'frontend should normalize continuous focus streak state');
 assert.match(js, /function renderStreakStatusCard\(/, 'frontend should render continuous choice feedback in status');
 assert.match(js, /function actionGuideMap\(/, 'frontend should map backend action guide previews by action');
 assert.match(js, /function renderActionPreviewPanel\(/, 'frontend should render selected action preview details');
+assert.match(js, /function wireHorizontalWheelScroll\(/, 'frontend should convert mouse-wheel movement into horizontal action-chip scrolling');
+assert.match(js, /addEventListener\('wheel'[\s\S]*passive:\s*false/s, 'horizontal action-chip wheel handler should be able to prevent vertical scroll while moving sideways');
+assert.match(js, /life_choice/, 'frontend should consume backend life-choice copy instead of showing only abstract action labels');
+assert.match(js, /life_scene/, 'half-year settlement should show concrete life scenes before analytical explanation');
+assert.match(js, /命盘影响/, 'half-year settlement should foreground bazi influence before raw numeric details');
+assert.match(js, /人生抉择/, 'decision UI should be framed as life choices, not just strategy actions');
+assert.match(js, /function recommendedActionGuides\(/, 'frontend should rank action choices from backend guides');
+assert.match(js, /更多行动/, 'frontend should collapse non-recommended actions behind a more-actions affordance');
+assert.match(js, /确认本半年选择/, 'decision dock should use one clear primary submit button');
+assert.doesNotMatch(js, /textContent\s*=\s*'落定重点'/, 'old ambiguous submit wording should be removed');
 assert.match(js, /action_guides/, 'frontend should consume backend action guide previews');
 assert.match(js, /action-tray-compact/, 'frontend should toggle compact action tray during life simulation');
 assert.match(js, /focus_streak/, 'frontend should consume focus streak state');
@@ -149,11 +230,14 @@ assert.match(js, /data-history-filter/, 'frontend should render narrative histor
 assert.match(js, /HISTORY_COMPACT_LIMIT/, 'frontend should collapse long narrative histories by default');
 assert.match(js, /function buildLifeArchiveMarkdown\(/, 'frontend should build a downloadable life archive');
 assert.match(js, /function exportLifeArchive\(/, 'frontend should export the current life archive');
-assert.match(js, /exportArchiveButton\.addEventListener\('click',\s*exportLifeArchive\)/, 'archive export button should be wired');
-assert.match(js, /codexButton\.addEventListener\('click',\s*toggleCodexPanel\)/, 'ending codex button should be wired');
-assert.match(js, /codexBackdrop\.addEventListener\('click',\s*closeCodexPanel\)/, 'ending codex backdrop should close the modal');
+assert.match(jsEntry, /exportArchiveButton\.addEventListener\('click',\s*archiveView\.exportLifeArchive\)/, 'archive export button should be wired');
+assert.match(jsEntry, /codexButton\.addEventListener\('click',\s*modalManager\.toggleCodexPanel\)/, 'ending codex button should be wired');
+assert.match(jsEntry, /codexBackdrop\.addEventListener\('click',\s*modalManager\.closeCodexPanel\)/, 'ending codex backdrop should close the modal');
 assert.match(js, /retrospectButton:\s*document\.getElementById\('retrospect-button'\)/, 'manual retrospection button should be wired in DOMElements');
 assert.match(js, /function handleRetrospectLife\(\)/, 'frontend should handle manual life retrospection');
+assert.match(js, /function confirmRetrospectLife\(\)/, 'frontend should confirm retrospection from a custom modal');
+assert.match(js, /retrospectConfirmButton\.addEventListener\('click',\s*confirmRetrospectLife\)/, 'custom retrospection modal should wire its confirm button');
+assert.doesNotMatch(js, /window\.confirm/, 'manual retrospection should not use native confirm');
 assert.match(js, /type:\s*'retrospect_life'/, 'frontend should send the retrospection action');
 assert.match(js, /retrospectButton\.addEventListener\('click',\s*handleRetrospectLife\)/, 'manual retrospection button should be clickable');
 assert.match(js, /state\.life_systems/, 'frontend should render long-term systems from state');

@@ -6,17 +6,8 @@ from fastapi.testclient import TestClient
 
 from backend.app import ai_settings, openai_client, state_manager
 
-
 def _redirect_storage(tmp: str) -> None:
-    root = Path(tmp)
-    state_manager.DATA_DIR = root / 'game_data'
-    state_manager.SESSIONS_DIR = state_manager.DATA_DIR / 'sessions'
-    state_manager.INDEX_FILE = state_manager.DATA_DIR / 'index.json'
-    state_manager.OLD_DATA_FILE = root / 'game_data.json'
-    state_manager._meta_cache.clear()
-    state_manager._sessions_index.clear()
-    state_manager._index_modified = False
-
+    state_manager.configure_storage_runtime(root=Path(tmp))
 
 def _apply_ws_message(current_state: dict | None, message: dict) -> dict:
     if message['type'] == 'full_state':
@@ -25,7 +16,6 @@ def _apply_ws_message(current_state: dict | None, message: dict) -> dict:
         assert current_state is not None
         return jsonpatch.apply_patch(current_state, message['patch'], in_place=False)
     raise AssertionError('unexpected websocket message type: ' + str(message.get('type')))
-
 
 def test_guest_websocket_can_play_to_ending(monkeypatch):
     from backend.app import game_logic
@@ -102,7 +92,6 @@ def test_guest_websocket_can_play_to_ending(monkeypatch):
                 assert state['ending']['title']
                 assert len(state['annual_summaries']) == 2
 
-
 def test_guest_websocket_can_retrospect_life(monkeypatch):
     from backend.app import game_logic
 
@@ -152,7 +141,6 @@ def test_guest_websocket_can_retrospect_life(monkeypatch):
                 assert state['phase'] == 'birth_input'
                 assert state['ending_codex']['unlocked_count'] == 1
 
-
 def test_guest_can_manage_custom_ai_settings(monkeypatch):
     async def fake_test_text_ai_connection(user_id, payload):
         assert user_id.startswith('guest_')
@@ -193,13 +181,17 @@ def test_guest_can_manage_custom_ai_settings(monkeypatch):
             assert saved_payload['api_key_mask'].startswith('sk-t')
             assert saved_payload['base_url'] == 'https://api.example.test/v1'
             assert saved_payload['model'] == 'custom-model'
-            assert saved_payload['version'] == 2
+            assert saved_payload['version'] == 3
             assert len(saved_payload['profiles']) == 1
             default_profile_id = saved_payload['active_profile_id']
 
             stored = ai_settings.get_custom_ai_config(username)
             assert stored
             assert stored['api_key'] == 'sk-test-custom-key'
+            raw_settings = (state_manager.ai_settings_dir() / (username + '.json')).read_text(encoding='utf-8')
+            assert 'sk-test-custom-key' not in raw_settings
+            assert 'api_key_secret' in raw_settings
+            assert '"api_key"' not in raw_settings
             assert openai_client.is_text_ai_enabled(username) is True
             assert openai_client._test_config(username, {'profile_id': default_profile_id})['api_key'] == 'sk-test-custom-key'
             assert openai_client._test_config(username, {'profile_id': 'missing-profile'})['api_key'] == ''
@@ -246,12 +238,11 @@ def test_guest_can_manage_custom_ai_settings(monkeypatch):
             assert cleared.json()['custom_enabled'] is False
             assert ai_settings.get_custom_ai_config(username) is None
 
-
 def test_legacy_single_ai_settings_are_migrated_in_memory():
     with tempfile.TemporaryDirectory() as tmp:
         _redirect_storage(tmp)
         player_id = 'legacy_player'
-        settings_dir = state_manager.DATA_DIR / 'ai_settings'
+        settings_dir = state_manager.ai_settings_dir()
         settings_dir.mkdir(parents=True, exist_ok=True)
         (settings_dir / (player_id + '.json')).write_text(
             '{"api_key":"sk-legacy-key","base_url":"https://legacy.example/v1","model":"legacy-model"}',
@@ -261,10 +252,14 @@ def test_legacy_single_ai_settings_are_migrated_in_memory():
         public = ai_settings.public_ai_config(player_id)
         config = ai_settings.get_custom_ai_config(player_id)
 
-        assert public['version'] == 2
+        assert public['version'] == 3
         assert public['custom_enabled'] is True
         assert public['profiles'][0]['id'] == 'profile_default'
         assert public['profiles'][0]['api_key_set'] is True
+        raw_settings = (settings_dir / (player_id + '.json')).read_text(encoding='utf-8')
+        assert 'sk-legacy-key' not in raw_settings
+        assert 'api_key_secret' in raw_settings
+        assert '"api_key"' not in raw_settings
         assert config == {
             'api_key': 'sk-legacy-key',
             'base_url': 'https://legacy.example/v1',

@@ -1,17 +1,15 @@
 import json
 from pathlib import Path
 
-from backend.app import game_logic
-
+from backend.app import life_session, state_projection
 
 def test_state_schema_required_keys_match_new_session():
     schema = json.loads(Path('backend/app/state.schema.json').read_text(encoding='utf-8'))
-    session = game_logic._new_session('schema_player')
+    session = life_session.new_session('schema_player')
 
     missing = sorted(set(schema['required']) - set(session))
 
     assert missing == []
-
 
 def test_state_schema_documents_mvp_life_state_fields():
     schema = json.loads(Path('backend/app/state.schema.json').read_text(encoding='utf-8'))
@@ -22,12 +20,10 @@ def test_state_schema_documents_mvp_life_state_fields():
         '家庭', '感情', '社交', '名望', '福德', '压力',
     }
 
-
 def test_state_schema_start_age_minimum_is_six():
     schema = json.loads(Path('backend/app/state.schema.json').read_text(encoding='utf-8'))
 
     assert schema['properties']['start_age']['minimum'] == 6
-
 
 def test_state_schema_parses_and_tracks_annual_summary_metadata():
     schema = json.loads(Path('backend/app/state.schema.json').read_text(encoding='utf-8'))
@@ -55,7 +51,6 @@ def test_state_schema_parses_and_tracks_annual_summary_metadata():
         'memory_tags',
     } <= set(annual_item)
 
-
 def test_state_schema_tracks_flowing_month_and_half_year_fields():
     schema = json.loads(Path('backend/app/state.schema.json').read_text(encoding='utf-8'))
     properties = schema['properties']
@@ -72,7 +67,6 @@ def test_state_schema_tracks_flowing_month_and_half_year_fields():
     assert {'month', 'month_name', 'half', 'age_start_months', 'age_end_months', 'age_start_label', 'age_end_label'} <= set(cycle_properties)
     assert {'half', 'half_label', 'monthly_cycles'} <= set(half_item)
 
-
 def test_state_schema_tracks_stage_systems_and_ending_archive():
     schema = json.loads(Path('backend/app/state.schema.json').read_text(encoding='utf-8'))
     properties = schema['properties']
@@ -82,7 +76,6 @@ def test_state_schema_tracks_stage_systems_and_ending_archive():
     assert {'current_stage', 'life_systems', 'ending_reason', 'ending_codex'} <= set(properties)
     assert {'stage_event', 'stage_label', 'life_systems_after', 'relationships_after'} <= set(half_item)
     assert {'reason', 'dimensions', 'achievements', 'regrets', 'key_turning_points', 'life_systems', 'relationships', 'hidden_ending', 'hidden_endings', 'codex_unlocks', 'codex_progress'} <= set(ending_props)
-
 
 def test_state_schema_tracks_life_goal_fields():
     schema = json.loads(Path('backend/app/state.schema.json').read_text(encoding='utf-8'))
@@ -94,7 +87,6 @@ def test_state_schema_tracks_life_goal_fields():
     assert {'goal_progress_before', 'goal_progress_after'} <= set(half_item)
     assert {'life_goal', 'life_goal_achieved'} <= set(ending_props)
 
-
 def test_state_schema_tracks_achievements_and_milestones():
     schema = json.loads(Path('backend/app/state.schema.json').read_text(encoding='utf-8'))
     properties = schema['properties']
@@ -105,13 +97,11 @@ def test_state_schema_tracks_achievements_and_milestones():
     assert {'new_achievements', 'milestone'} <= set(half_item)
     assert {'achievements_unlocked', 'milestones'} <= set(ending_props)
 
-
 def test_state_schema_documents_luck_start_fields_on_chart():
     schema = json.loads(Path('backend/app/state.schema.json').read_text(encoding='utf-8'))
     chart_properties = schema['definitions']['baziChart']['properties']
 
     assert {'luck_start_label', 'luck_start_months'} <= set(chart_properties)
-
 
 def test_state_schema_documents_bazi_analysis_fields():
     schema = json.loads(Path('backend/app/state.schema.json').read_text(encoding='utf-8'))
@@ -130,3 +120,36 @@ def test_state_schema_documents_bazi_analysis_fields():
         'chart_tags',
         'source',
     } <= set(analysis)
+
+def test_state_schema_documents_prelude_projection_field():
+    schema = json.loads(Path('backend/app/state.schema.json').read_text(encoding='utf-8'))
+
+    assert 'prelude' in schema['properties']
+
+def test_state_projection_builds_player_state_without_internal_history():
+    session = life_session.new_session('projection_player')
+    session['internal_history'] = [{'role': 'user', 'content': 'secret audit'}]
+    session['display_history'] = ['public line']
+    session['prelude'] = {'text': '早年故事'}
+    session['debug_only'] = 'must not leak'
+
+    projected = state_projection.build_player_state(session)
+    validation = state_projection.validate_player_state(projected)
+
+    assert projected['display_history'] == ['public line']
+    assert projected['prelude']['text'] == '早年故事'
+    assert 'internal_history' not in projected
+    assert 'debug_only' not in projected
+    assert validation == {'unexpected_keys': [], 'internal_keys': [], 'missing_required_keys': []}
+
+def test_state_projection_builds_live_state_with_sanitized_history():
+    session = life_session.new_session('live_projection_player')
+    session['display_history'] = ['【系统提示】公开', '> 玩家私密输入']
+    session['current_life'] = {'年龄': 22}
+    session['internal_history'] = [{'role': 'user', 'content': 'secret'}]
+
+    projected = state_projection.build_live_state(session)
+
+    assert projected['display_history'] == ['【系统提示】公开']
+    assert projected['current_life'] == {'年龄': 22}
+    assert 'internal_history' not in projected

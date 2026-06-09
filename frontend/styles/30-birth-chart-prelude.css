@@ -1,0 +1,264 @@
+
+label { display: grid; gap: 0.45rem; font-weight: 700; }
+input, select {
+    width: 100%;
+    min-height: 44px;
+    padding: 0.8rem 0.9rem;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: rgba(255,255,255,0.75);
+    color: var(--ink);
+    font: inherit;
+    font-size: max(1rem, 16px);
+}
+
+.check-line {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 44px;
+    cursor: pointer;
+}
+.check-line input {
+    width: 1.1rem;
+    min-height: 1.1rem;
+    accent-color: var(--jade);
+}
+
+.quick-age-row {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    padding: 0.75rem;
+    border: 1px dashed var(--line);
+    border-radius: 18px;
+    background: rgba(255,255,255,0.34);
+}
+
+.quick-age-row span {
+    margin-right: 0.2rem;
+    color: var(--muted);
+    font-weight: 800;
+}
+
+.quick-age-row button {
+    border: 1px solid rgba(201, 154, 66, 0.42);
+    border-radius: 999px;
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0.55rem 0.8rem;
+    background: #fff4d8;
+    color: #704919;
+    cursor: pointer;
+    font: inherit;
+    font-weight: 800;
+}
+
+.quick-age-row button:hover {
+    border-color: var(--gold);
+    transform: translateY(-1px);
+}
+
+#generate-chart-button { align-self: end; }
+
+#chart-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.85rem;
+}
+
+.chart-card, .side-card {
+    padding: 1rem;
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    background: rgba(255,255,255,0.48);
+}
+
+.chart-card span, .side-card span, #year-banner span { display: block; color: var(--muted); font-size: 0.78rem; }
+.chart-card strong { display: block; margin-top: 0.35rem; font-size: 1.3rem; }
+.chart-card.wide { grid-column: span 2; }
+
+#element-board, #luck-timeline {
+    margin-top: 1rem;
+    padding: 1rem;
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    background: rgba(255,255,255,0.35);
+}
+
+#element-board h3, #luck-timeline h3 {
+    margin: 0 0 0.85rem;
+    font-family: var(--font-serif);
+    font-size: 1.35rem;
+}
+
+.element-row {
+    display: grid;
+    grid-template-columns: 2rem 1fr 2rem;
+    align-items: center;
+    gap: 0.75rem;
+    margin: 0.52rem 0;
+}
+
+.element-row span, .element-row b { font-weight: 900; color: #5c421e; }
+.element-row div {
+    height: 0.72rem;
+    overflow: hidden;
+    border-radius: 999px;
+    background: rgba(108, 82, 46, 0.16);
+}
+
+.element-row i {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, var(--jade), var(--gold));
+}
+
+.timeline-track {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.75rem;
+}
+
+.timeline-track article {
+    min-height: 8.5rem;
+    padding: 0.9rem;
+    border-radius: 18px;
+    background: linear-gradient(160deg, rgba(43, 36, 28, 0.94), rgba(76, 57, 37, 0.92));
+    color: #fff8df;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08);
+}
+
+.timeline-track strong, .timeline-track span { display: block; }
+.timeline-track span { color: #e8c981; margin-top: 0.35rem; }
+.timeline-track p { margin: 0.55rem 0 0; color: rgba(255, 248, 223, 0.78); line-height: 1.65; }
+
+.tag-row { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+.tag-row span, .focus-chip { padding: 0.56rem 0.85rem; border-radius: 999px; background: #eadbb8; color: #68491f; }
+.bullet-line { color: var(--muted); }
+
+.prelude-event-list {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.75rem;
+}
+
+.prelude-event-card {
+    position: relative;
+    overflow: hidden;
+    padding: 1rem;
+    border: 1px solid rgba(201, 154, 66, 0.38);
+    border-radius: 18px;
+    background:
+        linear-gradient(145deg, rgba(255,255,255,0.58), rgba(239,228,198,0.42)),
+        radial-gradient(circle at top right, rgba(201,154,66,0.18), transparent 9rem);
+}
+
+.prelude-event-card::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0.85rem;
+    bottom: 0.85rem;
+    width: 4px;
+    border-radius: 999px;
+    background: linear-gradient(180deg, var(--gold), var(--jade));
+}
+
+.prelude-event-card p {
+    margin: 0.35rem 0 0;
+    color: var(--ink);
+    line-height: 1.8;
+}
+
+.prelude-event-card small {
+    display: block;
+    margin-top: 0.65rem;
+    color: var(--muted);
+    line-height: 1.7;
+}
+
+.prelude-event-card.compact {
+    margin: 0.65rem 0;
+    background: rgba(255,255,255,0.44);
+}
+
+.prelude-event-meta {
+    display: inline-flex;
+    padding: 0.24rem 0.55rem;
+    border-radius: 999px;
+    background: rgba(47, 123, 100, 0.12);
+    color: var(--jade);
+    font-size: 0.78rem;
+    font-weight: 900;
+}
+
+.life-goal-grid {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 0.75rem;
+}
+
+.life-goal-card,
+.goal-progress-card,
+.ending-goal-card {
+    padding: 1rem;
+    border: 1px solid rgba(201, 154, 66, 0.38);
+    border-radius: 18px;
+    background:
+        linear-gradient(145deg, rgba(255,255,255,0.62), rgba(239,228,198,0.44)),
+        radial-gradient(circle at top right, rgba(47,123,100,0.13), transparent 8rem);
+}
+
+.life-goal-card.active,
+.goal-progress-card,
+.ending-goal-card {
+    border-color: rgba(47, 123, 100, 0.45);
+    box-shadow: inset 0 0 0 1px rgba(47,123,100,0.14);
+}
+
+.life-goal-card { min-height: 13rem; }
+
+.goal-progress-card { min-height: 5.6rem; }
+
+.ending-goal-card { min-height: 5.8rem; }
+
+.life-goal-card span,
+.ending-goal-card span {
+    display: inline-flex;
+    padding: 0.22rem 0.52rem;
+    border-radius: 999px;
+    background: rgba(47, 123, 100, 0.12);
+    color: var(--jade);
+    font-size: 0.74rem;
+    font-weight: 900;
+}
+
+.life-goal-card strong,
+.ending-goal-card strong {
+    display: block;
+    margin-top: 0.55rem;
+    font-family: var(--font-serif);
+    font-size: 1.16rem;
+}
+
+.life-goal-card p,
+.life-goal-card small,
+.ending-goal-card p {
+    display: block;
+    margin: 0.5rem 0 0;
+    color: var(--muted);
+    line-height: 1.65;
+}
+
+.life-goal-card button {
+    width: 100%;
+    margin-top: 0.75rem;
+    border-color: rgba(47,123,100,0.3);
+    background: rgba(47,123,100,0.1);
+    color: var(--jade);
+}
+

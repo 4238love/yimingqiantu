@@ -1,0 +1,120 @@
+#roll-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background:
+        radial-gradient(circle at center, rgba(201,154,66,0.14), transparent 20rem),
+        rgba(0,0,0,0.64);
+    backdrop-filter: blur(10px);
+}
+
+#roll-panel {
+    position: relative;
+    overflow: hidden;
+    width: min(460px, 92vw);
+    padding: 2.15rem;
+    text-align: center;
+    border: 1px solid rgba(201,154,66,0.7);
+    border-radius: 26px;
+    background:
+        linear-gradient(145deg, rgba(255,248,223,0.97), rgba(233,219,184,0.92)),
+        radial-gradient(circle at top right, rgba(159,61,49,0.18), transparent 12rem);
+    box-shadow: 0 24px 70px var(--shadow);
+}
+
+#roll-panel::before,
+#roll-panel::after {
+    content: '甲乙丙丁戊己庚辛壬癸';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 17rem;
+    height: 17rem;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    border: 1px dashed rgba(201,154,66,0.32);
+    border-radius: 50%;
+    color: rgba(108,82,46,0.22);
+    letter-spacing: 0.25em;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+}
+
+#roll-panel::after {
+    content: '子丑寅卯辰巳午未申酉戌亥';
+    width: 21rem;
+    height: 21rem;
+    animation: cycleRotate 9s linear infinite;
+}
+
+#roll-stage-label {
+    position: relative;
+    z-index: 1;
+    margin: 0 0 0.8rem;
+    color: var(--muted);
+    font-weight: 900;
+    letter-spacing: 0.16em;
+}
+
+.dice-cup {
+    position: relative;
+    z-index: 1;
+    width: 8.5rem;
+    height: 8.5rem;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 34% 34% 46% 46%;
+    color: #fff8df;
+    background: linear-gradient(145deg, var(--red), #6e241d);
+    box-shadow: inset 0 0 0 8px rgba(255,255,255,0.08), 0 20px 42px rgba(159,61,49,0.34);
+    animation: diceRoll 0.9s ease both;
+}
+
+.dice-cup span {
+    font-size: 2.25rem;
+    font-weight: 900;
+}
+
+#roll-overlay.pending .dice-cup {
+    animation: cupShake 0.55s ease-in-out infinite;
+}
+
+#roll-details,
+#roll-result-display {
+    position: relative;
+    z-index: 1;
+}
+
+#roll-details { display: grid; gap: 0.4rem; margin: 1rem 0; color: var(--muted); }
+#roll-result-display { display: grid; gap: 0.2rem; }
+#roll-outcome { font-size: 1.8rem; font-weight: 900; }
+#roll-value { font-size: 3.4rem; font-weight: 900; font-variant-numeric: tabular-nums; }
+.outcome-大成功 { color: #b87512; }
+.outcome-成功 { color: var(--jade); }
+.outcome-失败 { color: #777; }
+.outcome-大失败 { color: var(--red); }
+
+@keyframes diceRoll { from { transform: rotate(-12deg) scale(0.85); opacity: 0; } to { transform: rotate(0) scale(1); opacity: 1; } }
+@keyframes cupShake {
+    0%, 100% { transform: rotate(-3deg) translateY(0); }
+    50% { transform: rotate(3deg) translateY(-5px); }
+}
+@keyframes cycleRotate { to { transform: translate(-50%, -50%) rotate(360deg); } }
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.001ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+        transition-duration: 0.001ms !important;
+    }
+}
+

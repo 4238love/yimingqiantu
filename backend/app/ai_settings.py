@@ -1,16 +1,17 @@
 from __future__ import annotations
 
 import json
+import os
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 from uuid import uuid4
 
-from . import state_manager
+from . import secret_store, state_manager
 from .config import settings
 
 
-STORE_VERSION = 2
+STORE_VERSION = 3
 DEFAULT_PROFILE_ID = 'profile_default'
 
 
@@ -19,7 +20,7 @@ def _safe_player_id(player_id: str) -> str:
 
 
 def _settings_dir() -> Path:
-    return state_manager.DATA_DIR / 'ai_settings'
+    return state_manager.ai_settings_dir()
 
 
 def _settings_path(player_id: str) -> Path:
@@ -31,10 +32,7 @@ def _now_iso() -> str:
 
 
 def _mask_key(api_key: str) -> str:
-    key = str(api_key or '')
-    if len(key) <= 8:
-        return '*' * len(key)
-    return key[:4] + '...' + key[-4:]
+    return secret_store.mask_secret(api_key)
 
 
 def _empty_store() -> dict[str, Any]:
@@ -48,7 +46,7 @@ def _profile_id() -> str:
 def _normalize_store(data: Any) -> dict[str, Any]:
     if not isinstance(data, dict):
         return _empty_store()
-    if data.get('version') == STORE_VERSION and isinstance(data.get('profiles'), list):
+    if isinstance(data.get('profiles'), list):
         profiles = []
         for item in data.get('profiles') or []:
             if isinstance(item, dict):
@@ -81,10 +79,14 @@ def _normalize_store(data: Any) -> dict[str, Any]:
 def _normalize_profile(data: dict[str, Any], profile_id: str) -> dict[str, Any]:
     now = _now_iso()
     name = str(data.get('name') or data.get('label') or '自定义 API').strip()[:80] or '自定义 API'
+    api_key_secret = data.get('api_key_secret') or {}
+    if not secret_store.reveal_secret(api_key_secret):
+        legacy_key = str(data.get('api_key') or '').strip()
+        api_key_secret = secret_store.protect_secret(legacy_key) if legacy_key else {}
     return {
         'id': str(profile_id or _profile_id()),
         'name': name,
-        'api_key': str(data.get('api_key') or '').strip(),
+        'api_key_secret': api_key_secret,
         'base_url': str(data.get('base_url') or settings.OPENAI_BASE_URL).strip(),
         'model': str(data.get('model') or settings.OPENAI_MODEL).strip(),
         'enabled': bool(data.get('enabled', True)),
@@ -103,13 +105,19 @@ def _read_store(player_id: str | None) -> dict[str, Any]:
         data = json.loads(path.read_text(encoding='utf-8'))
     except (OSError, json.JSONDecodeError):
         return _empty_store()
-    return _normalize_store(data)
+    store = _normalize_store(data)
+    if data != store:
+        _write_store(player_id, store)
+    return store
 
 
 def _write_store(player_id: str, store: dict[str, Any]) -> None:
     directory = _settings_dir()
     directory.mkdir(parents=True, exist_ok=True)
-    _settings_path(player_id).write_text(json.dumps(_normalize_store(store), ensure_ascii=False, indent=2), encoding='utf-8')
+    path = _settings_path(player_id)
+    tmp_path = path.with_name('.' + path.name + '.' + uuid4().hex + '.tmp')
+    tmp_path.write_text(json.dumps(_normalize_store(store), ensure_ascii=False, indent=2), encoding='utf-8')
+    os.replace(tmp_path, path)
 
 
 def _active_profile(store: dict[str, Any]) -> dict[str, Any] | None:
@@ -122,7 +130,7 @@ def _active_profile(store: dict[str, Any]) -> dict[str, Any] | None:
 
 
 def _public_profile(profile: dict[str, Any], active_id: str) -> dict[str, Any]:
-    api_key = str(profile.get('api_key') or '')
+    api_key = secret_store.reveal_secret(profile.get('api_key_secret') or profile.get('api_key'))
     return {
         'id': profile.get('id'),
         'name': profile.get('name') or '自定义 API',
@@ -144,6 +152,7 @@ def get_profile_ai_config(player_id: str | None, profile_id: str | None, include
     for profile in store.get('profiles') or []:
         if profile.get('id') == profile_id:
             api_key = str(profile.get('api_key') or '').strip()
+            api_key = secret_store.reveal_secret(profile.get('api_key_secret') or profile.get('api_key')).strip()
             if not api_key or (not include_disabled and not bool(profile.get('enabled', True))):
                 return None
             return {
@@ -174,7 +183,7 @@ def save_profile(player_id: str, payload: dict[str, Any]) -> dict[str, Any]:
     data = {
         'id': profile_id,
         'name': payload.get('name') or (existing or {}).get('name') or '自定义 API',
-        'api_key': (existing or {}).get('api_key', ''),
+        'api_key_secret': (existing or {}).get('api_key_secret', {}),
         'base_url': payload.get('base_url') or (existing or {}).get('base_url') or settings.OPENAI_BASE_URL,
         'model': payload.get('model') or (existing or {}).get('model') or settings.OPENAI_MODEL,
         'enabled': payload.get('enabled', (existing or {}).get('enabled', True)),
@@ -182,7 +191,8 @@ def save_profile(player_id: str, payload: dict[str, Any]) -> dict[str, Any]:
         'updated_at': now,
     }
     if 'api_key' in payload and payload.get('api_key') is not None:
-        data['api_key'] = str(payload.get('api_key') or '').strip()
+        incoming_key = str(payload.get('api_key') or '').strip()
+        data['api_key_secret'] = secret_store.protect_secret(incoming_key) if incoming_key else {}
     profile = _normalize_profile(data, profile_id)
 
     if existing:
@@ -227,7 +237,8 @@ def save_custom_ai_config(player_id: str, payload: dict[str, Any]) -> dict[str, 
     payload = dict(payload)
     payload['id'] = payload.get('id') or (active or {}).get('id') or DEFAULT_PROFILE_ID
     payload['name'] = payload.get('name') or (active or {}).get('name') or '默认配置'
-    if not str(payload.get('api_key') or (active or {}).get('api_key') or '').strip():
+    active_key = secret_store.reveal_secret((active or {}).get('api_key_secret') or (active or {}).get('api_key'))
+    if not str(payload.get('api_key') or active_key or '').strip():
         raise ValueError('api_key is required')
     return save_profile(player_id, payload)
 

@@ -6,8 +6,7 @@ import logging
 from copy import deepcopy
 from typing import Any
 
-from . import ai_enrichment, bazi_engine, fate_mapper, half_year_resolution, life_session, openai_client, state_manager, state_publication
-
+from . import ai_enrichment, bazi_engine, ending_resolution, fate_mapper, game_command_router, half_year_resolution, life_context_projection, life_session, openai_client, state_manager, state_publication
 
 logger = logging.getLogger(__name__)
 
@@ -46,13 +45,11 @@ AGE_STAGE_PROFILES = half_year_resolution.AGE_STAGE_PROFILES
 LIFE_GOAL_TEMPLATES = half_year_resolution.LIFE_GOAL_TEMPLATES
 ACHIEVEMENT_DEFINITIONS = half_year_resolution.ACHIEVEMENT_DEFINITIONS
 
-
 def _string_list(value: Any, fallback: list[str] | None = None, limit: int = 12) -> list[str]:
     if not isinstance(value, list):
         return list(fallback or [])
     result = [str(item).strip() for item in value if str(item).strip()]
     return result[:limit] or list(fallback or [])
-
 
 def _event_object(value: Any) -> dict[str, Any] | None:
     if isinstance(value, dict):
@@ -64,7 +61,6 @@ def _event_object(value: Any) -> dict[str, Any] | None:
             return None
         return parsed if isinstance(parsed, dict) else None
     return None
-
 
 def _event_text(value: Any) -> str:
     event = _event_object(value)
@@ -90,19 +86,16 @@ def _event_text(value: Any) -> str:
         main_text += ' 影响：' + impact
     return main_text.strip()
 
-
 def _event_string_list(value: Any, fallback: list[str] | None = None, limit: int = 12) -> list[str]:
     source = value if isinstance(value, list) else fallback or []
     result = [_event_text(item) for item in source]
     result = [item for item in result if item]
     return result[:limit] or list(fallback or [])
 
-
 def _format_prelude_history(prelude: dict[str, Any]) -> str:
     early_events = _event_string_list(prelude.get('early_events'), [], 12)
     event_block = '\n- '.join(early_events)
     return '【人生前传】\n\n' + str(prelude.get('text') or '') + (('\n\n- ' + event_block) if event_block else '')
-
 
 def _ensure_prelude_detail(prelude: dict[str, Any], fallback: dict[str, Any], start_age: int) -> dict[str, Any]:
     detailed = dict(prelude)
@@ -139,7 +132,6 @@ def _ensure_prelude_detail(prelude: dict[str, Any], fallback: dict[str, Any], st
     detailed['hidden_weaknesses'] = weaknesses
     return detailed
 
-
 def _merge_string_lists(*values: Any, limit: int = 12) -> list[str]:
     result: list[str] = []
     for value in values:
@@ -150,7 +142,6 @@ def _merge_string_lists(*values: Any, limit: int = 12) -> list[str]:
             if text and text not in result:
                 result.append(text)
     return result[:limit]
-
 
 def _coerce_life_state(value: Any, fallback: dict[str, int]) -> dict[str, int]:
     state = fallback.copy()
@@ -164,7 +155,6 @@ def _coerce_life_state(value: Any, fallback: dict[str, int]) -> dict[str, int]:
                 continue
     return state
 
-
 def _replace_latest_history_entry(session: dict[str, Any], prefix: str, new_text: str) -> None:
     history = session.get('display_history') or []
     for index in range(len(history) - 1, -1, -1):
@@ -172,7 +162,6 @@ def _replace_latest_history_entry(session: dict[str, Any], prefix: str, new_text
             history[index] = new_text
             return
     history.append(new_text)
-
 
 def _insert_history_before_latest_prefix(session: dict[str, Any], prefix: str, new_text: str) -> None:
     history = session.get('display_history') or []
@@ -182,114 +171,8 @@ def _insert_history_before_latest_prefix(session: dict[str, Any], prefix: str, n
             return
     history.append(new_text)
 
-
 def _player_id(current_user: dict[str, Any]) -> str:
     return str(current_user.get('username') or current_user.get('sub') or 'guest')
-
-
-def _age_stage(age: int | None) -> dict[str, Any]:
-    return half_year_resolution.age_stage(age)
-
-
-def _stage_action_options(age: int | None) -> list[str]:
-    return half_year_resolution.stage_action_options(age)
-
-
-def _stage_safe_action(age: int | None, action: str) -> str:
-    return half_year_resolution.stage_safe_action(age, action)
-
-
-def _pick_stage_event(player_id: str, age: int, half: int, action: str, outcome: str) -> dict[str, Any]:
-    return half_year_resolution.pick_stage_event(player_id, age, half, action, outcome)
-
-
-def _empty_focus_memory() -> dict[str, Any]:
-    return half_year_resolution.empty_focus_memory()
-
-
-def _normalize_focus_memory(value: Any) -> dict[str, Any]:
-    return half_year_resolution.normalize_focus_memory(value)
-
-
-def _focus_streak_roll_bonus(count: int) -> int:
-    return half_year_resolution.focus_streak_roll_bonus(count)
-
-
-def _focus_streak_state_effect(action: str, count: int) -> dict[str, int]:
-    return half_year_resolution.focus_streak_state_effect(action, count)
-
-
-def _build_focus_streak_feedback(session: dict[str, Any], action: str) -> dict[str, Any]:
-    return half_year_resolution.build_focus_streak_feedback(session, action)
-
-
-def _commit_focus_streak(session: dict[str, Any], feedback: dict[str, Any], age: int, half: int, half_label: str, outcome: str) -> dict[str, Any]:
-    return half_year_resolution.commit_focus_streak(session, feedback, age, half, half_label, outcome)
-
-
-def _merge_state_effect(changes: dict[str, int], extra: dict[str, Any]) -> dict[str, int]:
-    return half_year_resolution.merge_state_effect(changes, extra)
-
-
-def _stage_event_state_bias(stage_event: dict[str, Any], outcome: str) -> dict[str, int]:
-    return half_year_resolution.stage_event_state_bias(stage_event, outcome)
-
-
-def _score_label(score: int) -> str:
-    return half_year_resolution.score_label(score)
-
-
-def _trend_label(delta: int) -> str:
-    return half_year_resolution.trend_label(delta)
-
-
-def _average_state(state: dict[str, Any], keys: list[str], fallback: int = 50) -> int:
-    return half_year_resolution.average_state(state, keys, fallback)
-
-
-def _goal_template(goal_id: str | None) -> dict[str, Any] | None:
-    return half_year_resolution.goal_template(goal_id)
-
-
-def _goal_score(state: dict[str, Any], goal: dict[str, Any]) -> int:
-    return half_year_resolution.goal_score(state, goal)
-
-
-def _goal_stage(score: int, threshold: int) -> str:
-    return half_year_resolution.goal_stage(score, threshold)
-
-
-def _build_life_goals(session: dict[str, Any]) -> list[dict[str, Any]]:
-    return half_year_resolution.build_life_goals(session)
-
-
-def _default_life_goal_id(session: dict[str, Any]) -> str:
-    return half_year_resolution.default_life_goal_id(session)
-
-
-def _ensure_life_goals(session: dict[str, Any]) -> list[dict[str, Any]]:
-    return half_year_resolution.ensure_life_goals(session)
-
-
-def _active_life_goal(session: dict[str, Any]) -> dict[str, Any]:
-    return half_year_resolution.active_life_goal(session)
-
-
-def _refresh_goal_progress(session: dict[str, Any]) -> dict[str, Any]:
-    return half_year_resolution.refresh_goal_progress(session)
-
-
-def _action_goal_alignment(session: dict[str, Any], action: str) -> dict[str, Any]:
-    return half_year_resolution.action_goal_alignment(session, action)
-
-
-def _action_preview_summary(action: str) -> str:
-    return half_year_resolution.action_preview_summary(action, ACTION_DETAIL)
-
-
-def _build_action_guides(session: dict[str, Any]) -> list[dict[str, Any]]:
-    return half_year_resolution.build_action_guides(session, ACTION_DETAIL)
-
 
 def _format_goal_progress(progress: dict[str, Any]) -> str:
     if not progress:
@@ -300,84 +183,18 @@ def _format_goal_progress(progress: dict[str, Any]) -> str:
         '，进度' + str(progress.get('percent') or 0) + '%，状态为' + str(progress.get('status') or '未知') + '。'
     )
 
-
-def _achievement_unlocked(session: dict[str, Any], achievement_id: str) -> bool:
-    return half_year_resolution.achievement_unlocked(session, achievement_id)
-
-
-def _unlock_achievement(session: dict[str, Any], achievement_id: str, age: int, half_label: str) -> dict[str, Any] | None:
-    return half_year_resolution.unlock_achievement(session, achievement_id, age, half_label)
-
-
-def _evaluate_achievements(session: dict[str, Any], record: dict[str, Any]) -> list[dict[str, Any]]:
-    return half_year_resolution.evaluate_achievements(session, record)
-
-
-def _append_milestone(session: dict[str, Any], record: dict[str, Any], achievements: list[dict[str, Any]]) -> dict[str, Any]:
-    return half_year_resolution.append_milestone(session, record, achievements)
-
-
-def _system_stage(kind: str, age: int, score: int) -> str:
-    return half_year_resolution.system_stage(kind, age, score)
-
-
-def _ensure_life_systems(session: dict[str, Any]) -> dict[str, Any]:
-    return half_year_resolution.ensure_life_systems(session)
-
-
-def _refresh_relationships(session: dict[str, Any]) -> None:
-    half_year_resolution.refresh_relationships(session)
-
-
-def _refresh_life_systems(session: dict[str, Any], record: dict[str, Any] | None = None) -> None:
-    half_year_resolution.refresh_life_systems(session, record)
-
-
-def _normalize_ending_codex(raw: Any = None) -> dict[str, Any]:
-    return life_session.normalize_ending_codex(raw)
-
-
-def _ending_codex_unlock_id(ending: dict[str, Any]) -> str:
-    return life_session.ending_codex_unlock_id(ending)
-
-
-def _register_ending_in_codex(session: dict[str, Any]) -> list[dict[str, Any]]:
-    return life_session.register_ending_in_codex(session)
-
-
-def _new_session(player_id: str) -> dict[str, Any]:
-    return life_session.new_session(player_id)
-
-
-def _ensure_session_defaults(session: dict[str, Any]) -> dict[str, Any]:
-    return life_session.ensure_defaults(session, ACTION_DETAIL)
-
-
 async def get_or_create_session(current_user: dict[str, Any]) -> dict[str, Any]:
     player_id = _player_id(current_user)
     session = await state_manager.get_session(player_id)
     if session:
-        _ensure_session_defaults(session)
+        life_session.ensure_defaults(session, ACTION_DETAIL)
         if session.get('is_processing'):
             session['is_processing'] = False
             await state_manager.save_session(player_id, session)
         return session
-    session = _new_session(player_id)
+    session = life_session.new_session(player_id)
     await state_manager.save_session(player_id, session)
     return session
-
-
-def _refresh_current_context(session: dict[str, Any]) -> None:
-    half_year_resolution.refresh_current_context(session, ACTION_DETAIL)
-
-
-def _roll(player_id: str, roll_type: str, target: int, description: str) -> dict[str, Any]:
-    return half_year_resolution.roll(player_id, roll_type, target, description)
-
-
-def _normalize_focuses(action_payload: dict[str, Any] | str) -> list[str]:
-    return half_year_resolution.normalize_focuses(action_payload)
-
 
 def _fallback_chart_analysis(session: dict[str, Any]) -> dict[str, Any]:
     chart = session.get('bazi_chart', {})
@@ -420,7 +237,6 @@ def _fallback_chart_analysis(session: dict[str, Any]) -> dict[str, Any]:
         'source': 'deterministic',
     }
 
-
 def _apply_chart_analysis(session: dict[str, Any], data: dict[str, Any], source: str) -> None:
     fallback = session.get('bazi_analysis') or _fallback_chart_analysis(session)
     balance = data.get('five_element_balance')
@@ -445,7 +261,6 @@ def _apply_chart_analysis(session: dict[str, Any], data: dict[str, Any], source:
     session['suitable_directions'] = analysis['suitable_directions']
     session['high_risk_fields'] = analysis['high_risk_fields']
 
-
 def _handle_generate_chart(session: dict[str, Any], payload: dict[str, Any]) -> None:
     birth_info = dict(payload.get('birth_info') or {})
     start_age = int(birth_info.get('start_age') or payload.get('start_age') or 22)
@@ -463,7 +278,6 @@ def _handle_generate_chart(session: dict[str, Any], payload: dict[str, Any]) -> 
     _apply_chart_analysis(session, _fallback_chart_analysis(session), 'deterministic')
     session['display_history'].append('【命盘已生成】四柱：' + session['bazi_chart']['year_pillar'] + ' ' + session['bazi_chart']['month_pillar'] + ' ' + session['bazi_chart']['day_pillar'] + ' ' + str(session['bazi_chart'].get('hour_pillar') or '未知时柱') + '。点击生成前传，进入正式人生之前的回望。')
 
-
 async def _try_ai_chart_analysis(session: dict[str, Any]) -> None:
     adapter = ai_enrichment.adapter_for_session(session)
     data = await adapter.enrich_chart_analysis(session, session.get('bazi_analysis', {}))
@@ -474,11 +288,9 @@ async def _try_ai_chart_analysis(session: dict[str, Any]) -> None:
     directions = '、'.join(session.get('suitable_directions') or [])
     session['display_history'].append('【命盘分析】人生课题：' + topics + '。适合方向：' + directions + '。')
 
-
 async def _handle_generate_chart_async(session: dict[str, Any], payload: dict[str, Any]) -> None:
     _handle_generate_chart(session, payload)
     await _try_ai_chart_analysis(session)
-
 
 def _handle_generate_prelude(session: dict[str, Any]) -> None:
     if not session.get('bazi_chart'):
@@ -491,11 +303,10 @@ def _handle_generate_prelude(session: dict[str, Any]) -> None:
     session['life_state'] = prelude['life_state']
     session['personality'] = prelude['personality']
     session['major_events'] = _event_string_list(prelude.get('early_events'), [], 12)
-    _refresh_life_systems(session)
-    _ensure_life_goals(session)
-    _refresh_goal_progress(session)
+    half_year_resolution.refresh_life_systems(session)
+    half_year_resolution.ensure_life_goals(session)
+    half_year_resolution.refresh_goal_progress(session)
     session['display_history'].append(_format_prelude_history(prelude))
-
 
 async def _try_ai_prelude(session: dict[str, Any]) -> None:
     fallback = session['prelude']
@@ -509,31 +320,28 @@ async def _try_ai_prelude(session: dict[str, Any]) -> None:
     session['life_state'] = prelude['life_state']
     session['personality'] = prelude['personality']
     session['major_events'] = prelude['early_events'][:]
-    _refresh_life_systems(session)
-    _ensure_life_goals(session)
-    _refresh_goal_progress(session)
+    half_year_resolution.refresh_life_systems(session)
+    half_year_resolution.ensure_life_goals(session)
+    half_year_resolution.refresh_goal_progress(session)
     _replace_latest_history_entry(
         session,
         '【人生前传】',
         _format_prelude_history(prelude),
     )
 
-
 async def _handle_generate_prelude_async(session: dict[str, Any]) -> None:
     _handle_generate_prelude(session)
     await _try_ai_prelude(session)
 
-
 def _handle_set_life_goal(session: dict[str, Any], goal_id: str) -> None:
-    _ensure_life_goals(session)
-    selected = _goal_template(goal_id)
+    half_year_resolution.ensure_life_goals(session)
+    selected = half_year_resolution.goal_template(goal_id)
     if not selected:
         session['display_history'].append('【系统提示】未识别的人生愿望。')
         return
     session['active_life_goal_id'] = selected['id']
-    progress = _refresh_goal_progress(session)
+    progress = half_year_resolution.refresh_goal_progress(session)
     session['display_history'].append('【人生愿望】你将这一生的主愿望定为“' + progress['title'] + '”。' + progress['summary'] + '系统会在半年度总结和最终结局中追踪它的达成情况。')
-
 
 def _handle_accept_prelude(session: dict[str, Any]) -> None:
     if not session.get('prelude'):
@@ -544,13 +352,13 @@ def _handle_accept_prelude(session: dict[str, Any]) -> None:
     session['current_age'] = int(session.get('start_age') or 22)
     session['current_half'] = 1
     session['current_half_label'] = '上半年'
-    session['focus_memory'] = _empty_focus_memory()
+    session['focus_memory'] = half_year_resolution.empty_focus_memory()
     session['focus_streak'] = {}
     session['streak_warning'] = ''
     if not session.get('current_year'):
         session['current_year'] = int(session['birth_info']['datetime'][:4]) + session['current_age']
-    _ensure_life_goals(session)
-    _refresh_current_context(session)
+    half_year_resolution.ensure_life_goals(session)
+    life_context_projection.refresh_current_context(session, ACTION_DETAIL)
     annual = session.get('current_annual_cycle') or {}
     stage = session.get('current_stage') or {}
     goals = '、'.join(_string_list(stage.get('goals'), [], 3))
@@ -561,281 +369,18 @@ def _handle_accept_prelude(session: dict[str, Any]) -> None:
         ('阶段目标：' + goals + '。' if goals else '') +
         '你为这一生暂定的人生愿望是“' + str(goal_progress.get('title') or '稳定富足') + '”：' + str(goal_progress.get('summary') or '') +
         '流年' + str(annual.get('pillar', '未知')) + '，主题是' + '、'.join(annual.get('events', [])) +
-        '。人生将按上、下半年推进，请选择本半年的1到3个行动重点。'
+        '。人生将按上、下半年推进，请根据命盘底色、时运和现实处境，选择本半年的1到3个人生抉择。'
     )
-
-
-def _ending_dimension(label: str, value: int) -> dict[str, Any]:
-    score = fate_mapper.clamp(value)
-    if score >= 85:
-        grade = '圆满'
-        comment = label + '成为这一生最稳的成果之一。'
-    elif score >= 70:
-        grade = '丰厚'
-        comment = label + '有清晰积累，也留下继续经营的空间。'
-    elif score >= 50:
-        grade = '平衡'
-        comment = label + '没有完全失守，但也谈不上无憾。'
-    elif score >= 30:
-        grade = '亏欠'
-        comment = label + '长期受到挤压，成为回望时绕不开的遗憾。'
-    else:
-        grade = '断裂'
-        comment = label + '在多次取舍中被严重透支。'
-    return {'label': label, 'score': score, 'grade': grade, 'comment': comment}
-
-
-def _ending_turning_points(session: dict[str, Any]) -> list[str]:
-    candidates = []
-    for item in session.get('annual_summaries') or []:
-        roll = item.get('roll_event') or {}
-        changes = item.get('state_effect') or {}
-        change_score = sum(abs(int(value)) for value in changes.values() if isinstance(value, int))
-        outcome = str(roll.get('outcome') or '')
-        weight = change_score + (12 if outcome in ['大成功', '大失败'] else 5 if outcome in ['成功', '失败'] else 0)
-        candidates.append((weight, item))
-    candidates.sort(key=lambda pair: pair[0], reverse=True)
-    points = []
-    for _, item in candidates[:6]:
-        stage_event = item.get('stage_event') or {}
-        roll = item.get('roll_event') or {}
-        points.append(
-            str(item.get('age')) + '岁' + str(item.get('half_label') or '') +
-            '，' + str(item.get('main_focus') or '随缘而行') +
-            '，' + str(roll.get('outcome') or '未知结果') +
-            '：' + str(stage_event.get('event') or item.get('summary') or '')[:64]
-        )
-    return points
-
-
-def _ending_achievements_and_regrets(state: dict[str, Any]) -> tuple[list[str], list[str]]:
-    achievements = []
-    regrets = []
-    achievement_rules = [
-        ('事业', '把事业经营成可被看见的成果'),
-        ('财富', '为自己和家人留下较稳定的物质余量'),
-        ('家庭', '在家庭责任里保留了温度和连接'),
-        ('感情', '学会经营亲密关系中的表达与承诺'),
-        ('健康', '守住身体底盘，没有让透支吞掉全部选择'),
-        ('名望', '留下被他人记住的作品、信誉或影响力'),
-        ('福德', '在顺逆之间保留了善意、弹性和转机'),
-    ]
-    regret_rules = [
-        ('事业', '事业路线仍有未竟之处'),
-        ('财富', '资产安全感不够稳固'),
-        ('家庭', '家庭陪伴或照护留下亏欠'),
-        ('感情', '亲密关系仍有未说出口的遗憾'),
-        ('健康', '健康被长期压力消耗过多'),
-        ('情绪', '情绪稳定性多次影响重要关系'),
-    ]
-    for key, text in achievement_rules:
-        if int(state.get(key, 0)) >= 75:
-            achievements.append(text)
-    for key, text in regret_rules:
-        if int(state.get(key, 100)) <= 40:
-            regrets.append(text)
-    if int(state.get('压力', 0)) >= 75:
-        regrets.append('压力长期偏高，许多选择带着硬撑的痕迹')
-    return achievements[:6] or ['在反复选择中保留了继续修正人生的能力'], regrets[:6] or ['没有单一遗憾压倒整个人生，但仍有一些未完成的愿望']
-
-
-def _hidden_ending_candidates(session: dict[str, Any], state: dict[str, Any], goal_progress: dict[str, Any]) -> list[dict[str, Any]]:
-    def score(key: str) -> int:
-        return int(state.get(key, 0))
-
-    candidates: list[dict[str, Any]] = []
-    goal_id = str(goal_progress.get('goal_id') or session.get('active_life_goal_id') or '')
-    goal_achieved = bool(goal_progress.get('achieved'))
-    achievement_count = len(session.get('achievements') or [])
-
-    def add(ending_id: str, title: str, rarity: str, condition: bool, description: str, unlock_reason: str, priority: int) -> None:
-        if not condition:
-            return
-        candidates.append({
-            'id': ending_id,
-            'title': title,
-            'rarity': rarity,
-            'description': description,
-            'unlock_reason': unlock_reason,
-            'priority': priority,
-        })
-
-    add(
-        'cloud_road_legacy',
-        '云路留名之命',
-        '稀有',
-        score('事业') + score('名望') >= 165 and score('学识') >= 70,
-        '你把长期学习、专业交付和公开信誉连成一条路，最终留下可被他人引用或追随的名字。',
-        '事业与名望合计达到 165，且学识不低于 70。',
-        90,
-    )
-    add(
-        'warm_hearth',
-        '灯火可亲之一生',
-        '稀有',
-        score('家庭') + score('感情') >= 165 and score('压力') <= 60,
-        '你没有把圆满只押在外部成就上，而是在亲密关系与家庭责任里留下了可回去的灯火。',
-        '家庭与感情合计达到 165，且压力不高于 60。',
-        86,
-    )
-    add(
-        'hidden_gold',
-        '厚土藏金之局',
-        '稀有',
-        score('财富') >= 88 and score('健康') >= 60 and score('压力') <= 55,
-        '你守住身体和节奏，也把资产基础慢慢夯实，富足不是骤得，而是长期稳住的结果。',
-        '财富达到 88，同时健康不低于 60、压力不高于 55。',
-        82,
-    )
-    add(
-        'quiet_merit',
-        '无名有福之人',
-        '隐藏',
-        score('福德') >= 80 and score('名望') <= 60 and score('家庭') >= 60,
-        '你未必站在众人目光中央，却在一次次善意、照护和留白里积下了柔软的转机。',
-        '福德达到 80，名望不高于 60，且家庭不低于 60。',
-        88,
-    )
-    add(
-        'solitary_peak',
-        '孤峰照雪之命',
-        '隐藏',
-        score('事业') + score('名望') >= 170 and score('家庭') + score('感情') <= 95,
-        '你抵达了高处，也清楚高处的风会带走一些陪伴；这不是单纯胜利，而是一种有代价的成就。',
-        '事业与名望合计达到 170，但家庭与感情合计不高于 95。',
-        91,
-    )
-    add(
-        'free_roamer',
-        '万里随心之途',
-        '隐藏',
-        (goal_id == 'free_explorer' and goal_achieved) or (score('社交') + score('心智') >= 150 and score('压力') <= 50 and score('财富') >= 45),
-        '你没有把人生压缩成单一答案，而是在关系、见闻和自我节奏之间，活出可进可退的自由。',
-        '达成“自由探索”愿望，或社交与心智合计达到 150、压力不高于 50、财富不低于 45。',
-        84,
-    )
-    add(
-        'many_paths_master',
-        '千途自明之卷',
-        '传奇',
-        achievement_count >= 8 and goal_achieved and _average_state(state, ['心智', '情绪', '健康'], 0) >= 70,
-        '你不是只赢下一条线，而是在愿望、身体、心智和多次过程反馈之间，把人生经营成完整的卷轴。',
-        '解锁至少 8 项成就、人生愿望达成，且心智/情绪/健康平均不低于 70。',
-        100,
-    )
-    candidates.sort(key=lambda item: int(item.get('priority', 0)), reverse=True)
-    return candidates[:3]
-
-
-def _build_ending(session: dict[str, Any]) -> dict[str, Any]:
-    state = session.get('life_state', {})
-    goal_progress = _refresh_goal_progress(session) if state else {}
-    reason = str(session.get('ending_reason') or '')
-    dimensions = {
-        '事业': _ending_dimension('事业', int(state.get('事业', 0))),
-        '财富': _ending_dimension('财富', int(state.get('财富', 0))),
-        '家庭': _ending_dimension('家庭', int(state.get('家庭', 0))),
-        '感情': _ending_dimension('感情', int(state.get('感情', 0))),
-        '健康': _ending_dimension('健康', int(state.get('健康', 0))),
-        '精神': _ending_dimension('精神', _average_state(state, ['心智', '情绪', '福德'])),
-        '名望': _ending_dimension('名望', int(state.get('名望', 0))),
-    }
-    achievements, regrets = _ending_achievements_and_regrets(state)
-    turning_points = _ending_turning_points(session)
-    systems = session.get('life_systems') or {}
-    hidden_endings = _hidden_ending_candidates(session, state, goal_progress)
-    primary_hidden = hidden_endings[0] if hidden_endings and reason != 'health_zero' else {}
-    if int(state.get('健康', 0)) <= 0:
-        title = '命途早折之局'
-    elif primary_hidden:
-        title = str(primary_hidden.get('title') or '隐藏结局')
-    elif int(state.get('事业', 0)) + int(state.get('名望', 0)) >= 150:
-        title = '高处见山之一生'
-    elif int(state.get('财富', 0)) >= 85:
-        title = '富足守成之命'
-    elif int(state.get('家庭', 0)) + int(state.get('感情', 0)) >= 150:
-        title = '烟火圆满之一生'
-    elif dimensions['精神']['score'] >= 75:
-        title = '心有所安之一生'
-    else:
-        title = '一生多变，晚景自明'
-    reason_line = {
-        'retrospect': '这是你主动选择停下脚步、回望当下人生时生成的档案；它不是失败，而是本周目在此刻的定格。',
-        'health_zero': '这一生因健康归零而提前收束，身体底盘成为最终结局里最沉重的注脚。',
-        'age_60': '这一生已走到六十岁节点，命书按照当前积累生成阶段性终章。',
-    }.get(reason, '')
-    dimension_line = '、'.join(label + str(item['score']) + '分（' + item['grade'] + '）' for label, item in dimensions.items())
-    system_line = '；'.join(str(item.get('label')) + '：' + str(item.get('stage')) for item in systems.values()) if isinstance(systems, dict) else ''
-    summary = (
-        (reason_line + ' ' if reason_line else '') +
-        '回望这一生，你最终留下的状态是：' + dimension_line + '。' +
-        '命盘给了底色，大运、流年和流月给了每个阶段的风向，但真正留下痕迹的是你在半年又半年里反复选择、承担后果、修补关系和重新分配精力的方式。' +
-        ('长期系统收束为：' + system_line + '。' if system_line else '') +
-        (_format_goal_progress(goal_progress) + ('这个愿望最终达成。' if goal_progress.get('achieved') else '这个愿望尚未完全达成。') if goal_progress else '') +
-        ('一生共解锁' + str(len(session.get('achievements') or [])) + '项成就。' if session.get('achievements') else '') +
-        (('隐藏结局“' + str(primary_hidden.get('title')) + '”已点亮：' + str(primary_hidden.get('description')) + '。') if primary_hidden else '') +
-        '主要成就：' + '；'.join(achievements) + '。' +
-        '主要遗憾：' + '；'.join(regrets) + '。' +
-        ('关键转折包括：' + '；'.join(turning_points[:4]) + '。' if turning_points else '') +
-        '如果重来一次，命盘仍会给出相似的底色，但不同的长期投入、关系选择和风险节奏，仍可能把这一生命名为另一种结局。'
-    )
-    return {
-        'title': title,
-        'reason': reason or 'natural',
-        'summary': summary,
-        'final_state': state,
-        'dimensions': dimensions,
-        'achievements': achievements,
-        'regrets': regrets,
-        'key_turning_points': turning_points,
-        'life_systems': deepcopy(systems),
-        'relationships': deepcopy(session.get('relationships') or []),
-        'life_goal': deepcopy(goal_progress),
-        'life_goal_achieved': bool(goal_progress.get('achieved')),
-        'hidden_ending': deepcopy(primary_hidden),
-        'hidden_endings': deepcopy(hidden_endings),
-        'achievements_unlocked': deepcopy(session.get('achievements') or []),
-        'milestones': deepcopy(session.get('milestones') or []),
-    }
-
-
-def _finish_session(session: dict[str, Any], reason: str = 'natural') -> bool:
-    if session.get('is_finished') and session.get('ending'):
-        return True
-    session['ending_reason'] = reason
-    session['phase'] = 'ending'
-    session['is_finished'] = True
-    session['ending'] = _build_ending(session)
-    new_unlocks = _register_ending_in_codex(session)
-    if reason == 'retrospect':
-        prefix = '【回望一生：'
-    else:
-        prefix = '【结局：'
-    session['display_history'].append(prefix + session['ending']['title'] + '】\n\n' + session['ending']['summary'])
-    if new_unlocks:
-        session['display_history'].append('【结局图鉴】首次解锁：' + '、'.join(item['title'] for item in new_unlocks))
-    return True
-
-
-def _finish_if_needed(session: dict[str, Any]) -> bool:
-    reason = half_year_resolution.finish_reason(session)
-    return _finish_session(session, reason) if reason else False
-
 
 def _handle_retrospect_life(session: dict[str, Any]) -> None:
     if session.get('phase') != 'life_simulation':
         session['display_history'].append('【系统提示】只有正式开始人生模拟后，才能主动回望一生。')
         return
-    _refresh_current_context(session)
+    life_context_projection.refresh_current_context(session, ACTION_DETAIL)
     age = str(session.get('current_age') or '')
     half_label = str(session.get('current_half_label') or '')
     session['major_events'].append(age + '岁' + half_label + '，你主动选择回望一生。')
-    _finish_session(session, 'retrospect')
-
-
-def _format_state_effect(changes: dict[str, Any]) -> str:
-    return half_year_resolution.format_state_effect(changes)
-
+    ending_resolution.finish_session(session, 'retrospect')
 
 def _format_state_transition(record: dict[str, Any]) -> str:
     before = record.get('state_before') or {}
@@ -851,7 +396,6 @@ def _format_state_transition(record: dict[str, Any]) -> str:
         parts.append(str(key) + ' ' + str(before_value) + '→' + str(after_value))
     return '、'.join(parts) if parts else '主要状态保持稳定'
 
-
 def _format_modifier_detail(modifiers: dict[str, Any]) -> str:
     parts = []
     for key, value in (modifiers or {}).items():
@@ -862,7 +406,6 @@ def _format_modifier_detail(modifiers: dict[str, Any]) -> str:
         sign = '+' if number > 0 else ''
         parts.append(str(key) + ' ' + sign + str(number))
     return '、'.join(parts) if parts else '无明显修正'
-
 
 def _format_streak_feedback(record: dict[str, Any]) -> str:
     feedback = record.get('focus_streak') or {}
@@ -878,16 +421,15 @@ def _format_streak_feedback(record: dict[str, Any]) -> str:
     warning = str(record.get('streak_warning') or feedback.get('streak_warning') or '')
     effect = record.get('streak_effect') or feedback.get('state_effect') or {}
     if count <= 1:
-        return '连续选择反馈：本次开启“' + action + '”的新节奏；若后续继续投入，会逐步形成 D100 加成，同时记录机会成本。'
+        return '连续选择反馈：本次开启“' + action + '”的新节奏；若后续继续投入，会逐步形成习惯优势，同时记录机会成本。'
     detail = '连续选择反馈：你已连续' + str(count) + '个半年把主重点放在“' + action + '”'
     if bonus:
-        detail += '，本次 D100 获得连续投入修正 +' + str(bonus)
+        detail += '，本次获得连续投入带来的后台推演修正 +' + str(bonus)
     if effect:
-        detail += '，状态惯性为' + _format_state_effect(effect)
+        detail += '，状态惯性为' + half_year_resolution.format_state_effect(effect)
     if warning:
         detail += '。' + warning
     return detail + '。'
-
 
 def _format_cycle_detail(record: dict[str, Any]) -> str:
     luck = record.get('luck_cycle') or {}
@@ -909,7 +451,6 @@ def _format_cycle_detail(record: dict[str, Any]) -> str:
         month_text += '；风险：' + '、'.join(risks)
     return '大运' + luck_text + '，流年' + annual_text + '，本半年流月经过' + month_text + '。'
 
-
 def _stage_narrative_body(record: dict[str, Any]) -> str:
     action = str(record.get('main_focus') or '随缘而行')
     focuses = _string_list(record.get('focuses'), [action], 3)
@@ -921,8 +462,12 @@ def _stage_narrative_body(record: dict[str, Any]) -> str:
     stage_label = str(record.get('stage_label') or stage_event.get('stage_label') or '')
     goal_progress = record.get('goal_progress_after') or record.get('goal_progress_before') or {}
     cycle_detail = _format_cycle_detail(record)
+    fate_explanation = record.get('fate_explanation') or {}
+    life_scene = str(fate_explanation.get('life_scene') or '').strip()
+    bazi_life_detail = str(fate_explanation.get('bazi_life_detail') or '').strip()
+    month_life_detail = str(fate_explanation.get('month_life_detail') or '').strip()
     result_line = (
-        'D100 判定目标值为' + str(roll_event.get('target', '-')) +
+        '后台 D100 目标值为' + str(roll_event.get('target', '-')) +
         '，投掷结果为' + str(roll_event.get('result', '-')) +
         '，最终落在“' + outcome + '”。'
     )
@@ -944,21 +489,23 @@ def _stage_narrative_body(record: dict[str, Any]) -> str:
     return (
         ('人生阶段：' + stage_label + '。' + str(stage_event.get('stage_summary') or '') + '\n\n' if stage_label else '') +
         (_format_goal_progress(goal_progress) + '\n\n' if goal_progress else '') +
-        '行动落点：你本阶段选择' + '、'.join(focuses) + '。' + action_detail + '\n\n' +
+        '人生抉择：你本阶段选择' + '、'.join(focuses) + '。' + action_detail + '\n\n' +
+        (('生活片段：' + life_scene + '\n\n') if life_scene else '') +
         (event_line + '\n\n' if event_line else '') +
         _format_streak_feedback(record) + '\n\n' +
         '具体场景：' + scene_detail + '\n\n' +
+        '命盘影响：' + str(bazi_life_detail or fate_explanation.get('bazi_influence') or '命盘提供底色，但不替你做决定。') + '\n\n' +
+        '时运影响：' + str(month_life_detail or fate_explanation.get('fortune_influence') or cycle_detail) + '\n\n' +
+        '选择影响：' + str(fate_explanation.get('choice_influence') or ('你把本半年压在“' + action + '”上。')) + '\n\n' +
         '命盘与时势：' + cycle_detail + '\n\n' +
-        '判定结果：' + result_line + outcome_line + '\n\n' +
+        '推演结果：' + result_line + outcome_line + '\n\n' +
         '状态余波：' + _format_state_transition(record) + '。这些变化不会只停留在数值上，它们会表现为精力分配、关系反馈、资源余量和下一次选择时的心理惯性。'
     )
-
 
 def _format_stage_narrative(record: dict[str, Any]) -> str:
     action = str(record.get('main_focus') or '随缘而行')
     title = str(record.get('age') or '') + '岁' + str(record.get('half_label') or '') + ' · ' + action
     return '【阶段叙事】' + title + '\n\n' + _stage_narrative_body(record)
-
 
 def _format_detailed_half_year_summary(record: dict[str, Any]) -> str:
     action = str(record.get('main_focus') or '随缘而行')
@@ -969,19 +516,35 @@ def _format_detailed_half_year_summary(record: dict[str, Any]) -> str:
     systems_after = record.get('life_systems_after') or {}
     goal_progress = record.get('goal_progress_after') or {}
     new_achievements = record.get('new_achievements') or []
+    fate_explanation = record.get('fate_explanation') or {}
+    life_scene = str(fate_explanation.get('life_scene') or '').strip()
+    scene_detail = ACTION_SCENE_DETAIL.get(action, ACTION_SCENE_DETAIL['随缘而行'])
     event_title = str(stage_event.get('title') or '')
     event_intro = ('《' + event_title + '》：' if event_title else '')
     streak_detail = _format_streak_feedback(record)
+    stage_intro = ''
+    if stage_event.get('stage_label'):
+        stage_intro = '这一段人生还处在“' + str(stage_event.get('stage_label')) + '”：' + '、'.join(_string_list(stage_event.get('stage_goals'), [], 3)) + '会反复回到日常里。'
+    event_line = ''
+    if stage_event.get('event'):
+        clue_text = str(stage_event.get('clue') or '').rstrip('。；;,.， ')
+        event_line = '后来能被记住的触发点，是' + event_intro + str(stage_event.get('event')) + str(stage_event.get('result_note') or '') + ('伏笔：' + clue_text + '。' if clue_text else '')
     summary = (
         '半年回顾：' + age_half + '，你把本阶段重点放在' + '、'.join(focuses) + '。' +
-        '这不是一次孤立行动，而是你在当前年龄、资源余量、关系压力和命盘节奏之间做出的取舍。' +
-        ('本阶段属于“' + str(stage_event.get('stage_label')) + '”，核心课题是' + '、'.join(_string_list(stage_event.get('stage_goals'), [], 3)) + '。' if stage_event.get('stage_label') else '') +
-        ('具体触发事件是：' + event_intro + str(stage_event.get('event')) + str(stage_event.get('result_note') or '') + ('伏笔：' + str(stage_event.get('clue')) + '。' if stage_event.get('clue') else '') if stage_event.get('event') else '') +
-        (_format_goal_progress(goal_progress) if goal_progress else '') +
-        _format_cycle_detail(record)
+        (('\n\n生活叙事：' + life_scene) if life_scene else ('\n\n生活叙事：' + scene_detail)) +
+        (('\n\n' + stage_intro) if stage_intro else '') +
+        (('\n\n' + event_line) if event_line else '') +
+        (('\n\n' + _format_goal_progress(goal_progress)) if goal_progress else '') +
+        '\n\n命盘与时势背景：' + _format_cycle_detail(record)
+    )
+    fate_detail = (
+        '事后解读：\n\n命盘影响：' + str(fate_explanation.get('bazi_life_detail') or fate_explanation.get('bazi_influence') or '命盘提供人生底色，影响你更容易在哪些领域形成优势、惯性和反复课题。') +
+        '\n\n时运影响：' + str(fate_explanation.get('month_life_detail') or fate_explanation.get('fortune_influence') or _format_cycle_detail(record)) +
+        '\n\n选择影响：' + str(fate_explanation.get('choice_influence') or ('你选择' + '、'.join(focuses) + '，这会进入后续人生记忆。')) +
+        '\n\n人生变化：' + str(fate_explanation.get('life_change') or ('状态走向：' + _format_state_transition(record) + '。'))
     )
     roll_detail = (
-        '判定细节：' + str(roll_event.get('type') or 'D100') +
+        '后台判定细节：' + str(roll_event.get('type') or 'D100') +
         '目标值' + str(roll_event.get('target', '-')) +
         '，投掷' + str(roll_event.get('result', '-')) +
         '，结果为' + str(roll_event.get('outcome') or '未知') +
@@ -999,8 +562,7 @@ def _format_detailed_half_year_summary(record: dict[str, Any]) -> str:
         ('长期系统：' + '；'.join(str(item.get('label')) + str(item.get('score')) + '分，' + str(item.get('stage')) + '，趋势' + str(item.get('trend')) for item in systems_after.values()) + '。' if isinstance(systems_after, dict) and systems_after else '') +
         '后续伏笔：系统会把本次行动、判定结果和状态变化纳入长期历史；当相似的大运、流年或流月再次出现时，它们会成为新的加分、阻力或叙事回声。'
     )
-    return summary + '\n\n' + roll_detail + '\n\n' + streak_detail + '\n\n' + state_detail + '\n\n' + impact
-
+    return summary + '\n\n' + fate_detail + '\n\n' + roll_detail + '\n\n' + streak_detail + '\n\n' + state_detail + '\n\n' + impact
 
 def _ensure_summary_detail(record: dict[str, Any], summary: str) -> str:
     text = str(summary or '').strip()
@@ -1011,7 +573,6 @@ def _ensure_summary_detail(record: dict[str, Any], summary: str) -> str:
         return fallback
     return text + '\n\n补充观察：' + fallback
 
-
 def _ensure_narrative_detail(record: dict[str, Any], narrative: str) -> str:
     text = str(narrative or '').strip()
     if len(text) >= 180 and ('判定' in text or 'D100' in text) and ('状态' in text or '资源' in text or '关系' in text):
@@ -1021,12 +582,11 @@ def _ensure_narrative_detail(record: dict[str, Any], narrative: str) -> str:
         return fallback
     return text + '\n\n补充场景：' + fallback
 
-
 def _handle_annual_action(session: dict[str, Any], action_payload: dict[str, Any] | str) -> None:
     if session.get('phase') != 'life_simulation':
         session['display_history'].append('【系统提示】请先接受人生前传并开始模拟。')
         return
-    _refresh_current_context(session)
+    life_context_projection.refresh_current_context(session, ACTION_DETAIL)
     half_record = half_year_resolution.resolve_authoritative_record(session, action_payload)
     roll_event = half_record['roll_event']
     changes = half_record['state_effect']
@@ -1040,14 +600,13 @@ def _handle_annual_action(session: dict[str, Any], action_payload: dict[str, Any
     session['display_history'].append(_format_stage_narrative(half_record))
     if new_achievements:
         session['display_history'].append('【新成就】' + '、'.join(item['title'] for item in new_achievements) + '\n\n' + '\n'.join(item['description'] for item in new_achievements))
-    session['display_history'].append('【半年度总结】\n\n' + half_record['summary'] + '\n\n状态变化：' + _format_state_effect(changes))
-    if _finish_if_needed(session):
-        _refresh_current_context(session)
+    session['display_history'].append('【半年度总结】\n\n' + half_record['summary'] + '\n\n状态变化：' + half_year_resolution.format_state_effect(changes))
+    if ending_resolution.finish_if_needed(session):
+        life_context_projection.refresh_current_context(session, ACTION_DETAIL)
         return
     half_year_resolution.advance_turn_cursor(session, half_record)
-    _refresh_current_context(session)
-    _finish_if_needed(session)
-
+    life_context_projection.refresh_current_context(session, ACTION_DETAIL)
+    ending_resolution.finish_if_needed(session)
 
 async def _try_ai_life_gm_latest_narrative(session: dict[str, Any]) -> None:
     if not session.get('annual_summaries'):
@@ -1071,7 +630,6 @@ async def _try_ai_life_gm_latest_narrative(session: dict[str, Any]) -> None:
     if latest['gm_memory_tags']:
         display_text += '\n\n记忆标签：' + '、'.join(latest['gm_memory_tags'])
     _replace_latest_history_entry(session, '【阶段叙事】', display_text)
-
 
 async def _try_ai_latest_annual_summary(session: dict[str, Any]) -> None:
     if not session.get('annual_summaries'):
@@ -1102,11 +660,10 @@ async def _try_ai_latest_annual_summary(session: dict[str, Any]) -> None:
     if focus_line and focus_line not in summary:
         display_parts.append(focus_line)
     display_parts.append(summary)
-    display_text = '【半年度总结】\n\n' + '\n\n'.join(display_parts) + '\n\n状态变化：' + _format_state_effect(latest.get('state_effect', {}))
+    display_text = '【半年度总结】\n\n' + '\n\n'.join(display_parts) + '\n\n状态变化：' + half_year_resolution.format_state_effect(latest.get('state_effect', {}))
     if latest.get('long_term_impact'):
         display_text += '\n\n长期影响：' + latest['long_term_impact']
     _replace_latest_history_entry(session, '【半年度总结】', display_text)
-
 
 async def _handle_annual_action_async(session: dict[str, Any], action_payload: dict[str, Any] | str) -> None:
     before_count = len(session.get('annual_summaries', []))
@@ -1115,38 +672,97 @@ async def _handle_annual_action_async(session: dict[str, Any], action_payload: d
         await _try_ai_life_gm_latest_narrative(session)
         await _try_ai_latest_annual_summary(session)
 
+def _reset_session_in_place(session: dict[str, Any]) -> dict[str, Any]:
+    player_id = str(session.get('player_id') or 'guest')
+    ending_codex = life_session.normalize_ending_codex(session.get('ending_codex'))
+    replacement = life_session.new_session(player_id)
+    replacement['ending_codex'] = ending_codex
+    session.clear()
+    session.update(replacement)
+    return session
+
+def _handle_generate_prelude_command(session: dict[str, Any], payload: dict[str, Any]) -> None:
+    _handle_generate_prelude(session)
+
+async def _handle_generate_prelude_command_async(session: dict[str, Any], payload: dict[str, Any]) -> None:
+    await _handle_generate_prelude_async(session)
+
+def _handle_set_life_goal_command(session: dict[str, Any], payload: dict[str, Any]) -> None:
+    _handle_set_life_goal(session, str(payload.get('goal_id') or payload.get('id') or ''))
+
+def _handle_accept_prelude_command(session: dict[str, Any], payload: dict[str, Any]) -> None:
+    if not session.get('prelude'):
+        _handle_generate_prelude(session)
+    _handle_accept_prelude(session)
+
+async def _handle_accept_prelude_command_async(session: dict[str, Any], payload: dict[str, Any]) -> None:
+    if not session.get('prelude'):
+        await _handle_generate_prelude_async(session)
+    _handle_accept_prelude(session)
+
+def _handle_retrospect_life_command(session: dict[str, Any], payload: dict[str, Any]) -> None:
+    _handle_retrospect_life(session)
+
+def _handle_reset_game_command(session: dict[str, Any], payload: dict[str, Any]) -> None:
+    _reset_session_in_place(session)
+
+def _handle_unknown_command(session: dict[str, Any], payload: dict[str, Any]) -> None:
+    action_type = game_command_router.action_type(payload)
+    session['display_history'].append('【系统提示】未识别的行动：' + action_type)
+
+def _annual_action_handler(action_name: str | None = None):
+    def handler(session: dict[str, Any], payload: dict[str, Any]) -> None:
+        _handle_annual_action(session, action_name or payload)
+    return handler
+
+def _annual_action_handler_async(action_name: str | None = None):
+    async def handler(session: dict[str, Any], payload: dict[str, Any]) -> None:
+        await _handle_annual_action_async(session, action_name or payload)
+    return handler
+
+def _build_command_router() -> game_command_router.GameCommandRouter:
+    router = game_command_router.GameCommandRouter()
+    router.register('generate_chart', _handle_generate_chart, _handle_generate_chart_async)
+    router.register('generate_prelude', _handle_generate_prelude_command, _handle_generate_prelude_command_async)
+    router.register('set_life_goal', _handle_set_life_goal_command)
+    for command in ['accept_prelude', 'start_life']:
+        router.register(command, _handle_accept_prelude_command, _handle_accept_prelude_command_async)
+    for command in ['annual_action', 'year_action']:
+        router.register(command, _annual_action_handler(), _annual_action_handler_async())
+    for command in ['retrospect_life', 'look_back_life', 'finish_life']:
+        router.register(command, _handle_retrospect_life_command)
+    router.register('reset_game', _handle_reset_game_command)
+    for action_name in ACTION_OPTIONS:
+        router.register(action_name, _annual_action_handler(action_name), _annual_action_handler_async(action_name))
+    router.set_default(_handle_unknown_command)
+    return router
+
+COMMAND_ROUTER = _build_command_router()
+
+def apply_player_action(session: dict[str, Any], action: Any) -> dict[str, Any]:
+    """Apply one deterministic player action to an in-memory life session.
+
+    This is the public test surface for the人生模拟编排 Module. Network
+    entrypoints use the async variant so AI enrichment can decorate the same
+    flow, but tests should not couple to private `_handle_*` implementation
+    branches.
+    """
+    life_session.ensure_defaults(session, ACTION_DETAIL)
+    return COMMAND_ROUTER.dispatch(session, action)
+
+async def apply_player_action_async(session: dict[str, Any], action: Any) -> dict[str, Any]:
+    """Apply one player action to an in-memory life session, including AI enrichment."""
+    life_session.ensure_defaults(session, ACTION_DETAIL)
+    return await COMMAND_ROUTER.dispatch_async(session, action)
 
 async def _process_player_action_async(current_user: dict[str, Any], action: Any) -> None:
     player_id = _player_id(current_user)
     session = await state_manager.get_session(player_id)
     if not session:
         return
-    _ensure_session_defaults(session)
+    life_session.ensure_defaults(session, ACTION_DETAIL)
     try:
-        payload = action if isinstance(action, dict) else {'type': str(action), 'value': str(action)}
-        action_type = str(payload.get('type') or payload.get('action') or payload.get('value') or '')
-        if action_type == 'reset_game':
-            ending_codex = _normalize_ending_codex(session.get('ending_codex'))
-            session = _new_session(player_id)
-            session['ending_codex'] = ending_codex
-        elif action_type == 'generate_chart':
-            await _handle_generate_chart_async(session, payload)
-        elif action_type == 'generate_prelude':
-            await _handle_generate_prelude_async(session)
-        elif action_type == 'set_life_goal':
-            _handle_set_life_goal(session, str(payload.get('goal_id') or payload.get('id') or ''))
-        elif action_type in ['accept_prelude', 'start_life']:
-            if not session.get('prelude'):
-                await _handle_generate_prelude_async(session)
-            _handle_accept_prelude(session)
-        elif action_type in ['annual_action', 'year_action']:
-            await _handle_annual_action_async(session, payload)
-        elif action_type in ['retrospect_life', 'look_back_life', 'finish_life']:
-            _handle_retrospect_life(session)
-        elif action_type in ACTION_OPTIONS:
-            await _handle_annual_action_async(session, action_type)
-        else:
-            session['display_history'].append('【系统提示】未识别的行动：' + action_type)
+        await apply_player_action_async(session, action)
     except Exception as exc:
         logger.error('Error processing action for %s: %s', player_id, exc, exc_info=True)
         session['display_history'].append('【命书紊乱】本次行动处理失败，请检查输入后重试。')
@@ -1154,13 +770,12 @@ async def _process_player_action_async(current_user: dict[str, Any], action: Any
         session['is_processing'] = False
         await state_publication.commit_session(player_id, session)
 
-
 async def process_player_action(current_user: dict[str, Any], action: Any) -> None:
     player_id = _player_id(current_user)
     session = await state_manager.get_session(player_id)
     if not session:
-        session = _new_session(player_id)
-    _ensure_session_defaults(session)
+        session = life_session.new_session(player_id)
+    life_session.ensure_defaults(session, ACTION_DETAIL)
     if session.get('is_processing'):
         return
     if session.get('is_finished') and not (isinstance(action, dict) and action.get('type') == 'reset_game'):

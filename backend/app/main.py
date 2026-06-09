@@ -13,7 +13,7 @@ from fastapi.responses import RedirectResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
-from . import ai_settings, auth, game_logic, openai_client, state_manager, security, state_publication
+from . import ai_settings, auth, game_logic, life_session, openai_client, state_manager, state_projection, security, state_publication
 from .websocket_manager import manager as websocket_manager
 from .config import settings
 
@@ -179,7 +179,7 @@ async def init_game(
     This prepares the birth-input phase without advancing the game.
     """
     game_state = await game_logic.get_or_create_session(current_user)
-    return game_state
+    return state_projection.build_player_state(game_state)
 
 # --- WebSocket Endpoint ---
 @api_router.websocket("/ws")
@@ -205,7 +205,7 @@ async def websocket_endpoint(websocket: WebSocket):
         user_info = await auth.get_current_user(token)
         session = await state_manager.get_session(user_info["username"])
         if session:
-            game_logic._ensure_session_defaults(session)
+            life_session.ensure_defaults(session, game_logic.ACTION_DETAIL)
             await state_publication.publish_game_state(user_info["username"], session)
 
         while True:

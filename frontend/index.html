@@ -5,7 +5,7 @@
     <meta name='viewport' content='width=device-width, initial-scale=1.0'>
     <title>一命千途</title>
     <link rel='icon' href='/favicon.svg' type='image/svg+xml'>
-    <link rel='stylesheet' href='index.css?v=phase-view-20260608'>
+    <link rel='stylesheet' href='index.css?v=arch-styles-20260608'>
 </head>
 <body>
     <img id='scene-background-image' alt='' aria-hidden='true'>
@@ -31,11 +31,17 @@
                 <div id='game-status'>
                     <span id='phase-pill' aria-live='polite'>待排盘</span>
                     <button id='codex-button' class='header-button' type='button' aria-controls='codex-panel' aria-expanded='false'>图鉴 0/13</button>
-                    <button id='api-settings-button' class='header-button' type='button' aria-controls='api-settings-panel' aria-expanded='false'>AI API</button>
                     <button id='status-toggle-button' class='header-button' type='button' aria-controls='status-panel' aria-expanded='true'>收起状态</button>
-                    <button id='export-archive-button' class='header-button' type='button' disabled>导出档案</button>
-                    <button id='reset-button' class='header-button'>重开</button>
-                    <button id='logout-button' class='header-button'>登出</button>
+                    <div class='header-menu'>
+                        <button id='settings-menu-button' class='header-button' type='button' aria-controls='settings-menu-panel' aria-expanded='false'>设置</button>
+                        <div id='settings-menu-panel' class='header-menu-panel hidden' role='menu' aria-labelledby='settings-menu-button'>
+                            <button id='api-settings-button' class='header-menu-item' type='button' role='menuitem' aria-controls='api-settings-panel' aria-expanded='false'>可选 AI 增强</button>
+                            <button id='export-archive-button' class='header-menu-item' type='button' role='menuitem' disabled>导出档案</button>
+                            <button id='retrospect-button' class='header-menu-item danger-menu-item' type='button' role='menuitem' disabled>回望一生</button>
+                            <button id='reset-button' class='header-menu-item' type='button' role='menuitem'>重开本局</button>
+                            <button id='logout-button' class='header-menu-item' type='button' role='menuitem'>登出</button>
+                        </div>
+                    </div>
                 </div>
             </header>
 
@@ -117,16 +123,16 @@
                     <div id='turn-guide'></div>
                     <div id='year-banner'></div>
                     <div id='month-flow-board'></div>
-                    <div id='narrative-window'></div>
+                    <div id='turn-resolution'></div>
+                    <div id='narrative-window' aria-live='polite' aria-label='人生叙事记录' tabindex='-1'></div>
                 </section>
             </main>
 
             <footer id='action-area'>
                 <div id='focus-actions'></div>
                 <div class='action-input-row'>
-                    <input type='text' id='action-input' name='half_year_action' placeholder='也可以直接输入本半年行动，系统会自动归类...' autocomplete='off' disabled>
-                    <button id='action-button' disabled>行</button>
-                    <button id='retrospect-button' class='secondary-button retrospect-button' type='button' disabled>回望一生</button>
+                    <input type='text' id='action-input' name='half_year_action' placeholder='也可以写下本半年行动/人生抉择，系统会自动归类...' autocomplete='off' disabled>
+                    <button id='action-button' type='button' aria-label='将输入内容加入本半年人生抉择重点' disabled>加入重点</button>
                 </div>
             </footer>
         </div>
@@ -180,14 +186,31 @@
             <p id='api-settings-status' class='api-settings-status' aria-live='polite'></p>
         </section>
 
-        <div id='loading-spinner' class='spinner-overlay' style='display:none'>
+        <div id='retrospect-backdrop' class='modal-backdrop hidden' aria-hidden='true'></div>
+        <section id='retrospect-panel' class='panel-card hidden' role='dialog' aria-modal='true' aria-labelledby='retrospect-title' aria-describedby='retrospect-description' aria-hidden='true'>
+            <div class='panel-title retrospect-modal-title'>
+                <div>
+                    <p class='eyebrow'>Final Archive</p>
+                    <h2 id='retrospect-title'>确认回望一生？</h2>
+                </div>
+                <button id='retrospect-close-button' class='modal-close-button' type='button' aria-label='关闭回望确认'>×</button>
+            </div>
+            <p id='retrospect-description' class='retrospect-confirm-copy'>回望会结束当前周目并生成结局档案。结束后仍可导出档案、查看图鉴或重新开始。</p>
+            <div class='retrospect-confirm-summary' aria-live='polite'></div>
+            <div class='panel-actions'>
+                <button id='retrospect-cancel-button' class='secondary-button' type='button'>先不回望</button>
+                <button id='retrospect-confirm-button' class='primary-button danger-confirm-button' type='button'>确认生成结局档案</button>
+            </div>
+        </section>
+
+        <div id='loading-spinner' class='spinner-overlay' role='status' aria-live='polite' aria-label='命书推演中' style='display:none'>
             <div class='divination-loader'>
                 <div class='loader-ring'>命</div>
                 <p>命书推演中</p>
                 <span>合参大运、流年与流月</span>
             </div>
         </div>
-        <div id='roll-overlay' class='hidden'>
+        <div id='roll-overlay' class='hidden' role='status' aria-live='assertive'>
             <div id='roll-panel'>
                 <p id='roll-stage-label'>命书推演中</p>
                 <div class='dice-cup'><span>D100</span></div>
@@ -196,6 +219,6 @@
             </div>
         </div>
     </div>
-    <script type='module' src='index.js?v=phase-view-20260608'></script>
+    <script type='module' src='index.js?v=arch-modules-20260608'></script>
 </body>
 </html>

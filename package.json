@@ -1,0 +1,14 @@
+{
+  "name": "yimingqiantu",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test:backend": "python -B -m pytest -p no:cacheprovider backend/tests",
+    "test:frontend:layout": "node tests/frontend_layout_check.mjs",
+    "test:frontend:behaviour": "node tests/frontend_phase_behaviour_check.mjs",
+    "test:frontend:behaviour:optional": "node -e \"process.env.YMQT_ALLOW_BEHAVIOUR_SKIP='1'; import('./tests/frontend_phase_behaviour_check.mjs')\""
+  },
+  "devDependencies": {
+    "playwright": "^1.49.0"
+  }
+}

@@ -1,30 +1,55 @@
 import asyncio
+from pathlib import Path
 
-from backend.app import bazi_engine, event_pool, game_logic, half_year_resolution
+from backend.app import action_guide, bazi_engine, ending_resolution, event_pool, game_command_router, game_logic, half_year_resolution, life_context_projection, life_goal_progress, life_session, life_stage_policy
 
+def _generate_chart(session: dict, birth_info: dict) -> None:
+    payload = {'type': 'generate_chart', **birth_info} if 'birth_info' in birth_info else {'type': 'generate_chart', 'birth_info': birth_info}
+    game_logic.apply_player_action(session, payload)
+
+async def _generate_chart_async(session: dict, birth_info: dict) -> None:
+    payload = {'type': 'generate_chart', **birth_info} if 'birth_info' in birth_info else {'type': 'generate_chart', 'birth_info': birth_info}
+    await game_logic.apply_player_action_async(session, payload)
+
+def _generate_prelude(session: dict) -> None:
+    game_logic.apply_player_action(session, {'type': 'generate_prelude'})
+
+async def _generate_prelude_async(session: dict) -> None:
+    await game_logic.apply_player_action_async(session, {'type': 'generate_prelude'})
+
+def _accept_prelude(session: dict) -> None:
+    game_logic.apply_player_action(session, {'type': 'accept_prelude'})
+
+def _set_life_goal(session: dict, goal_id: str) -> None:
+    game_logic.apply_player_action(session, {'type': 'set_life_goal', 'goal_id': goal_id})
+
+def _choose_focuses(session: dict, focuses: list[str]) -> None:
+    game_logic.apply_player_action(session, {'type': 'annual_action', 'focuses': focuses})
+
+async def _choose_focuses_async(session: dict, focuses: list[str]) -> None:
+    await game_logic.apply_player_action_async(session, {'type': 'annual_action', 'focuses': focuses})
+
+def _retrospect_life(session: dict) -> None:
+    game_logic.apply_player_action(session, {'type': 'retrospect_life'})
 
 def _chart_session() -> dict:
-    session = game_logic._new_session('test_player')
-    game_logic._handle_generate_chart(
+    session = life_session.new_session('test_player')
+    _generate_chart(
         session,
         {
-            'birth_info': {
-                'birth_date': '2000-03-15',
-                'birth_time': '08:30',
-                'gender': 'male',
-                'start_age': 22,
-                'calendar': 'solar',
-            }
+            'birth_date': '2000-03-15',
+            'birth_time': '08:30',
+            'gender': 'male',
+            'start_age': 22,
+            'calendar': 'solar',
         },
     )
     return session
 
-
 def test_custom_focus_text_maps_to_action_profile():
-    assert game_logic._normalize_focuses({'focuses': ['准备考研并考一个专业证书']}) == ['专注学业']
-    assert game_logic._normalize_focuses({'focuses': ['辞职创业，尝试做自己的产品']}) == ['创业冒险']
-    assert game_logic._normalize_focuses({'focuses': ['今年多陪父母和孩子']}) == ['陪伴家人']
-
+    assert half_year_resolution.normalize_focuses({'focuses': ['准备考研并考一个专业证书']}) == ['专注学业']
+    assert half_year_resolution.normalize_focuses({'focuses': ['辞职创业，尝试做自己的产品']}) == ['创业冒险']
+    assert half_year_resolution.normalize_focuses({'focuses': ['今年多陪父母和孩子']}) == ['陪伴家人']
 
 def test_luck_cycle_start_is_independent_from_game_start_age():
     birth_info = {
@@ -43,10 +68,9 @@ def test_luck_cycle_start_is_independent_from_game_start_age():
     assert chart_from_30['luck_cycles'][0]['age_start'] != 30
     assert chart_from_30['luck_cycles'][0]['age_start_label'] == '9岁11个月'
 
-
 def test_start_age_can_begin_at_six():
-    session = game_logic._new_session('age_6_player')
-    game_logic._handle_generate_chart(
+    session = life_session.new_session('age_6_player')
+    _generate_chart(
         session,
         {
             'birth_info': {
@@ -63,10 +87,9 @@ def test_start_age_can_begin_at_six():
     assert session['annual_cycles'][0]['age'] == 6
     assert session['monthly_cycles'][0]['age'] == 6
 
-
 def test_childhood_stage_limits_adult_actions_after_start():
-    session = game_logic._new_session('stage_player')
-    game_logic._handle_generate_chart(
+    session = life_session.new_session('stage_player')
+    _generate_chart(
         session,
         {
             'birth_info': {
@@ -78,8 +101,8 @@ def test_childhood_stage_limits_adult_actions_after_start():
             }
         },
     )
-    game_logic._handle_generate_prelude(session)
-    game_logic._handle_accept_prelude(session)
+    _generate_prelude(session)
+    _accept_prelude(session)
 
     assert session['current_stage']['label'] == '童年启蒙'
     assert '创业冒险' not in session['action_options']
@@ -91,8 +114,9 @@ def test_childhood_stage_limits_adult_actions_after_start():
     assert session['goal_progress']['title']
     assert session['action_guides']
     assert all('roll_target_preview' in guide for guide in session['action_guides'])
+    assert all((guide.get('life_choice') or {}).get('decision') for guide in session['action_guides'])
 
-    game_logic._handle_annual_action(session, {'focuses': ['想创业赚钱']})
+    _choose_focuses(session, ['想创业赚钱'])
     assert session['annual_summaries'][-1]['main_focus'] == '专注学业'
     assert session['annual_summaries'][-1]['goal_progress_after']['goal_id'] == session['active_life_goal_id']
     assert session['achievements']
@@ -100,10 +124,9 @@ def test_childhood_stage_limits_adult_actions_after_start():
     assert session['annual_summaries'][-1]['new_achievements']
     assert session['annual_summaries'][-1]['milestone']['title']
 
-
 def test_player_can_select_life_goal_before_starting_life():
-    session = game_logic._new_session('goal_player')
-    game_logic._handle_generate_chart(
+    session = life_session.new_session('goal_player')
+    _generate_chart(
         session,
         {
             'birth_info': {
@@ -115,17 +138,16 @@ def test_player_can_select_life_goal_before_starting_life():
             }
         },
     )
-    game_logic._handle_generate_prelude(session)
-    game_logic._handle_set_life_goal(session, 'warm_bonds')
+    _generate_prelude(session)
+    _set_life_goal(session, 'warm_bonds')
 
     assert session['active_life_goal_id'] == 'warm_bonds'
     assert session['goal_progress']['title'] == '亲密圆满'
     assert any('【人生愿望】' in item for item in session['display_history'])
 
-
 def test_current_luck_cycle_uses_real_luck_start_not_simulation_start_age():
-    session = game_logic._new_session('luck_cycle_player')
-    game_logic._handle_generate_chart(
+    session = life_session.new_session('luck_cycle_player')
+    _generate_chart(
         session,
         {
             'birth_info': {
@@ -137,19 +159,18 @@ def test_current_luck_cycle_uses_real_luck_start_not_simulation_start_age():
             }
         },
     )
-    game_logic._handle_generate_prelude(session)
-    game_logic._handle_accept_prelude(session)
+    _generate_prelude(session)
+    _accept_prelude(session)
 
     assert session['current_age'] == 30
     assert session['current_luck_cycle']['age_start_label'] == '29岁11个月'
     assert session['current_luck_cycle']['age_start'] != session['start_age']
 
-
 def test_chart_async_falls_back_when_ai_disabled(monkeypatch):
     monkeypatch.setattr(game_logic.openai_client, 'is_text_ai_enabled', lambda *args, **kwargs: False)
-    session = game_logic._new_session('chart_player')
+    session = life_session.new_session('chart_player')
 
-    asyncio.run(game_logic._handle_generate_chart_async(
+    asyncio.run(_generate_chart_async(
         session,
         {
             'birth_info': {
@@ -168,12 +189,11 @@ def test_chart_async_falls_back_when_ai_disabled(monkeypatch):
     assert session['suitable_directions']
     assert session['high_risk_fields']
 
-
 def test_prelude_async_falls_back_when_ai_disabled(monkeypatch):
     monkeypatch.setattr(game_logic.openai_client, 'is_text_ai_enabled', lambda *args, **kwargs: False)
     session = _chart_session()
 
-    asyncio.run(game_logic._handle_generate_prelude_async(session))
+    asyncio.run(_generate_prelude_async(session))
 
     assert session['phase'] == 'prelude_ready'
     assert session['prelude']['text']
@@ -181,19 +201,23 @@ def test_prelude_async_falls_back_when_ai_disabled(monkeypatch):
     assert len(session['prelude']['early_events']) >= 4
     assert session['life_state']['健康'] >= 0
 
-
 def test_annual_action_accepts_custom_text(monkeypatch):
     monkeypatch.setattr(game_logic.openai_client, 'is_text_ai_enabled', lambda *args, **kwargs: False)
     session = _chart_session()
-    game_logic._handle_generate_prelude(session)
-    game_logic._handle_accept_prelude(session)
+    _generate_prelude(session)
+    _accept_prelude(session)
 
-    game_logic._handle_annual_action(session, {'focuses': ['准备考研并提升专业技能']})
+    _choose_focuses(session, ['准备考研并提升专业技能'])
 
     latest = session['annual_summaries'][-1]
     assert latest['focuses'] == ['专注学业']
     assert latest['roll_event']['type'] == '学业判定'
     assert latest['stage_event']['event']
+    assert latest['fate_explanation']['bazi_influence']
+    assert latest['fate_explanation']['fortune_influence']
+    assert latest['fate_explanation']['choice_influence']
+    assert latest['fate_explanation']['life_scene']
+    assert latest['fate_explanation']['bazi_life_detail']
     assert latest['life_systems_after']['career']['score'] >= 0
     assert latest['relationships_after']
     assert latest['half_label'] == '上半年'
@@ -207,17 +231,61 @@ def test_annual_action_accepts_custom_text(monkeypatch):
     assert any(item.startswith('【阶段叙事】') for item in session['display_history'])
     stage_history = next(item for item in session['display_history'] if item.startswith('【阶段叙事】'))
     assert '具体场景' in stage_history
+    assert '生活片段' in stage_history
     assert '阶段事件' in stage_history
+    assert '命盘影响' in stage_history
+    assert '选择影响' in stage_history
     assert '命盘与时势' in stage_history
+    assert '生活叙事' in latest_history
     assert '判定细节' in latest_history
 
+def test_game_command_router_owns_public_action_dispatch(monkeypatch):
+    monkeypatch.setattr(game_logic.openai_client, 'is_text_ai_enabled', lambda *args, **kwargs: False)
+    source = Path('backend/app/game_logic.py').read_text(encoding='utf-8')
+    assert 'COMMAND_ROUTER.dispatch(session, action)' in source
+    assert 'COMMAND_ROUTER.dispatch_async(session, action)' in source
+    assert 'def _action_payload' not in source
+
+    session = _chart_session()
+    _generate_prelude(session)
+    _accept_prelude(session)
+
+    game_logic.apply_player_action(session, '专注学业')
+
+    assert isinstance(game_logic.COMMAND_ROUTER, game_command_router.GameCommandRouter)
+    assert session['annual_summaries'][-1]['main_focus'] == '专注学业'
+
+def test_half_year_resolution_delegates_policy_to_deepened_modules():
+    source = Path('backend/app/half_year_resolution.py').read_text(encoding='utf-8')
+
+    assert 'life_stage_policy.age_stage(age)' in source
+    assert 'life_goal_progress.refresh_goal_progress(session)' in source
+    assert 'life_systems.refresh_life_systems(session, record)' in source
+    assert half_year_resolution.ACTION_OPTIONS == life_stage_policy.ACTION_OPTIONS
+    assert half_year_resolution.LIFE_GOAL_TEMPLATES == life_goal_progress.LIFE_GOAL_TEMPLATES
+
+def test_life_context_projection_owns_action_guides():
+    session = _chart_session()
+    _generate_prelude(session)
+    _accept_prelude(session)
+    session['action_guides'] = []
+
+    half_year_resolution.refresh_current_context(session, game_logic.ACTION_DETAIL)
+    assert session['action_guides'] == []
+
+    life_context_projection.refresh_current_context(session, game_logic.ACTION_DETAIL)
+    assert session['action_guides']
+    assert session['current_life']['行动预览'] == session['action_guides']
+    source = Path('backend/app/half_year_resolution.py').read_text(encoding='utf-8')
+    assert 'from . import action_guide' not in source
+    assert 'import action_guide' not in source
 
 def test_half_year_resolution_core_returns_authoritative_record(monkeypatch):
     monkeypatch.setattr(half_year_resolution.random, 'randint', lambda start, end: 42)
     session = _chart_session()
-    game_logic._handle_generate_prelude(session)
-    game_logic._handle_accept_prelude(session)
-    half_year_resolution.refresh_current_context(session, game_logic.ACTION_DETAIL)
+    _generate_prelude(session)
+    _accept_prelude(session)
+    life_context_projection.refresh_current_context(session, game_logic.ACTION_DETAIL)
 
     record = half_year_resolution.resolve_authoritative_record(session, {'focuses': ['发展事业', '投资理财']})
 
@@ -232,13 +300,12 @@ def test_half_year_resolution_core_returns_authoritative_record(monkeypatch):
     assert session['roll_event'] == record['roll_event']
     assert session['focus_memory']['last_focus'] == '发展事业'
 
-
 def test_half_year_resolution_owns_system_projection_and_cursor(monkeypatch):
     monkeypatch.setattr(half_year_resolution.random, 'randint', lambda start, end: 42)
     session = _chart_session()
-    game_logic._handle_generate_prelude(session)
-    game_logic._handle_accept_prelude(session)
-    half_year_resolution.refresh_current_context(session, game_logic.ACTION_DETAIL)
+    _generate_prelude(session)
+    _accept_prelude(session)
+    life_context_projection.refresh_current_context(session, game_logic.ACTION_DETAIL)
 
     assert session['current_life']['行动预览'] == session['action_guides']
     assert session['current_monthly_cycles']
@@ -264,9 +331,8 @@ def test_half_year_resolution_owns_system_projection_and_cursor(monkeypatch):
     assert session['current_age'] == 23
     assert session['current_year'] == 2023
 
-
 def test_stage_event_pool_returns_structured_event():
-    stage = game_logic._age_stage(22)
+    stage = half_year_resolution.age_stage(22)
     picked = event_pool.pick_stage_event('event_pool_player', 22, 1, '发展事业', '成功', stage)
 
     assert len(event_pool.STAGE_EVENT_POOL[stage['id']]['发展事业']) >= 3
@@ -278,16 +344,15 @@ def test_stage_event_pool_returns_structured_event():
     assert isinstance(picked['state_bias'], dict)
     assert picked['clue']
 
-
 def test_repeated_focus_adds_streak_feedback_and_effect(monkeypatch):
     monkeypatch.setattr(game_logic.openai_client, 'is_text_ai_enabled', lambda *args, **kwargs: False)
     session = _chart_session()
-    game_logic._handle_generate_prelude(session)
-    game_logic._handle_accept_prelude(session)
+    _generate_prelude(session)
+    _accept_prelude(session)
 
-    game_logic._handle_annual_action(session, {'focuses': ['发展事业']})
+    _choose_focuses(session, ['发展事业'])
     first = session['annual_summaries'][-1]
-    game_logic._handle_annual_action(session, {'focuses': ['发展事业']})
+    _choose_focuses(session, ['发展事业'])
     second = session['annual_summaries'][-1]
 
     assert first['focus_streak']['count'] == 1
@@ -301,18 +366,17 @@ def test_repeated_focus_adds_streak_feedback_and_effect(monkeypatch):
     assert '连续选择反馈' in second['summary']
     assert any('连续选择反馈' in item for item in session['display_history'])
 
-
 def test_action_guides_preview_goal_alignment_and_streak(monkeypatch):
     monkeypatch.setattr(game_logic.openai_client, 'is_text_ai_enabled', lambda *args, **kwargs: False)
     session = _chart_session()
-    game_logic._handle_generate_prelude(session)
-    game_logic._handle_accept_prelude(session)
-    game_logic._handle_set_life_goal(session, 'recognized_work')
-    half_year_resolution.refresh_current_context(session, game_logic.ACTION_DETAIL)
+    _generate_prelude(session)
+    _accept_prelude(session)
+    _set_life_goal(session, 'recognized_work')
+    life_context_projection.refresh_current_context(session, game_logic.ACTION_DETAIL)
 
     career_guide = next(item for item in session['action_guides'] if item['action'] == '发展事业')
     direct_career_guide = next(
-        item for item in half_year_resolution.build_action_guides(session, game_logic.ACTION_DETAIL)
+        item for item in action_guide.build_decision_support(session, game_logic.ACTION_DETAIL)
         if item['action'] == '发展事业'
     )
     assert direct_career_guide == career_guide
@@ -322,19 +386,20 @@ def test_action_guides_preview_goal_alignment_and_streak(monkeypatch):
     assert career_guide['risk'] == '压力'
     assert career_guide['roll_target_preview'] >= 20
     assert career_guide['streak_preview']['count'] == 1
+    assert career_guide['life_choice']['short_label']
+    assert '命盘' in career_guide['life_choice']['bazi_hint']
 
-    game_logic._handle_annual_action(session, {'focuses': ['发展事业']})
+    _choose_focuses(session, ['发展事业'])
     next_career_guide = next(item for item in session['action_guides'] if item['action'] == '发展事业')
     assert next_career_guide['streak_preview']['count'] == 2
     assert next_career_guide['streak_preview']['bonus'] == 3
     assert next_career_guide['roll_target_preview'] >= next_career_guide['roll_target_base']
     assert next_career_guide['clue']
 
-
 def test_ending_contains_life_archive(monkeypatch):
     monkeypatch.setattr(game_logic.openai_client, 'is_text_ai_enabled', lambda *args, **kwargs: False)
-    session = game_logic._new_session('ending_archive_player')
-    game_logic._handle_generate_chart(
+    session = life_session.new_session('ending_archive_player')
+    _generate_chart(
         session,
         {
             'birth_info': {
@@ -346,10 +411,10 @@ def test_ending_contains_life_archive(monkeypatch):
             }
         },
     )
-    game_logic._handle_generate_prelude(session)
-    game_logic._handle_accept_prelude(session)
-    game_logic._handle_annual_action(session, {'focuses': ['发展事业']})
-    game_logic._handle_annual_action(session, {'focuses': ['陪伴家人']})
+    _generate_prelude(session)
+    _accept_prelude(session)
+    _choose_focuses(session, ['发展事业'])
+    _choose_focuses(session, ['陪伴家人'])
 
     ending = session['ending']
     assert ending['dimensions']
@@ -363,11 +428,10 @@ def test_ending_contains_life_archive(monkeypatch):
     assert ending['milestones']
     assert '主要成就' in ending['summary']
 
-
 def test_player_can_retrospect_life_before_age_60(monkeypatch):
     monkeypatch.setattr(game_logic.openai_client, 'is_text_ai_enabled', lambda *args, **kwargs: False)
-    session = game_logic._new_session('retrospect_player')
-    game_logic._handle_generate_chart(
+    session = life_session.new_session('retrospect_player')
+    _generate_chart(
         session,
         {
             'birth_info': {
@@ -379,10 +443,10 @@ def test_player_can_retrospect_life_before_age_60(monkeypatch):
             }
         },
     )
-    game_logic._handle_generate_prelude(session)
-    game_logic._handle_accept_prelude(session)
+    _generate_prelude(session)
+    _accept_prelude(session)
 
-    game_logic._handle_retrospect_life(session)
+    _retrospect_life(session)
 
     assert session['phase'] == 'ending'
     assert session['is_finished'] is True
@@ -391,9 +455,8 @@ def test_player_can_retrospect_life_before_age_60(monkeypatch):
     assert '主动选择停下脚步' in session['ending']['summary']
     assert any(item.startswith('【回望一生：') for item in session['display_history'])
 
-
 def test_hidden_ending_unlocks_from_final_state():
-    session = game_logic._new_session('hidden_ending_player')
+    session = life_session.new_session('hidden_ending_player')
     session['phase'] = 'life_simulation'
     session['current_age'] = 60
     session['life_state'] = {
@@ -411,7 +474,7 @@ def test_hidden_ending_unlocks_from_final_state():
         '压力': 52,
     }
 
-    game_logic._finish_session(session, 'age_60')
+    ending_resolution.finish_session(session, 'age_60')
 
     ending = session['ending']
     assert ending['hidden_ending']['id'] in {'cloud_road_legacy', 'solitary_peak'}
@@ -420,9 +483,8 @@ def test_hidden_ending_unlocks_from_final_state():
     assert ending['hidden_endings']
     assert '隐藏结局' in ending['summary']
 
-
 def test_ending_codex_records_first_unlock():
-    session = game_logic._new_session('codex_player')
+    session = life_session.new_session('codex_player')
     session['phase'] = 'life_simulation'
     session['current_age'] = 60
     session['current_half_label'] = '下半年'
@@ -441,7 +503,7 @@ def test_ending_codex_records_first_unlock():
         '压力': 38,
     }
 
-    game_logic._finish_session(session, 'age_60')
+    ending_resolution.finish_session(session, 'age_60')
 
     codex = session['ending_codex']
     assert codex['total_count'] == len(game_logic.ENDING_CODEX_CATALOG)
@@ -451,11 +513,10 @@ def test_ending_codex_records_first_unlock():
     assert session['ending']['codex_unlocks'][0]['id'] == 'many_changes'
     assert any(item.startswith('【结局图鉴】首次解锁') for item in session['display_history'])
 
-
 def test_reaching_age_60_finishes_immediately(monkeypatch):
     monkeypatch.setattr(game_logic.openai_client, 'is_text_ai_enabled', lambda *args, **kwargs: False)
-    session = game_logic._new_session('age_60_player')
-    game_logic._handle_generate_chart(
+    session = life_session.new_session('age_60_player')
+    _generate_chart(
         session,
         {
             'birth_info': {
@@ -467,16 +528,16 @@ def test_reaching_age_60_finishes_immediately(monkeypatch):
             }
         },
     )
-    game_logic._handle_generate_prelude(session)
-    game_logic._handle_accept_prelude(session)
+    _generate_prelude(session)
+    _accept_prelude(session)
 
-    game_logic._handle_annual_action(session, {'focuses': ['发展事业']})
+    _choose_focuses(session, ['发展事业'])
 
     assert session['phase'] == 'life_simulation'
     assert session['current_age'] == 59
     assert session['current_half'] == 2
 
-    game_logic._handle_annual_action(session, {'focuses': ['发展事业']})
+    _choose_focuses(session, ['发展事业'])
 
     assert session['phase'] == 'ending'
     assert session['is_finished'] is True
@@ -485,7 +546,6 @@ def test_reaching_age_60_finishes_immediately(monkeypatch):
     assert len(session['annual_summaries']) == 2
     assert len(session['half_year_summaries']) == 2
     assert session['ending']['title']
-
 
 def test_ai_prelude_can_override_fallback(monkeypatch):
     async def fake_get_ai_response(*args, **kwargs):
@@ -504,7 +564,7 @@ def test_ai_prelude_can_override_fallback(monkeypatch):
     monkeypatch.setattr(game_logic.openai_client, 'get_ai_response', fake_get_ai_response)
     session = _chart_session()
 
-    asyncio.run(game_logic._handle_generate_prelude_async(session))
+    asyncio.run(_generate_prelude_async(session))
 
     assert session['prelude']['source'] == 'ai'
     assert session['prelude']['text'].startswith('AI 生成的前传文本。')
@@ -512,7 +572,6 @@ def test_ai_prelude_can_override_fallback(monkeypatch):
     assert session['life_state']['心智'] == 77
     assert session['major_events'][0] == '一次搬家改变了学习环境'
     assert len(session['major_events']) >= 4
-
 
 def test_ai_prelude_structured_events_are_formatted(monkeypatch):
     async def fake_get_ai_response(*args, **kwargs):
@@ -533,13 +592,12 @@ def test_ai_prelude_structured_events_are_formatted(monkeypatch):
     monkeypatch.setattr(game_logic.openai_client, 'get_ai_response', fake_get_ai_response)
     session = _chart_session()
 
-    asyncio.run(game_logic._handle_generate_prelude_async(session))
+    asyncio.run(_generate_prelude_async(session))
 
     assert session['prelude']['early_events'][0] == '1岁（2003年）：出生时体质偏弱。 影响：健康基础值略低。'
     assert len(session['prelude']['early_events']) >= 4
     assert "{'age'" not in session['display_history'][-1]
     assert session['major_events'][0].startswith('1岁（2003年）')
-
 
 def test_ai_bazi_analysis_can_enrich_chart(monkeypatch):
     async def fake_get_ai_response(prompt, *args, **kwargs):
@@ -561,9 +619,9 @@ def test_ai_bazi_analysis_can_enrich_chart(monkeypatch):
 
     monkeypatch.setattr(game_logic.openai_client, 'is_text_ai_enabled', lambda *args, **kwargs: True)
     monkeypatch.setattr(game_logic.openai_client, 'get_ai_response', fake_get_ai_response)
-    session = game_logic._new_session('ai_chart_player')
+    session = life_session.new_session('ai_chart_player')
 
-    asyncio.run(game_logic._handle_generate_chart_async(
+    asyncio.run(_generate_chart_async(
         session,
         {
             'birth_info': {
@@ -581,7 +639,6 @@ def test_ai_bazi_analysis_can_enrich_chart(monkeypatch):
     assert 'AI洞察' in session['chart_tags']
     assert session['life_topics'] == ['AI课题：以专业能力换取稳定']
     assert any('【命盘分析】' in item for item in session['display_history'])
-
 
 def test_ai_life_gm_narrative_preserves_authoritative_state(monkeypatch):
     async def fake_get_ai_response(prompt, *args, **kwargs):
@@ -608,10 +665,10 @@ def test_ai_life_gm_narrative_preserves_authoritative_state(monkeypatch):
     monkeypatch.setattr(game_logic.openai_client, 'is_text_ai_enabled', lambda *args, **kwargs: True)
     monkeypatch.setattr(game_logic.openai_client, 'get_ai_response', fake_get_ai_response)
     session = _chart_session()
-    game_logic._handle_generate_prelude(session)
-    game_logic._handle_accept_prelude(session)
+    _generate_prelude(session)
+    _accept_prelude(session)
 
-    asyncio.run(game_logic._handle_annual_action_async(session, {'focuses': ['准备考研并提升专业技能']}))
+    asyncio.run(_choose_focuses_async(session, ['准备考研并提升专业技能']))
 
     latest = session['annual_summaries'][-1]
     assert latest['gm_source'] == 'ai'
@@ -621,7 +678,6 @@ def test_ai_life_gm_narrative_preserves_authoritative_state(monkeypatch):
     assert session['life_state']['健康'] != 0
     assert any('【阶段叙事】' in item for item in session['display_history'])
     assert latest['state_effect'] != {'财富': 999}
-
 
 def test_ai_annual_summary_can_override_latest_summary(monkeypatch):
     async def fake_get_ai_response(*args, **kwargs):
@@ -639,10 +695,10 @@ def test_ai_annual_summary_can_override_latest_summary(monkeypatch):
     monkeypatch.setattr(game_logic.openai_client, 'is_text_ai_enabled', lambda *args, **kwargs: True)
     monkeypatch.setattr(game_logic.openai_client, 'get_ai_response', fake_get_ai_response)
     session = _chart_session()
-    game_logic._handle_generate_prelude(session)
-    game_logic._handle_accept_prelude(session)
+    _generate_prelude(session)
+    _accept_prelude(session)
 
-    asyncio.run(game_logic._handle_annual_action_async(session, {'focuses': ['准备考研并提升专业技能']}))
+    asyncio.run(_choose_focuses_async(session, ['准备考研并提升专业技能']))
 
     latest = session['annual_summaries'][-1]
     assert latest['source'] == 'ai'

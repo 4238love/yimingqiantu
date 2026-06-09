@@ -4,8 +4,7 @@ from copy import deepcopy
 from datetime import date
 from typing import Any
 
-from . import half_year_resolution
-
+from . import half_year_resolution, life_context_projection
 
 ENDING_CODEX_CATALOG = [
     {'id': 'early_broken', 'title': '命途早折之局', 'rarity': '普通', 'category': '基础结局', 'hint': '身体底盘被长期透支，人生会提前收束。', 'description': '健康归零时触发的提前终局，提醒玩家照看身体与压力。'},
@@ -32,7 +31,6 @@ INTRO_TEXT = '''
 
 请先填写出生日期、出生时间、性别与开始年龄。系统会生成八字命盘、大运流年、流月和人生前传；正式开始后，你将以半年为一回合，在学业、事业、感情、家庭、健康与财富之间做取舍。
 '''
-
 
 def normalize_ending_codex(raw: Any = None) -> dict[str, Any]:
     raw = raw if isinstance(raw, dict) else {}
@@ -63,41 +61,6 @@ def normalize_ending_codex(raw: Any = None) -> dict[str, Any]:
         'latest_unlocks': latest[:5],
         'entries': entries,
     }
-
-
-def ending_codex_unlock_id(ending: dict[str, Any]) -> str:
-    hidden = ending.get('hidden_ending') if isinstance(ending.get('hidden_ending'), dict) else {}
-    hidden_id = str(hidden.get('id') or '')
-    if hidden_id in ENDING_CODEX_BY_ID:
-        return hidden_id
-    return ENDING_CODEX_ID_BY_TITLE.get(str(ending.get('title') or ''), 'many_changes')
-
-
-def register_ending_in_codex(session: dict[str, Any]) -> list[dict[str, Any]]:
-    ending = session.get('ending') if isinstance(session.get('ending'), dict) else {}
-    if not ending:
-        return []
-    codex = normalize_ending_codex(session.get('ending_codex'))
-    unlock_id = ending_codex_unlock_id(ending)
-    new_unlocks = []
-    for entry in codex['entries']:
-        if entry['id'] != unlock_id:
-            continue
-        was_unlocked = bool(entry.get('unlocked'))
-        entry['unlocked'] = True
-        entry['unlock_count'] = int(entry.get('unlock_count') or 0) + 1
-        entry['unlocked_at'] = entry.get('unlocked_at') or (str(session.get('current_age') or '') + '岁' + str(session.get('current_half_label') or ''))
-        entry['last_reason'] = str(ending.get('reason') or session.get('ending_reason') or '')
-        entry['last_age'] = session.get('current_age')
-        if not was_unlocked:
-            new_unlocks.append(deepcopy(entry))
-        break
-    codex = normalize_ending_codex({'entries': codex['entries'], 'latest_unlocks': new_unlocks})
-    session['ending_codex'] = codex
-    ending['codex_unlocks'] = deepcopy(new_unlocks)
-    ending['codex_progress'] = {'unlocked_count': codex['unlocked_count'], 'total_count': codex['total_count']}
-    return new_unlocks
-
 
 def new_session(player_id: str) -> dict[str, Any]:
     return {
@@ -152,7 +115,6 @@ def new_session(player_id: str) -> dict[str, Any]:
         'current_life': None,
     }
 
-
 def ensure_defaults(session: dict[str, Any], action_summaries: dict[str, str] | None = None) -> dict[str, Any]:
     session.setdefault('phase', 'birth_input')
     session.setdefault('display_history', [INTRO_TEXT])
@@ -180,5 +142,5 @@ def ensure_defaults(session: dict[str, Any], action_summaries: dict[str, str] | 
     if session.get('phase') == 'life_simulation' and session.get('current_age') is not None:
         half_year_resolution.refresh_life_systems(session)
         session['action_options'] = half_year_resolution.stage_action_options(int(session.get('current_age') or 22))
-        session['action_guides'] = half_year_resolution.build_action_guides(session, action_summaries)
+        life_context_projection.refresh_current_context(session, action_summaries)
     return session

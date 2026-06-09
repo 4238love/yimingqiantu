@@ -131,6 +131,7 @@
     "personality": { "type": "array", "items": { "type": "string" } },
     "relationships": { "type": "array" },
     "major_events": { "type": "array", "items": { "type": "string" } },
+    "prelude": { "type": "object" },
     "half_year_summaries": {
       "type": "array",
       "items": {
@@ -142,6 +143,7 @@
           "half": { "type": "integer" },
           "half_label": { "type": "string" },
           "summary": { "type": "string" },
+          "fate_explanation": { "type": "object" },
           "state_effect": { "type": "object" },
           "focuses": { "type": "array", "items": { "type": "string" } },
           "main_focus": { "type": "string" },
@@ -183,6 +185,7 @@
           "half": { "type": "integer" },
           "half_label": { "type": "string" },
           "summary": { "type": "string" },
+          "fate_explanation": { "type": "object" },
           "state_effect": { "type": "object" },
           "focuses": { "type": "array", "items": { "type": "string" } },
           "main_focus": { "type": "string" },

@@ -1,25 +1,17 @@
 import asyncio
 from pathlib import Path
 
-from backend.app import state_manager, state_publication
-
+from backend.app import life_session, state_manager, state_publication
 
 def _redirect_storage(tmp_path: Path) -> None:
-    state_manager.DATA_DIR = tmp_path / 'game_data'
-    state_manager.SESSIONS_DIR = state_manager.DATA_DIR / 'sessions'
-    state_manager.INDEX_FILE = state_manager.DATA_DIR / 'index.json'
-    state_manager.OLD_DATA_FILE = tmp_path / 'game_data.json'
-    state_manager._meta_cache.clear()
-    state_manager._sessions_index.clear()
-    state_manager._index_modified = False
-
+    state_manager.configure_storage_runtime(root=tmp_path)
 
 def test_save_session_persists_without_publication(monkeypatch, tmp_path):
     _redirect_storage(tmp_path)
     calls = []
 
     async def fake_send_json(player_id, message):
-        calls.append(('game', player_id, message.get('type')))
+        calls.append(('game', player_id, message.get('type'), message.get('data')))
 
     async def fake_live_publish(player_id, session_data):
         calls.append(('live', player_id, session_data.get('phase')))
@@ -40,5 +32,38 @@ def test_save_session_persists_without_publication(monkeypatch, tmp_path):
 
     session['phase'] = 'life_simulation'
     asyncio.run(state_publication.commit_session('tester', session))
-    assert ('game', 'tester', 'full_state') in calls
+    game_call = next(call for call in calls if call[:3] == ('game', 'tester', 'full_state'))
+    assert 'internal_history' not in game_call[3]
     assert ('live', 'tester', 'life_simulation') in calls
+
+def test_save_session_serializes_concurrent_history_writes(tmp_path):
+    _redirect_storage(tmp_path)
+    base = life_session.new_session('race_player')
+    base['phase'] = 'life_simulation'
+    asyncio.run(state_manager.save_session('race_player', base))
+
+    first = {**base, 'display_history': base['display_history'] + ['first'], 'internal_history': [{'role': 'user', 'content': 'first'}]}
+    second = {**base, 'display_history': base['display_history'] + ['second'], 'internal_history': [{'role': 'user', 'content': 'second'}]}
+
+    async def save_both():
+        await asyncio.gather(
+            state_manager.save_session('race_player', first),
+            state_manager.save_session('race_player', second),
+        )
+
+    asyncio.run(save_both())
+
+    saved = asyncio.run(state_manager.get_session('race_player'))
+    assert saved['display_history'][-2:] == ['first', 'second']
+    assert [item['content'] for item in saved['internal_history']] == ['first', 'second']
+
+def test_save_session_uses_atomic_json_replace(tmp_path):
+    _redirect_storage(tmp_path)
+    path = tmp_path / 'game_data' / 'atomic.json'
+
+    asyncio.run(state_manager._write_json_file(path, {'value': 1}))
+    asyncio.run(state_manager._write_json_file(path, {'value': 2}))
+
+    assert state_manager.current_runtime().data_dir == tmp_path / 'game_data'
+    assert path.read_text(encoding='utf-8').strip().endswith('"value": 2\n}')
+    assert list(path.parent.glob('.*.tmp')) == []
