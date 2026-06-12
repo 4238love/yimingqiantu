@@ -4,7 +4,6 @@ export const appState = {
     selectedFocuses: [],
     aiSettings: null,
     apiSettingsVisible: false,
-    codexVisible: false,
     retrospectVisible: false,
     settingsMenuOpen: false,
     selectedApiProfileId: '',

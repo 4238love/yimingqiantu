@@ -1,15 +1,13 @@
-export function createModalManager({ appState, DOMElements, apiSettingsView, codexView }) {
+export function createModalManager({ appState, DOMElements, apiSettingsView }) {
     function syncBodyModalState() {
-        document.body.classList.toggle('modal-open', appState.apiSettingsVisible || appState.codexVisible || appState.retrospectVisible);
+        document.body.classList.toggle('modal-open', appState.apiSettingsVisible || appState.retrospectVisible);
     }
 
     function setApiSettingsVisible(visible) {
         appState.apiSettingsVisible = visible;
         if (visible) {
-            appState.codexVisible = false;
             appState.retrospectVisible = false;
             renderRetrospectPanel();
-            codexView.renderEndingCodex();
             DOMElements.customApiKey.value = '';
             if (!appState.selectedApiProfileId) {
                 appState.selectedApiProfileId = appState.aiSettings?.active_profile_id || apiSettingsView.apiProfiles()[0]?.id || '';
@@ -31,30 +29,6 @@ export function createModalManager({ appState, DOMElements, apiSettingsView, cod
         setApiSettingsVisible(false);
     }
 
-    function setCodexVisible(visible) {
-        appState.codexVisible = visible;
-        if (visible) {
-            appState.apiSettingsVisible = false;
-            appState.retrospectVisible = false;
-            renderRetrospectPanel();
-            codexView.renderEndingCodex();
-            apiSettingsView.renderApiSettings();
-            setTimeout(() => DOMElements.codexCloseButton.focus(), 0);
-        } else {
-            codexView.renderEndingCodex();
-            DOMElements.codexButton.focus();
-        }
-        syncBodyModalState();
-    }
-
-    function toggleCodexPanel() {
-        setCodexVisible(!appState.codexVisible);
-    }
-
-    function closeCodexPanel() {
-        setCodexVisible(false);
-    }
-
     function renderRetrospectPanel() {
         DOMElements.retrospectPanel.classList.toggle('hidden', !appState.retrospectVisible);
         DOMElements.retrospectBackdrop.classList.toggle('hidden', !appState.retrospectVisible);
@@ -66,9 +40,7 @@ export function createModalManager({ appState, DOMElements, apiSettingsView, cod
         appState.retrospectVisible = visible;
         if (visible) {
             appState.apiSettingsVisible = false;
-            appState.codexVisible = false;
             apiSettingsView.renderApiSettings();
-            codexView.renderEndingCodex();
             renderRetrospectPanel();
             setTimeout(() => DOMElements.retrospectCancelButton.focus(), 0);
         } else {
@@ -85,11 +57,9 @@ export function createModalManager({ appState, DOMElements, apiSettingsView, cod
     function modalFocusableElements() {
         const activePanel = appState.apiSettingsVisible
             ? DOMElements.apiSettingsPanel
-            : appState.codexVisible
-                ? DOMElements.codexPanel
-                : appState.retrospectVisible
-                    ? DOMElements.retrospectPanel
-                    : null;
+            : appState.retrospectVisible
+                ? DOMElements.retrospectPanel
+                : null;
         if (!activePanel) return [];
         return Array.from(activePanel.querySelectorAll(
             'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
@@ -97,11 +67,10 @@ export function createModalManager({ appState, DOMElements, apiSettingsView, cod
     }
 
     function handleGlobalKeydown(event) {
-        if (!appState.apiSettingsVisible && !appState.codexVisible && !appState.retrospectVisible) return;
+        if (!appState.apiSettingsVisible && !appState.retrospectVisible) return;
         if (event.key === 'Escape') {
             event.preventDefault();
             if (appState.apiSettingsVisible) closeApiSettingsPanel();
-            else if (appState.codexVisible) closeCodexPanel();
             else closeRetrospectPanel();
             return;
         }
@@ -112,9 +81,7 @@ export function createModalManager({ appState, DOMElements, apiSettingsView, cod
             const last = focusable[focusable.length - 1];
             const activePanel = appState.apiSettingsVisible
                 ? DOMElements.apiSettingsPanel
-                : appState.codexVisible
-                    ? DOMElements.codexPanel
-                    : DOMElements.retrospectPanel;
+                : DOMElements.retrospectPanel;
             if (event.shiftKey && document.activeElement === first) {
                 event.preventDefault();
                 last.focus();
@@ -132,9 +99,6 @@ export function createModalManager({ appState, DOMElements, apiSettingsView, cod
         setApiSettingsVisible,
         toggleApiSettingsPanel,
         closeApiSettingsPanel,
-        setCodexVisible,
-        toggleCodexPanel,
-        closeCodexPanel,
         setRetrospectVisible,
         closeRetrospectPanel,
         renderRetrospectPanel,

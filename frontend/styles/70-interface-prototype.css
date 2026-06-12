@@ -590,7 +590,6 @@ body::after {
 
 .header-menu-panel,
 #api-settings-panel,
-#codex-panel,
 #retrospect-panel {
     border-color: var(--line);
     background:

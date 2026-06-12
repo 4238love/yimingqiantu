@@ -24,7 +24,7 @@ function renderApiSettings() {
     DOMElements.apiSettingsPanel.setAttribute('aria-hidden', String(!appState.apiSettingsVisible));
     DOMElements.apiSettingsBackdrop.setAttribute('aria-hidden', String(!appState.apiSettingsVisible));
     DOMElements.apiSettingsButton.setAttribute('aria-expanded', String(appState.apiSettingsVisible));
-    document.body.classList.toggle('modal-open', appState.apiSettingsVisible || appState.codexVisible || appState.retrospectVisible);
+    document.body.classList.toggle('modal-open', appState.apiSettingsVisible || appState.retrospectVisible);
     if (!appState.apiSettingsVisible) return;
     renderApiProfileList();
     DOMElements.apiSettingsStatus.className = 'api-settings-status' + (settings.custom_enabled ? ' enabled' : '');

@@ -599,7 +599,7 @@ def test_ending_codex_records_first_unlock():
     assert codex['latest_unlocks'][0]['title'] == '一生多变，晚景自明'
     assert session['ending']['codex_progress']['unlocked_count'] == 1
     assert session['ending']['codex_unlocks'][0]['id'] == 'many_changes'
-    assert any(item.startswith('【结局图鉴】首次解锁') for item in session['display_history'])
+    assert not any('结局图鉴' in item for item in session['display_history'])
 
 def test_reaching_age_60_finishes_immediately(monkeypatch):
     monkeypatch.setattr(game_logic.openai_client, 'is_text_ai_enabled', lambda *args, **kwargs: False)

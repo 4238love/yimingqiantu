@@ -250,14 +250,12 @@ def finish_session(session: dict[str, Any], reason: str = 'natural') -> bool:
     session['phase'] = 'ending'
     session['is_finished'] = True
     session['ending'] = build_ending(session)
-    new_unlocks = resolve_codex_delta(session)
+    resolve_codex_delta(session)
     if reason == 'retrospect':
         prefix = '【回望一生：'
     else:
         prefix = '【结局：'
     session['display_history'].append(prefix + session['ending']['title'] + '】\n\n' + session['ending']['summary'])
-    if new_unlocks:
-        session['display_history'].append('【结局图鉴】首次解锁：' + '、'.join(item['title'] for item in new_unlocks))
     return True
 
 def finish_if_needed(session: dict[str, Any]) -> bool:

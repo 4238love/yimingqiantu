@@ -76,15 +76,6 @@ function buildLifeArchiveMarkdown(state) {
         }
         if (ending.summary) lines.push(ending.summary);
     }
-    const codex = state.ending_codex || {};
-    if (codex.entries?.length) {
-        lines.push('');
-        lines.push('## 结局图鉴');
-        lines.push('- 收集进度：' + Number(codex.unlocked_count || 0) + '/' + Number(codex.total_count || codex.entries.length || 0));
-        codex.entries.filter(item => item.unlocked).forEach(item => {
-            lines.push('- ' + (item.title || '') + '（' + (item.rarity || '普通') + '）：' + (item.description || ''));
-        });
-    }
     lines.push('');
     lines.push('## 叙事记录');
     (state.display_history || []).forEach((item, index) => {

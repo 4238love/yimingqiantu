@@ -64,8 +64,7 @@
 #main-content,
 #action-area,
 #narrative-window,
-#api-settings-panel,
-#codex-panel {
+#api-settings-panel {
     scrollbar-gutter: stable;
 }
 

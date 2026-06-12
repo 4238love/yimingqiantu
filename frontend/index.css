@@ -6,5 +6,6 @@
 @import url('./styles/50-roll-motion.css?v=arch-styles-20260608');
 @import url('./styles/60-responsive.css?v=arch-styles-20260608');
 @import url('./styles/70-interface-prototype.css?v=arch-styles-20260608');
+@import url('./styles/80-mystic-design.css?v=arch-styles-20260608');
 
 /* Style Module manifest: keep domain ownership in frontend/styles while preserving static deployment. */

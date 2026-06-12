@@ -53,7 +53,7 @@
     }
 
     #game-view.status-collapsed #status-rail-button { display: none; }
-    #birth-form, #api-settings-form, #api-profile-manager, #chart-grid, #year-banner, .timeline-track, .prelude-event-list, .life-goal-grid, .term-grid, .turn-guide-grid, .month-flow-grid, .action-preview-grid, .ending-grid, .ending-lists, .codex-grid, .turn-resolution-grid, .retrospect-confirm-summary { grid-template-columns: 1fr; }
+    #birth-form, #api-settings-form, #api-profile-manager, #chart-grid, #year-banner, .timeline-track, .prelude-event-list, .life-goal-grid, .term-grid, .turn-guide-grid, .month-flow-grid, .action-preview-grid, .ending-grid, .ending-lists, .turn-resolution-grid, .retrospect-confirm-summary { grid-template-columns: 1fr; }
     .chart-card.wide { grid-column: span 1; }
     .turn-guide-heading { display: grid; }
     .first-turn-coach,

@@ -19,7 +19,6 @@ const viewModuleFiles = [
     'frontend/chart_view.js',
     'frontend/prelude_view.js',
     'frontend/simulation_view.js',
-    'frontend/codex_view.js',
     'frontend/api_settings_view.js',
     'frontend/archive_view.js',
 ];
@@ -66,9 +65,7 @@ assert.match(html, /id='turn-resolution'/, 'simulation view should include a hal
 assert.match(html, /id='roll-stage-label'/, 'roll overlay should expose staged divination text');
 assert.match(html, /本半年行动/, 'free-text action placeholder should use half-year wording');
 assert.match(html, /加入重点/, 'free-text action button should add a focus instead of being a vague one-character submit');
-assert.match(html, /id='codex-button'/, 'game header should expose ending codex collection');
-assert.match(html, /id='codex-panel'/, 'ending codex should render as a modal panel');
-assert.match(html, /id='codex-content'/, 'ending codex modal should contain collection content');
+assert.doesNotMatch(html, /id='codex-button'|id='codex-panel'|id='codex-content'|图鉴/, 'ending codex UI should be removed');
 assert.match(html, /arch-modules-20260608/, 'main JS asset should be cache-busted for view modules');
 assert.match(html, /arch-styles-20260608/, 'main CSS asset should be cache-busted for style modules');
 assert.match(cssManifest, /styles\/00-foundation\.css/, 'index.css should be a style Module manifest');
@@ -81,7 +78,7 @@ assert.match(css, /#app-container\s*{[^}]*max-width:\s*none/s, 'app should defau
 assert.match(css, /::-webkit-scrollbar\s*{[^}]*width:\s*9px/s, 'app scrollbars should use a slim custom themed width');
 assert.match(css, /::-webkit-scrollbar-thumb\s*{[^}]*border-radius:\s*999px/s, 'app scrollbars should use rounded themed thumbs');
 assert.match(css, /::-webkit-scrollbar-button\s*{[^}]*display:\s*none/s, 'app scrollbars should hide default arrow buttons');
-assert.match(css, /#status-panel,\s*#main-content,\s*#action-area,\s*#narrative-window,\s*#api-settings-panel,\s*#codex-panel\s*{[^}]*scrollbar-gutter:\s*stable/s, 'major scroll surfaces should reserve a stable themed scrollbar gutter');
+assert.match(css, /#status-panel,\s*#main-content,\s*#action-area,\s*#narrative-window,\s*#api-settings-panel\s*{[^}]*scrollbar-gutter:\s*stable/s, 'major scroll surfaces should reserve a stable themed scrollbar gutter');
 assert.match(css, /#game-view\.status-collapsed\s*{[^}]*grid-template-columns:\s*48px\s+1fr/s, 'desktop collapsed status rail should keep the status panel on the left');
 assert.match(css, /#game-view\.action-tray-compact\s*{[^}]*grid-template-rows:\s*auto\s+minmax\(0,\s*1fr\)\s+minmax\(8\.8rem,\s*clamp\(8\.8rem,\s*19vh,\s*12\.5rem\)\)/s, 'life-simulation action tray should be height-capped on desktop');
 assert.match(css, /#game-view\.action-tray-compact\s+#action-area\s*{[^}]*overflow:\s*hidden/s, 'height-capped action tray should not expose an internal vertical scroller');
@@ -104,7 +101,7 @@ assert.match(css, /body\.has-scene-background\s+#scene-background-image\s*{[^}]*
 assert.match(css, /#app-container\s*{[^}]*z-index:\s*1/s, 'app content should render above the scene background layer');
 assert.match(css, /#api-settings-panel\s*{[^}]*position:\s*fixed/s, 'custom AI API settings should appear as a centered modal');
 assert.match(css, /#api-settings-panel\s*{[^}]*transform:\s*translate\(-50%,\s*-50%\)/s, 'custom AI API modal should be centered');
-assert.match(css, /#api-settings-panel,\s*#codex-panel,\s*#retrospect-panel\s*{[^}]*position:\s*fixed/s, 'custom retrospection confirmation should share modal positioning');
+assert.match(css, /#api-settings-panel,\s*#retrospect-panel\s*{[^}]*position:\s*fixed/s, 'custom retrospection confirmation should share modal positioning');
 assert.match(css, /\.modal-backdrop\s*{[^}]*position:\s*fixed/s, 'custom AI API modal should dim the page behind it');
 assert.match(css, /\.header-menu-panel\s*{/, 'secondary header actions should render in a compact menu');
 assert.match(css, /#api-profile-manager\s*{[^}]*grid-template-columns:\s*minmax\(220px,\s*0\.38fr\)\s+minmax\(0,\s*1fr\)/s, 'custom AI API modal should use profile list plus editor columns');
@@ -140,9 +137,6 @@ assert.match(css, /\.milestone-card\s*{/, 'life milestones should render as stat
 assert.match(css, /\.ending-archive\s*{/, 'ending should render as a life archive section');
 assert.match(css, /\.ending-reason\s*{/, 'ending archive should show why the run ended');
 assert.match(css, /\.hidden-ending-card\s*{/, 'hidden endings should render as a distinct unlock card');
-assert.match(css, /\.codex-grid\s*{/, 'ending codex should render collection cards in a grid');
-assert.match(css, /\.codex-card\.locked\s*{/, 'locked codex entries should show clue-only styling');
-assert.match(css, /\.codex-summary\s*{/, 'ending codex should show collection progress');
 assert.match(css, /\.ending-goal-card\s*{/, 'ending archive should show life goal completion');
 assert.match(css, /\.history-toolbar\s*{/, 'narrative history should include filter/expand toolbar styling');
 assert.match(css, /\.history-filter-chip\s*{/, 'history filters should render as accessible chips');
@@ -192,7 +186,8 @@ assert.match(jsEntry, /import\s+\{\s*appState,\s*scrollState\s*\}\s+from\s+'\.\/
 assert.match(jsEntry, /import\s+\{\s*createApiClient\s*\}\s+from\s+'\.\/api_client\.js\?v=runtime-20260608'/, 'index.js should import API runtime module');
 assert.match(jsEntry, /import\s+\{\s*createSocketManager\s*\}\s+from\s+'\.\/socket_manager\.js\?v=runtime-20260608'/, 'index.js should import socket runtime module');
 assert.match(jsEntry, /import\s+\{\s*createModalManager\s*\}\s+from\s+'\.\/modal_manager\.js\?v=runtime-20260608'/, 'index.js should import modal runtime module');
-assert.match(jsEntry, /createChartView|createPreludeView|createSimulationView|createCodexView|createApiSettingsView/, 'index.js should compose domain View Modules');
+assert.match(jsEntry, /createChartView|createPreludeView|createSimulationView|createApiSettingsView/, 'index.js should compose domain View Modules');
+assert.doesNotMatch(jsEntry, /createCodexView|codexButton|codexBackdrop|toggleCodexPanel|closeCodexPanel/, 'index.js should not wire removed ending codex UI');
 assert.doesNotMatch(jsEntry, /function renderChart\(|function renderPrelude\(|function renderFocusActions\(/, 'index.js should not own domain View render implementations');
 assert.doesNotMatch(jsEntry, /function applyPatch\(/, 'index.js should not own JSON Patch runtime implementation');
 assert.match(js, /applyPhaseView\(DOMElements,\s*appState\.gameState\)/, 'render should apply the phase-owned view module');
@@ -229,8 +224,7 @@ assert.match(js, /focus_streak/, 'frontend should consume focus streak state');
 assert.match(js, /focus_memory/, 'frontend should consume focus memory state');
 assert.match(js, /连续选择反馈/, 'frontend should label continuous choice feedback');
 assert.match(js, /function renderEndingArchive\(/, 'frontend should render enhanced ending archive');
-assert.match(js, /function renderEndingCodex\(/, 'frontend should render the ending codex collection');
-assert.match(js, /ending_codex/, 'frontend should consume ending codex state');
+assert.doesNotMatch(js, /function renderEndingCodex\(|ending_codex|codexVisible/, 'frontend should not consume removed ending codex state');
 assert.match(js, /function cleanActionOptions\(/, 'frontend should clean sparse or blank action option patches before rendering chips');
 assert.match(js, /function classifyHistoryItem\(/, 'frontend should classify narrative history entries');
 assert.match(js, /data-history-filter/, 'frontend should render narrative history filter buttons');
@@ -238,8 +232,6 @@ assert.match(js, /HISTORY_COMPACT_LIMIT/, 'frontend should collapse long narrati
 assert.match(js, /function buildLifeArchiveMarkdown\(/, 'frontend should build a downloadable life archive');
 assert.match(js, /function exportLifeArchive\(/, 'frontend should export the current life archive');
 assert.match(jsEntry, /exportArchiveButton\.addEventListener\('click',\s*archiveView\.exportLifeArchive\)/, 'archive export button should be wired');
-assert.match(jsEntry, /codexButton\.addEventListener\('click',\s*modalManager\.toggleCodexPanel\)/, 'ending codex button should be wired');
-assert.match(jsEntry, /codexBackdrop\.addEventListener\('click',\s*modalManager\.closeCodexPanel\)/, 'ending codex backdrop should close the modal');
 assert.match(js, /retrospectButton:\s*document\.getElementById\('retrospect-button'\)/, 'manual retrospection button should be wired in DOMElements');
 assert.match(js, /function handleRetrospectLife\(\)/, 'frontend should handle manual life retrospection');
 assert.match(js, /function confirmRetrospectLife\(\)/, 'frontend should confirm retrospection from a custom modal');
@@ -258,7 +250,7 @@ assert.match(js, /state\.milestones/, 'frontend should render life milestones');
 assert.match(js, /achievements_unlocked/, 'ending archive should render unlocked achievements');
 assert.match(js, /ending\.hidden_ending/, 'ending archive should render hidden ending unlocks');
 assert.match(js, /隐藏结局/, 'life archive export should include hidden ending labels');
-assert.match(js, /结局图鉴/, 'life archive export should include ending codex progress');
+assert.doesNotMatch(js, /结局图鉴/, 'life archive export should not include removed ending codex progress');
 assert.match(js, /joinCleanList\(month\.theme,\s*'平稳推进'\)/, 'flowing-month cards should avoid sparse-array punctuation artifacts');
 assert.match(js, /function showRollPending\(/, 'frontend should show a pending roll animation immediately after submit');
 assert.match(js, /Array\.isArray\(target\)\)\s*target\.splice\(Number\(key\),\s*1\)/, 'JSON Patch remove should splice arrays instead of leaving holes');

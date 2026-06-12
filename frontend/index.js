@@ -8,7 +8,6 @@ import { applyPhaseView, phaseLabel } from './phase_views.js?v=phase-view-202606
 import { createArchiveView } from './archive_view.js?v=arch-modules-20260608';
 import { createApiSettingsView } from './api_settings_view.js?v=arch-modules-20260608';
 import { createChartView } from './chart_view.js?v=arch-modules-20260608';
-import { createCodexView } from './codex_view.js?v=arch-modules-20260608';
 import { createPreludeView } from './prelude_view.js?v=arch-modules-20260608';
 import { createSimulationView } from './simulation_view.js?v=arch-modules-20260608';
 import { escapeHtml } from './view_helpers.js?v=arch-modules-20260608';
@@ -46,10 +45,9 @@ const simulationView = createSimulationView({
     toggleFocus,
     submitFocuses,
 });
-const codexView = createCodexView({ appState, DOMElements });
 const apiSettingsView = createApiSettingsView({ appState, DOMElements });
 const archiveView = createArchiveView({ appState });
-const modalManager = createModalManager({ appState, DOMElements, apiSettingsView, codexView });
+const modalManager = createModalManager({ appState, DOMElements, apiSettingsView });
 
 function render() {
     if (!appState.gameState) return;
@@ -73,7 +71,6 @@ function render() {
     simulationView.renderTurnResolutionCard();
     simulationView.renderNarrative();
     simulationView.renderFocusActions();
-    codexView.renderEndingCodex();
     apiSettingsView.renderApiSettings();
     modalManager.renderRetrospectPanel();
     renderSettingsMenu();
@@ -368,9 +365,6 @@ function init() {
         if (!appState.settingsMenuOpen) return;
         if (!DOMElements.settingsMenuPanel.contains(event.target) && !DOMElements.settingsMenuButton.contains(event.target)) closeSettingsMenu();
     });
-    DOMElements.codexButton.addEventListener('click', modalManager.toggleCodexPanel);
-    DOMElements.codexBackdrop.addEventListener('click', modalManager.closeCodexPanel);
-    DOMElements.codexCloseButton.addEventListener('click', modalManager.closeCodexPanel);
     DOMElements.apiSettingsButton.addEventListener('click', modalManager.toggleApiSettingsPanel);
     DOMElements.apiSettingsBackdrop.addEventListener('click', modalManager.closeApiSettingsPanel);
     DOMElements.apiSettingsCloseButton.addEventListener('click', modalManager.closeApiSettingsPanel);

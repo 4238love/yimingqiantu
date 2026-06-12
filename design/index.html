@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>一命千途 · 视觉重构设计原型</title>
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700;900&family=Ma+Shan+Zheng&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="design.css">
+</head>
+<body>
+
+<div class="atmosphere"></div>
+<div class="proto-tag">DESIGN PROTOTYPE · 暗色水墨玄学风</div>
+
+<!-- ════════════ 原型屏幕导航 ════════════ -->
+<nav id="proto-nav">
+    <button data-screen="s-landing" class="on">① 启程</button>
+    <button data-screen="s-birth">② 出生信息</button>
+    <button data-screen="s-chart">③ 命盘</button>
+    <button data-screen="s-prelude">④ 前传·愿望</button>
+    <button data-screen="s-sim">⑤ 人生模拟</button>
+    <button data-screen="s-ending">⑥ 结局档案</button>
+    <button id="open-codex">◈ 图鉴弹窗</button>
+    <button id="open-roll">◈ 天机骰</button>
+</nav>
+
+<!-- ════════════════════════════════════════
+     SCREEN 1 · 启程页
+═════════════════════════════════════════ -->
+<section id="s-landing" class="screen active">
+    <div class="landing-halo"></div>
+    <div class="compass-ring"><i class="glyph">乾</i></div>
+    <div class="compass-ring inner"><i class="glyph">坤</i></div>
+    <div class="landing-seal"><span class="seal" style="width:64px;height:64px;font-size:30px;">命</span></div>
+    <div class="landing-core">
+        <p class="landing-eyebrow">BAZI LIFE SIMULATOR</p>
+        <h1 class="landing-title">一命千途</h1>
+        <div class="landing-divider"></div>
+        <p class="landing-sub">八字定底色，选择改路径。<br>从你选定的年纪启程，每半年落一子，看这一局人生行至何处。</p>
+        <div class="landing-actions" style="margin-top:38px;">
+            <button class="btn btn-gold btn-landing" data-goto="s-birth">访客启程</button>
+            <button class="btn btn-ghost btn-landing" style="letter-spacing:0.2em;">观测他人人生</button>
+        </div>
+    </div>
+    <p class="landing-foot">命盘提供底色 · 选择改变路径</p>
+</section>
+
+<!-- ════════════════════════════════════════
+     SCREEN 2 · 出生信息
+═════════════════════════════════════════ -->
+<section id="s-birth" class="screen">
+    <div class="app-shell">
+        <header class="app-topbar">
+            <div class="brand-mini">
+                <span class="seal">命</span>
+                <div><h1>一命千途</h1><small>YI MING QIAN TU</small></div>
+            </div>
+            <div class="topbar-status">
+                <span class="phase-pill">序 · 待排盘</span>
+                <button class="icon-btn">图鉴 4/13</button>
+                <button class="icon-btn">设置</button>
+            </div>
+        </header>
+        <div class="app-body">
+            <main class="app-main centered">
+                <div class="birth-wrap">
+                    <div class="step-rail">
+                        <div class="step-node now"><span class="step-dot">一</span><span>出生信息</span></div>
+                        <div class="step-link"></div>
+                        <div class="step-node"><span class="step-dot">二</span><span>命盘推演</span></div>
+                        <div class="step-link"></div>
+                        <div class="step-node"><span class="step-dot">三</span><span>人生前传</span></div>
+                        <div class="step-link"></div>
+                        <div class="step-node"><span class="step-dot">四</span><span>正式启程</span></div>
+                    </div>
+                    <div class="birth-grid">
+                        <div class="gilt-card corner-frame birth-card">
+                            <div class="corners"><i></i><i></i><i></i><i></i></div>
+                            <p class="eyebrow">Step 01 · 生辰</p>
+                            <h2>写下出生信息</h2>
+                            <p class="panel-sub">生辰决定命盘底色，但不会锁死人生 —— 真正改写路径的，是之后每半年的选择。</p>
+                            <div class="birth-form">
+                                <div class="field"><label>出生日期</label><input type="date" value="2000-06-15"></div>
+                                <div class="field"><label>日历类型</label><select><option>公历</option><option disabled>农历（后续支持）</option></select></div>
+                                <div class="field"><label>出生时间</label><input type="time" value="08:00"></div>
+                                <div class="field" style="justify-content:flex-end;"><label class="check-row" style="margin-top:24px;"><input type="checkbox"> 不知道时辰（三柱模式）</label></div>
+                                <div class="field"><label>性别</label><select><option>男</option><option>女</option><option>不透露</option></select></div>
+                                <div class="field"><label>出生地</label><input type="text" placeholder="默认 Asia/Shanghai"></div>
+                                <div class="field span2"><label>开始年龄 · 22 岁</label>
+                                    <div class="quick-ages">
+                                        <span>快捷</span>
+                                        <button class="chip">6</button><button class="chip">8</button><button class="chip">12</button>
+                                        <button class="chip">16</button><button class="chip">18</button><button class="chip on">22</button>
+                                        <button class="chip">30</button><button class="chip">40</button><button class="chip">50</button>
+                                    </div>
+                                </div>
+                                <div class="birth-submit"><button class="btn btn-gold" data-goto="s-chart">推 演 命 盘</button></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="gilt-card guide-card" style="margin-bottom:16px;">
+                                <h3>玩法指引</h3>
+                                <ol class="guide-steps">
+                                    <li>填入生辰，推演命盘；命盘只是底色，不替你做决定。</li>
+                                    <li>生成前传后，选定一个本周目的人生愿望。</li>
+                                    <li>正式开始后，每半年选 1–3 个行动重点，亦可自由书写。</li>
+                                    <li>叙事可按「判定 / 阶段 / 总结 / 成就」翻阅，随时可导出档案。</li>
+                                </ol>
+                            </div>
+                            <div class="gilt-card guide-card">
+                                <h3>术语速查</h3>
+                                <div class="term-cards" style="margin-top:4px;">
+                                    <div class="term-card"><b>大运</b>十年人生基调</div>
+                                    <div class="term-card"><b>流年</b>当年事件倾向</div>
+                                    <div class="term-card"><b>流月</b>半年内逐月机与忌</div>
+                                    <div class="term-card"><b>D100</b>暗中合参的天机骰</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+</section>
+
+<!-- ════════════════════════════════════════
+     SCREEN 3 · 命盘
+═════════════════════════════════════════ -->
+<section id="s-chart" class="screen">
+    <div class="app-shell">
+        <header class="app-topbar">
+            <div class="brand-mini">
+                <span class="seal">命</span>
+                <div><h1>一命千途</h1><small>YI MING QIAN TU</small></div>
+            </div>
+            <div class="topbar-status">
+                <span class="phase-pill">卷一 · 命盘已成</span>
+                <button class="icon-btn">图鉴 4/13</button>
+                <button class="icon-btn">设置</button>
+            </div>
+        </header>
+        <div class="app-body">
+            <main class="app-main centered">
+                <div class="chart-wrap">
+                    <div class="chart-head">
+                        <p class="eyebrow">STEP 02 · NATAL CHART</p>
+                        <h2>命盘推演</h2>
+                        <p>公历 2000 年 6 月 15 日 辰时 · 男 · 起运 22 岁</p>
+                    </div>
+                    <div class="pillar-row">
+                        <div class="gilt-card corner-frame pillar-card">
+                            <div class="corners"><i></i><i></i><i></i><i></i></div>
+                            <div class="p-label">年柱</div>
+                            <div class="p-stem">庚</div><div class="p-branch">辰</div>
+                            <span class="p-god">偏财 · 祖荫</span>
+                        </div>
+                        <div class="gilt-card corner-frame pillar-card">
+                            <div class="corners"><i></i><i></i><i></i><i></i></div>
+                            <div class="p-label">月柱</div>
+                            <div class="p-stem">壬</div><div class="p-branch">午</div>
+                            <span class="p-god">偏印 · 门户</span>
+                        </div>
+                        <div class="gilt-card corner-frame pillar-card day-master">
+                            <div class="corners"><i></i><i></i><i></i><i></i></div>
+                            <div class="p-label">日柱</div>
+                            <div class="p-stem">丙</div><div class="p-branch">寅</div>
+                            <span class="p-god">日主 · 自身</span>
+                        </div>
+                        <div class="gilt-card corner-frame pillar-card">
+                            <div class="corners"><i></i><i></i><i></i><i></i></div>
+                            <div class="p-label">时柱</div>
+                            <div class="p-stem">壬</div><div class="p-branch">辰</div>
+                            <span class="p-god">七杀 · 晚景</span>
+                        </div>
+                    </div>
+                    <div class="chart-duo">
+                        <div class="gilt-card wuxing-card">
+                            <div class="card-h"><h3>五行气象</h3><small>丙火日主 · 身强</small></div>
+                            <div class="wx-row wx-jin"><span class="wx-name">金</span><div class="fmeter"><i style="width:32%"></i></div><span class="wx-val">1.6</span></div>
+                            <div class="wx-row wx-mu"><span class="wx-name">木</span><div class="fmeter"><i style="width:48%"></i></div><span class="wx-val">2.4</span></div>
+                            <div class="wx-row wx-shui"><span class="wx-name">水</span><div class="fmeter"><i style="width:56%"></i></div><span class="wx-val">2.8</span></div>
+                            <div class="wx-row wx-huo"><span class="wx-name">火</span><div class="fmeter"><i style="width:74%"></i></div><span class="wx-val">3.7</span></div>
+                            <div class="wx-row wx-tu"><span class="wx-name">土</span><div class="fmeter"><i style="width:40%"></i></div><span class="wx-val">2.0</span></div>
+                            <div class="wx-favor">
+                                <span class="favor-pill like">喜 · 金 水</span>
+                                <span class="favor-pill like">用神 · 壬水</span>
+                                <span class="favor-pill avoid">忌 · 木 火</span>
+                            </div>
+                        </div>
+                        <div class="gilt-card analysis-card">
+                            <div class="card-h"><h3>命书批注</h3><small>仅供游戏推演</small></div>
+                            <p><b>丙火坐寅</b>，如日出东方，性烈而明，行动先于思虑。月令午火助身，气象偏旺，<b>喜壬水七杀调候</b> —— 人生课题在「节制锋芒、引势而行」。</p>
+                            <p>偏财坐年，祖上有余荫但散得快；偏印贴身，学东西快也容易半途换道。</p>
+                            <div class="tag-row">
+                                <span class="fate-tag">行动派</span><span class="fate-tag">桃花在外</span>
+                                <span class="fate-tag">财来财去</span><span class="fate-tag">中年转运</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="gilt-card luck-river">
+                        <div class="card-h"><h3>大运长河</h3><small>十年一运 · 横向拖动</small></div>
+                        <div class="luck-track">
+                            <div class="luck-stop"><div class="l-age">2–11</div><div class="l-pillar">癸未</div><div class="l-theme">蒙学之年<br>家宅安稳</div></div>
+                            <div class="luck-stop"><div class="l-age">12–21</div><div class="l-pillar">甲申</div><div class="l-theme">求学奔波<br>初见锋芒</div></div>
+                            <div class="luck-stop now"><div class="l-age">22–31</div><div class="l-pillar">乙酉</div><div class="l-theme">立业之运<br>贵人在西</div></div>
+                            <div class="luck-stop"><div class="l-age">32–41</div><div class="l-pillar">丙戌</div><div class="l-theme">火土燥热<br>守财为上</div></div>
+                            <div class="luck-stop"><div class="l-age">42–51</div><div class="l-pillar">丁亥</div><div class="l-theme">水火既济<br>声名渐起</div></div>
+                            <div class="luck-stop"><div class="l-age">52–61</div><div class="l-pillar">戊子</div><div class="l-theme">收成之季<br>福泽后人</div></div>
+                        </div>
+                    </div>
+                    <div class="chart-actions">
+                        <button class="btn btn-gold" data-goto="s-prelude" style="min-width:220px;">生 成 人 生 前 传</button>
+                        <button class="btn btn-ghost" data-goto="s-birth">重写出生信息</button>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+</section>
+
+<!-- ════════════════════════════════════════
+     SCREEN 4 · 人生前传 + 愿望
+═════════════════════════════════════════ -->
+<section id="s-prelude" class="screen">
+    <div class="app-shell">
+        <header class="app-topbar">
+            <div class="brand-mini">
+                <span class="seal">命</span>
+                <div><h1>一命千途</h1><small>YI MING QIAN TU</small></div>
+            </div>
+            <div class="topbar-status">
+                <span class="phase-pill">卷二 · 前传已书</span>
+                <button class="icon-btn">图鉴 4/13</button>
+                <button class="icon-btn">设置</button>
+            </div>
+        </header>
+        <div class="app-body">
+            <main class="app-main centered">
+                <div class="prelude-wrap">
+                    <div class="step-rail">
+                        <div class="step-node done"><span class="step-dot">✓</span><span>出生信息</span></div>
+                        <div class="step-link"></div>
+                        <div class="step-node done"><span class="step-dot">✓</span><span>命盘推演</span></div>
+                        <div class="step-link"></div>
+                        <div class="step-node now"><span class="step-dot">三</span><span>人生前传</span></div>
+                        <div class="step-link"></div>
+                        <div class="step-node"><span class="step-dot">四</span><span>正式启程</span></div>
+                    </div>
+                    <div class="prelude-grid">
+                        <div class="gilt-card corner-frame prelude-scroll">
+                            <div class="corners"><i></i><i></i><i></i><i></i></div>
+                            <h3>前 传 · 出生至廿二</h3>
+                            <p class="sub">PRELUDE · 这些年塑造了你启程时的样子</p>
+                            <div class="persona-row">
+                                <span class="fate-tag">性烈而明</span><span class="fate-tag">学得快弃得快</span>
+                                <span class="fate-tag">朋友缘旺</span><span class="fate-tag">存不住钱</span>
+                            </div>
+                            <div class="timeline">
+                                <div class="tl-item"><div class="tl-age">六岁 · 庚辰流年</div><p>随父母迁居南方城市，转学第一天就和同桌打了一架，又在一周内成了最好的朋友。</p></div>
+                                <div class="tl-item"><div class="tl-age">十二岁 · 丙戌流年</div><p>迷上拆装电器，烧了家里两个插座，却拿了市里科创比赛二等奖 —— 偏印好学之象初显。</p></div>
+                                <div class="tl-item"><div class="tl-age">十七岁 · 辛卯流年</div><p>高二那年喜欢的人转学离开，你把心事写进日记，成绩反而冲进年级前十。</p></div>
+                                <div class="tl-item"><div class="tl-age">廿一岁 · 乙未流年</div><p>大学毕业前夕拒绝了家里安排的稳定工作，揣着六千块和一台旧笔记本，决定去更大的城市看看。</p></div>
+                            </div>
+                            <div class="inner-theme"><b>内在课题</b> —— 丙火过旺而水不足：你不缺勇气与起点，缺的是「把一件事做完」的耐性。这局人生，节制即是力量。</div>
+                        </div>
+                        <div>
+                            <div class="gilt-card wish-panel">
+                                <h3>立 愿</h3>
+                                <p class="sub">选定本周目的人生愿望，结局会回望它</p>
+                                <div class="wish-list">
+                                    <button class="wish-card" data-wish><span class="w-glyph">富</span><span class="w-body"><b>稳定富足</b><small>财库充盈、生活无虞，老来不向人低头</small></span></button>
+                                    <button class="wish-card on" data-wish><span class="w-glyph">业</span><span class="w-body"><b>事业有成</b><small>在一个领域立住名字，被世界记得</small></span></button>
+                                    <button class="wish-card" data-wish><span class="w-glyph">缘</span><span class="w-body"><b>亲密圆满</b><small>有人深爱，有家可归，热汤常温</small></span></button>
+                                    <button class="wish-card" data-wish><span class="w-glyph">安</span><span class="w-body"><b>身心安稳</b><small>无病无灾，心境清明，慢慢变老</small></span></button>
+                                    <button class="wish-card" data-wish><span class="w-glyph">游</span><span class="w-body"><b>自由探索</b><small>不被定义，路过尽可能多的风景</small></span></button>
+                                </div>
+                                <div class="prelude-actions">
+                                    <button class="btn btn-gold" data-goto="s-sim">开 启 一 命 千 途</button>
+                                    <button class="btn btn-ghost">重新生成前传</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+</section>
+
+<!-- ════════════════════════════════════════
+     SCREEN 5 · 人生模拟主界面
+═════════════════════════════════════════ -->
+<section id="s-sim" class="screen">
+    <div class="app-shell">
+        <header class="app-topbar">
+            <div class="brand-mini">
+                <span class="seal">命</span>
+                <div><h1>一命千途</h1><small>YI MING QIAN TU</small></div>
+            </div>
+            <div class="topbar-status">
+                <span class="phase-pill">卷三 · 人生行进中</span>
+                <button class="icon-btn" id="open-codex-2">图鉴 4/13</button>
+                <button class="icon-btn">导出档案</button>
+                <button class="icon-btn">回望一生</button>
+                <button class="icon-btn">设置</button>
+            </div>
+        </header>
+        <div class="app-body">
+            <!-- 左侧人生状态栏 -->
+            <aside class="status-rail">
+                <div class="rail-chart-card">
+                    <span class="seal">丙</span>
+                    <div><b>丙火日主</b><small>身强喜金水 · 行动派 / 财来财去 / 中年转运</small></div>
+                </div>
+                <div class="rail-sec">
+                    <h4>人生愿望</h4>
+                    <div class="goal-card">
+                        <div class="g-top"><b>事业有成</b><span>进行中 · 42%</span></div>
+                        <div class="fmeter jade"><i style="width:42%"></i></div>
+                        <small>在一个领域立住名字 · 21/50 愿力</small>
+                    </div>
+                </div>
+                <div class="rail-sec">
+                    <h4>基础属性</h4>
+                    <div class="stat-line"><span>健康</span><div class="fmeter jade"><i style="width:72%"></i></div><b>72</b></div>
+                    <div class="stat-line"><span>财富</span><div class="fmeter"><i style="width:38%"></i></div><b>38</b></div>
+                    <div class="stat-line"><span>事业</span><div class="fmeter"><i style="width:61%"></i></div><b>61</b></div>
+                    <div class="stat-line"><span>感情</span><div class="fmeter cinnabar"><i style="width:45%"></i></div><b>45</b></div>
+                    <div class="stat-line"><span>精神</span><div class="fmeter azure"><i style="width:66%"></i></div><b>66</b></div>
+                    <div class="stat-line"><span>名望</span><div class="fmeter"><i style="width:29%"></i></div><b>29</b></div>
+                </div>
+                <div class="rail-sec">
+                    <h4>长期系统</h4>
+                    <div class="sys-card"><div class="s-top"><b>关系网络</b><span>上升 ↗</span></div><div class="fmeter azure"><i style="width:54%"></i></div></div>
+                    <div class="sys-card"><div class="s-top"><b>学业职业</b><span>稳健 →</span></div><div class="fmeter"><i style="width:63%"></i></div></div>
+                    <div class="sys-card"><div class="s-top"><b>资产基础</b><span>承压 ↘</span></div><div class="fmeter cinnabar"><i style="width:31%"></i></div></div>
+                </div>
+                <div class="rail-sec">
+                    <h4>近期成就</h4>
+                    <div class="ach-line"><span class="a-dot">章</span><div><b>初入江湖</b><small>25 岁 · 第一次跳槽成功</small></div></div>
+                    <div class="ach-line"><span class="a-dot">章</span><div><b>千里之行</b><small>24 岁 · 独自迁居新城市</small></div></div>
+                </div>
+                <div class="rail-sec">
+                    <h4>路径惯性</h4>
+                    <div class="streak-note"><b>连续 3 次 · 发展事业</b><br>惯性 +6 · 事业线已成势，但感情与健康正悄悄付出机会成本。</div>
+                </div>
+            </aside>
+
+            <!-- 中央主区 -->
+            <main class="app-main">
+                <!-- 命途横幅 -->
+                <div class="fate-banner">
+                    <div class="fb-cell age"><span>年龄</span><strong>廿六</strong></div>
+                    <div class="fb-cell"><span>年份</span><strong>2026 上半年</strong></div>
+                    <div class="fb-cell"><span>人生阶段</span><strong>成年起步</strong></div>
+                    <div class="fb-cell luck"><span>大运</span><strong>乙酉</strong></div>
+                    <div class="fb-cell luck"><span>流年</span><strong>丙午</strong></div>
+                </div>
+
+                <!-- 流月天气带 -->
+                <div class="month-band">
+                    <span class="mb-label">本半年流月</span>
+                    <span class="mb-m lucky"><b>庚寅</b>正月 · 机 贵人</span>
+                    <span class="mb-m"><b>辛卯</b>二月 · 平 守成</span>
+                    <span class="mb-m lucky"><b>壬辰</b>三月 · 机 展露</span>
+                    <span class="mb-m risky"><b>癸巳</b>四月 · 忌 口舌</span>
+                    <span class="mb-m"><b>甲午</b>五月 · 平 蓄力</span>
+                    <span class="mb-m risky"><b>乙未</b>六月 · 忌 耗财</span>
+                    <span class="mb-summary"><b>机</b> 贵人提携 · 公开展露　<b>忌</b> 口舌是非 · 冲动消费</span>
+                </div>
+
+                <div class="story-stage">
+                    <!-- 叙事卷轴：人生故事是主舞台 -->
+                    <div class="gilt-card story-window">
+                        <div class="story-toolbar">
+                            <div class="st-title"><b>人生卷轴</b><small>共 47 条 · 已折叠 35 条</small></div>
+                            <div class="filter-chips">
+                                <button class="fchip on">全部</button><button class="fchip">判定</button>
+                                <button class="fchip">阶段</button><button class="fchip">总结</button>
+                                <button class="fchip">成就</button><button class="fchip">结局</button>
+                            </div>
+                        </div>
+                        <div class="story-feed">
+                            <article class="story-entry e-summary"><span class="e-tag">半年度总结 · 廿五岁下半年</span><p>事业 +6、财富 +4、感情 −1。你接下了那个没人敢碰的项目，加班到深夜成了常态。乙酉大运金气渐旺，命书云：<b>财自西来，但火炎易燥</b> —— 你开始整夜睡不踏实。</p></article>
+                            <article class="story-entry e-roll"><span class="e-tag">天机判定 · 廿六岁上半年</span><p>暗骰已掷 —— 目标 65，得 <b>23</b>，<b>大成</b>。乙酉大运金气透出，丙午流年点亮名望宫，贵人自西方来。</p></article>
+                            <article class="story-entry e-stage"><span class="e-tag">阶段叙事 · 廿六岁上半年</span>
+                                <p>这半年你几乎住在公司。正月里那位姓沈的前辈把你引荐进了行业的小圈子 —— 正应了流月庚寅「贵人」之机。三月的产品发布会上，你顶替临时缺席的主管完成了演示，台下坐着的投资人记住了你的名字。</p>
+                                <p>丙火之人站上台口，光就藏不住了。只是四月癸巳「口舌」之忌也应了验：升职的消息传开后，茶水间的议论让你第一次尝到树大招风的滋味。你想起命书批注里那句话 —— <b>节制锋芒，引势而行</b>。</p>
+                            </article>
+                            <article class="story-entry e-achieve"><span class="e-tag">新成就 · 锋芒初露</span><p>第一次在重要场合被行业前辈点名认可。命书记曰：<b>火明于野，必有引之者。</b></p></article>
+                            <article class="story-entry e-resolution">
+                                <div class="er-head">
+                                    <div class="eh-left"><span>命运推演 · 最近一次</span><strong>廿六岁 上半年 · 发展事业</strong></div>
+                                    <span class="outcome-badge success">大成</span>
+                                </div>
+                                <div class="res-fates">
+                                    <div class="res-fate"><span>命盘之力</span><b>丙火坐寅，临场发挥是你的天赋</b></div>
+                                    <div class="res-fate"><span>时运之势</span><b>乙酉大运 × 丙午流年，名望宫被点亮</b></div>
+                                    <div class="res-fate"><span>你的选择</span><b>连续第 3 次投入事业，惯性 +6</b></div>
+                                    <div class="res-fate"><span>伏笔回声</span><b>那位投资人，三年内还会再出现</b></div>
+                                </div>
+                                <div class="delta-row">
+                                    <span class="delta-pill up">事业 +9</span><span class="delta-pill up">名望 +6</span>
+                                    <span class="delta-pill up">财富 +3</span><span class="delta-pill down">健康 −4</span>
+                                    <span class="delta-pill down">感情 −2</span>
+                                </div>
+                            </article>
+                            <article class="story-entry e-summary"><span class="e-tag">半年度总结 · 廿六岁上半年</span><p>连续第三次全力投入事业，路径惯性已成；但你已经两个月没回过父母的电话，体检报告躺在抽屉里没拆。流年丙午火旺，命书提醒：<b>下半年宜补水 —— 休息、感情、故人。</b></p></article>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 底部决策台 -->
+                <div class="decision-dock">
+                    <div class="dock-top">
+                        <div class="dock-stage">
+                            <span class="seal">择</span>
+                            <div><b>本半年人生抉择</b><small>成年起步 · 选 1–3 个行动重点，或自由书写</small></div>
+                        </div>
+                        <div class="dock-selected">已选 <b id="picked-count">1</b>/3 — <b id="picked-names">深耕专业领域</b></div>
+                        <button class="preview-toggle" id="preview-toggle" type="button">展开推演预览 ▾</button>
+                    </div>
+                    <div class="dock-actions-row">
+                        <div class="action-chip-strip" id="action-strip">
+                            <button class="action-chip on goalfit" data-pick="深耕专业领域"><span class="rank">荐一</span><b>深耕专业领域</b><small>事业主收益 · 同频愿望</small></button>
+                            <button class="action-chip" data-pick="经营感情"><b>经营感情</b><small>感情主收益 · 补水之选</small></button>
+                            <button class="action-chip" data-pick="调养身体"><b>调养身体</b><small>健康主收益 · 化解火旺</small></button>
+                            <button class="action-chip" data-pick="社交拓展"><b>社交拓展</b><small>人脉副收益 · 贵人月</small></button>
+                            <button class="action-chip" data-pick="投资理财"><b>投资理财</b><small>财富主收益 · 忌六月</small></button>
+                            <button class="action-chip" data-pick="更多"><b>更多抉择 +4</b><small>展开全部行动</small></button>
+                        </div>
+                        <button class="btn btn-gold dock-submit" id="confirm-turn">落子定局</button>
+                    </div>
+                    <div class="dock-input-row">
+                        <input type="text" placeholder="亦可写下心中所想 —— 例如「辞职去大理开客栈」，命书会自动归类…">
+                        <button class="btn btn-ghost small" style="min-height:44px;padding:0 22px;">加入重点</button>
+                    </div>
+                    <div class="preview-strip">
+                        <div class="preview-cell highlight"><span>愿望同频</span><b>高度同频 · 事业有成</b></div>
+                        <div class="preview-cell"><span>天机预估</span><b>D100 目标约 62</b></div>
+                        <div class="preview-cell"><span>主 / 辅</span><b>事业 +名望</b></div>
+                        <div class="preview-cell"><span>风险</span><b>健康可能被消耗</b></div>
+                        <div class="preview-cell"><span>路径惯性</span><b>将连续第 4 次 · +8</b></div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+</section>
+
+<!-- ════════════════════════════════════════
+     SCREEN 6 · 结局档案
+═════════════════════════════════════════ -->
+<section id="s-ending" class="screen">
+    <div class="app-shell">
+        <header class="app-topbar">
+            <div class="brand-mini">
+                <span class="seal">命</span>
+                <div><h1>一命千途</h1><small>YI MING QIAN TU</small></div>
+            </div>
+            <div class="topbar-status">
+                <span class="phase-pill">终卷 · 人生收束</span>
+                <button class="icon-btn">图鉴 5/13</button>
+                <button class="icon-btn">导出档案</button>
+            </div>
+        </header>
+        <div class="app-body">
+            <main class="app-main centered">
+                <div class="ending-wrap">
+                    <div class="ending-head">
+                        <p class="eyebrow">FINAL ARCHIVE · 六十岁终章</p>
+                        <h1 class="ending-title">燃灯者</h1>
+                        <p>一生如火，照亮过许多人的路 —— 包括你自己的。</p>
+                    </div>
+                    <div class="hidden-ending">
+                        <span class="rarity">传奇 · 隐藏结局</span>
+                        <b>薪火相传</b>
+                        <p>五十二岁那年你卖掉公司，把后半生交给了职业教育。你教过的学生里，有十一个人的人生因此改道。命书记曰：丙火之极，不在灼热，在余温。</p>
+                        <small>解锁条件：事业 S 级 + 名望 80 以上 + 晚年转向传承类行动</small>
+                    </div>
+                    <div class="dim-grid">
+                        <div class="gilt-card dim-card"><span>事业</span><div class="grade grade-S">甲</div><small>92 分</small></div>
+                        <div class="gilt-card dim-card"><span>名望</span><div class="grade grade-S">甲</div><small>88 分</small></div>
+                        <div class="gilt-card dim-card"><span>财富</span><div class="grade grade-A">乙</div><small>74 分</small></div>
+                        <div class="gilt-card dim-card"><span>精神</span><div class="grade grade-A">乙</div><small>70 分</small></div>
+                        <div class="gilt-card dim-card"><span>家庭</span><div class="grade grade-B">丙</div><small>58 分</small></div>
+                        <div class="gilt-card dim-card"><span>感情</span><div class="grade grade-B">丙</div><small>55 分</small></div>
+                        <div class="gilt-card dim-card"><span>健康</span><div class="grade grade-C">丁</div><small>41 分</small></div>
+                    </div>
+                    <div class="ending-lists">
+                        <div class="gilt-card ending-list">
+                            <h4>主要成就</h4>
+                            <ul>
+                                <li>三十一岁创办的公司，最终活过了十九个年头</li>
+                                <li>人生愿望「事业有成」达成 —— 愿力 50/50</li>
+                                <li>解锁成就十四枚，含稀有成就「锋芒初露」「东山再起」</li>
+                            </ul>
+                        </div>
+                        <div class="gilt-card ending-list regret">
+                            <h4>主要遗憾</h4>
+                            <ul>
+                                <li>三十四岁那场没有赴约的婚礼，再没有第二次</li>
+                                <li>健康透支于四十岁前后，晚年与药为伴</li>
+                                <li>父亲走时，你在另一个城市的会议室里</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="ending-actions">
+                        <button class="btn btn-gold" style="min-width:200px;">导出人生档案</button>
+                        <button class="btn btn-ghost" id="open-codex-3">查看结局图鉴</button>
+                        <button class="btn btn-cinnabar" data-goto="s-birth">再开一局</button>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+</section>
+
+<!-- ════════════ 弹窗 · 结局图鉴 ════════════ -->
+<div class="modal-backdrop" id="codex-modal">
+    <div class="gilt-card corner-frame modal">
+        <div class="corners"><i></i><i></i><i></i><i></i></div>
+        <div class="modal-head">
+            <div><p class="eyebrow">ENDING CODEX</p><h2>结局图鉴</h2></div>
+            <button class="modal-close" data-close="codex-modal">✕</button>
+        </div>
+        <div class="codex-progress"><div class="fmeter"><i style="width:38%"></i></div><span>已集 5 / 13</span></div>
+        <div class="codex-grid">
+            <div class="codex-card unlocked"><span class="c-rarity">普通</span><b>平凡之路</b><p>不惊不险地走完一生，平淡本身就是答案。</p></div>
+            <div class="codex-card unlocked"><span class="c-rarity">普通</span><b>持家者</b><p>家庭与感情双高收束，热汤常温，灯火常明。</p></div>
+            <div class="codex-card unlocked"><span class="c-rarity">稀有</span><b>燃灯者</b><p>事业与名望俱高，一生如火照亮他人。</p></div>
+            <div class="codex-card unlocked rare"><span class="c-rarity">传奇</span><b>薪火相传</b><p>极致事业之后转身传承，余温胜于灼热。</p></div>
+            <div class="codex-card unlocked"><span class="c-rarity">稀有</span><b>云游四海</b><p>自由愿望满级，足迹七城以上，无枝可依亦无憾。</p></div>
+            <div class="codex-card locked"><span class="c-rarity">稀有</span><b>？？？</b><p>线索：财富归零之后，仍有人愿意借你第一桶金。</p></div>
+            <div class="codex-card locked"><span class="c-rarity">隐藏</span><b>？？？</b><p>线索：健康濒危时做出的那个选择，决定了这个结局。</p></div>
+            <div class="codex-card locked"><span class="c-rarity">传奇</span><b>？？？</b><p>线索：连续二十次同一行动，惯性本身会成为命运。</p></div>
+            <div class="codex-card locked"><span class="c-rarity">普通</span><b>？？？</b><p>线索：六岁开局，且从未离开出生的城市。</p></div>
+        </div>
+    </div>
+</div>
+
+<!-- ════════════ 弹层 · D100 天机骰 ════════════ -->
+<div id="roll-overlay">
+    <div class="roll-stage">
+        <div class="roll-rings"></div>
+        <p class="roll-label">天 机 推 演</p>
+        <div class="dice-core rolling" id="dice-core">
+            <span class="d-num" id="dice-num">--</span>
+            <span class="d-cap">D 100</span>
+        </div>
+        <div class="roll-meta">
+            <span>行动 · 深耕专业领域</span>
+            <span>目标 ≤ 62</span>
+        </div>
+        <div class="roll-verdict"><span class="v-word" id="verdict-word">大成</span></div>
+        <p class="roll-hint">点击任意处收起</p>
+    </div>
+</div>
+
+<script src="design.js"></script>
+</body>
+</html>

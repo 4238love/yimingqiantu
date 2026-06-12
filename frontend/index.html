@@ -30,7 +30,6 @@
                 </div>
                 <div id='game-status'>
                     <span id='phase-pill' aria-live='polite'>待排盘</span>
-                    <button id='codex-button' class='header-button' type='button' aria-controls='codex-panel' aria-expanded='false'>图鉴 0/13</button>
                     <button id='status-toggle-button' class='header-button' type='button' aria-controls='status-panel' aria-expanded='true'>收起状态</button>
                     <div class='header-menu'>
                         <button id='settings-menu-button' class='header-button' type='button' aria-controls='settings-menu-panel' aria-expanded='false'>设置</button>
@@ -137,18 +136,6 @@
             </footer>
         </div>
 
-        <div id='codex-backdrop' class='modal-backdrop hidden' aria-hidden='true'></div>
-        <section id='codex-panel' class='panel-card hidden' role='dialog' aria-modal='true' aria-labelledby='codex-title' aria-hidden='true'>
-            <div class='panel-title codex-modal-title'>
-                <div>
-                    <p class='eyebrow'>Ending Codex</p>
-                    <h2 id='codex-title'>结局图鉴</h2>
-                </div>
-                <button id='codex-close-button' class='modal-close-button' type='button' aria-label='关闭结局图鉴'>×</button>
-            </div>
-            <div id='codex-content'></div>
-        </section>
-
         <div id='api-settings-backdrop' class='modal-backdrop hidden' aria-hidden='true'></div>
         <section id='api-settings-panel' class='panel-card hidden' role='dialog' aria-modal='true' aria-labelledby='api-settings-title' aria-hidden='true'>
             <div class='panel-title api-modal-title'>
@@ -195,7 +182,7 @@
                 </div>
                 <button id='retrospect-close-button' class='modal-close-button' type='button' aria-label='关闭回望确认'>×</button>
             </div>
-            <p id='retrospect-description' class='retrospect-confirm-copy'>回望会结束当前周目并生成结局档案。结束后仍可导出档案、查看图鉴或重新开始。</p>
+            <p id='retrospect-description' class='retrospect-confirm-copy'>回望会结束当前周目并生成结局档案。结束后仍可导出档案或重新开始。</p>
             <div class='retrospect-confirm-summary' aria-live='polite'></div>
             <div class='panel-actions'>
                 <button id='retrospect-cancel-button' class='secondary-button' type='button'>先不回望</button>
