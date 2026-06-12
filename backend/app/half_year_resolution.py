@@ -24,9 +24,22 @@ def stage_action_options(age: int | None) -> list[str]:
 def stage_safe_action(age: int | None, action: str) -> str:
     return life_stage_policy.stage_safe_action(age, action)
 
-def pick_stage_event(player_id: str, age: int, half: int, action: str, outcome: str) -> dict[str, Any]:
+def _event_context(session: dict[str, Any], luck: dict[str, Any] | None = None, annual: dict[str, Any] | None = None) -> dict[str, Any]:
+    chart = session.get('bazi_chart') or {}
+    analysis = session.get('bazi_analysis') or {}
+    return {
+        'useful_elements': _string_list(chart.get('useful_elements') or analysis.get('useful_elements'), [], 5),
+        'unfavorable_elements': _string_list(chart.get('unfavorable_elements') or analysis.get('unfavorable_elements'), [], 5),
+        'ten_gods': _string_list(list((chart.get('ten_gods') or {}).values()) or analysis.get('ten_god_focus'), [], 8),
+        'chart_tags': _string_list(session.get('chart_tags') or analysis.get('chart_tags'), [], 10),
+        'luck_themes': _string_list((luck or {}).get('theme'), [], 6),
+        'annual_events': _string_list((annual or {}).get('events'), [], 6),
+    }
+
+
+def pick_stage_event(player_id: str, age: int, half: int, action: str, outcome: str, context: dict[str, Any] | None = None) -> dict[str, Any]:
     stage = age_stage(age)
-    return event_pool.pick_stage_event(player_id, age, half, action, outcome, stage)
+    return event_pool.pick_stage_event(player_id, age, half, action, outcome, stage, context or {})
 
 def empty_focus_memory() -> dict[str, Any]:
     return {'last_focus': '', 'streak': 0, 'total_counts': {}, 'recent_focuses': []}
@@ -230,6 +243,11 @@ def build_current_life_projection(session: dict[str, Any]) -> dict[str, Any]:
         '关系': session.get('relationships', []),
         '连续选择': session.get('focus_streak', {}),
         '行动记忆': session.get('focus_memory', {}),
+        '人生记忆': session.get('life_memories', [])[-8:],
+        '关系记忆': session.get('relationship_memories', [])[-6:],
+        '遗憾': session.get('regrets', [])[-6:],
+        '转折': session.get('turning_points', [])[-6:],
+        '未竟线索': session.get('unresolved_threads', [])[-6:],
         '成就': session.get('achievements', []),
         '里程碑': session.get('milestones', [])[-10:],
         '性格': session.get('personality', []),
@@ -335,6 +353,141 @@ def append_milestone(session: dict[str, Any], record: dict[str, Any], achievemen
     session['milestones'] = milestones[-80:]
     return milestone
 
+
+MEMORY_TYPES = {
+    '专注学业': ('learning_seed', '学习伏笔'),
+    '发展事业': ('career_seed', '事业伏笔'),
+    '经营感情': ('relationship_seed', '关系伏笔'),
+    '陪伴家人': ('family_seed', '家庭伏笔'),
+    '投资理财': ('wealth_seed', '财富伏笔'),
+    '调养身体': ('health_seed', '身体伏笔'),
+    '社交拓展': ('network_seed', '人脉伏笔'),
+    '创业冒险': ('venture_seed', '冒险伏笔'),
+    '搬迁远行': ('migration_seed', '迁移伏笔'),
+    '随缘而行': ('fate_seed', '机缘伏笔'),
+}
+
+
+def ensure_life_memory_lists(session: dict[str, Any]) -> None:
+    for key in ['life_memories', 'relationship_memories', 'regrets', 'turning_points', 'unresolved_threads']:
+        value = session.get(key)
+        session[key] = value if isinstance(value, list) else []
+
+
+def _echo_after_age(age: int) -> int:
+    if age < 18:
+        return 18
+    if age < 22:
+        return 22
+    if age < 35:
+        return 35
+    return min(60, age + 5)
+
+
+def _memory_affects(record: dict[str, Any]) -> list[str]:
+    action = str(record.get('main_focus') or '随缘而行')
+    profile = fate_mapper.ACTION_PROFILES.get(action, fate_mapper.ACTION_PROFILES['随缘而行'])
+    candidates = [profile.get('primary'), profile.get('secondary')]
+    candidates.extend((record.get('stage_event') or {}).get('state_bias', {}).keys())
+    result: list[str] = []
+    for item in candidates:
+        text = str(item or '').strip()
+        if text and text in fate_mapper.BASE_LIFE_STATE and text not in result:
+            result.append(text)
+    return result[:4]
+
+
+def _build_life_memory(record: dict[str, Any]) -> dict[str, Any]:
+    action = str(record.get('main_focus') or '随缘而行')
+    memory_type, title = MEMORY_TYPES.get(action, MEMORY_TYPES['随缘而行'])
+    stage_event = record.get('stage_event') or {}
+    age = int(record.get('age') or 0)
+    choice_text = str(record.get('raw_choice_text') or '') or '、'.join(_string_list(record.get('focuses'), [action], 3))
+    event_title = str(stage_event.get('title') or title)
+    event_text = str(stage_event.get('event') or record.get('summary') or '')
+    memory_text = (
+        str(age) + '岁' + str(record.get('half_label') or '') +
+        '，你选择“' + choice_text + '”，在《' + event_title + '》里留下了' +
+        '“' + event_text[:90] + '”这段经验。'
+    )
+    return {
+        'id': 'memory_' + str(age) + '_' + str(record.get('half') or 1) + '_' + str(record.get('event_id') or stage_event.get('event_id') or int(time.time() * 1000)),
+        'age': age,
+        'year': record.get('year'),
+        'half': record.get('half'),
+        'half_label': record.get('half_label'),
+        'type': memory_type,
+        'title': title,
+        'text': memory_text,
+        'choice_text': choice_text,
+        'focuses': list(record.get('focuses') or []),
+        'event_id': stage_event.get('event_id') or '',
+        'event_title': event_title,
+        'stage_label': record.get('stage_label') or stage_event.get('stage_label') or '',
+        'echo_after_age': _echo_after_age(age),
+        'affects': _memory_affects(record),
+        'bazi_event_influence': stage_event.get('bazi_event_influence') or '',
+        'echoed_at': [],
+    }
+
+
+def _due_memory_echoes(session: dict[str, Any], age: int, current_id: str = '') -> list[dict[str, Any]]:
+    echoes: list[dict[str, Any]] = []
+    for memory in session.get('life_memories') or []:
+        if not isinstance(memory, dict):
+            continue
+        if current_id and memory.get('id') == current_id:
+            continue
+        try:
+            echo_after = int(memory.get('echo_after_age') or 999)
+        except (TypeError, ValueError):
+            continue
+        echoed_at = memory.setdefault('echoed_at', [])
+        if age >= echo_after and age not in echoed_at:
+            echoed_at.append(age)
+            echoes.append({
+                'source_id': memory.get('id'),
+                'age': age,
+                'title': memory.get('title') or '人生回声',
+                'text': '早年那段“' + str(memory.get('choice_text') or memory.get('title') or '选择') + '”的经验，在' + str(age) + '岁重新成为你的底气、犹豫或判断参照。',
+                'affects': list(memory.get('affects') or []),
+            })
+        if len(echoes) >= 3:
+            break
+    return echoes
+
+
+def commit_life_memories(session: dict[str, Any], record: dict[str, Any]) -> dict[str, Any]:
+    ensure_life_memory_lists(session)
+    age = int(record.get('age') or session.get('current_age') or 0)
+    memory = _build_life_memory(record)
+    echoes = _due_memory_echoes(session, age, str(memory.get('id') or ''))
+    session['life_memories'].append(memory)
+    session['life_memories'] = session['life_memories'][-120:]
+    action = str(record.get('main_focus') or '')
+    outcome = str((record.get('roll_event') or {}).get('outcome') or '')
+    if action in ['经营感情', '陪伴家人', '社交拓展']:
+        session['relationship_memories'].append(memory)
+        session['relationship_memories'] = session['relationship_memories'][-80:]
+    if outcome in ['失败', '大失败']:
+        regret = deepcopy(memory)
+        regret['title'] = '未竟之事'
+        regret['text'] = '这次“' + str(memory.get('choice_text') or action) + '”没有完全落稳，留下后续需要修补的遗憾。'
+        session['regrets'].append(regret)
+        session['unresolved_threads'].append(regret)
+    else:
+        turning = deepcopy(memory)
+        turning['title'] = '关键转折'
+        turning['text'] = '这次“' + str(memory.get('choice_text') or action) + '”被生活承接住，成为可以继续调用的经验。'
+        session['turning_points'].append(turning)
+    session['regrets'] = session['regrets'][-80:]
+    session['unresolved_threads'] = session['unresolved_threads'][-80:]
+    session['turning_points'] = session['turning_points'][-80:]
+    record['life_memory'] = deepcopy(memory)
+    record['memory_echoes'] = deepcopy(echoes)
+    return {'life_memory': memory, 'memory_echoes': echoes}
+
+
 def complete_authoritative_record(session: dict[str, Any], record: dict[str, Any]) -> dict[str, Any]:
     """Attach deterministic progress artifacts to an authoritative half-year record."""
     refresh_life_systems(session, record)
@@ -346,6 +499,7 @@ def complete_authoritative_record(session: dict[str, Any], record: dict[str, Any
     record['new_achievements'] = deepcopy(new_achievements)
     milestone = append_milestone(session, record, new_achievements)
     record['milestone'] = deepcopy(milestone)
+    commit_life_memories(session, record)
     return record
 
 def build_focus_streak_feedback(session: dict[str, Any], action: str) -> dict[str, Any]:
@@ -650,6 +804,7 @@ def _build_life_scene(
     annual: dict[str, Any],
     monthly_cycles: list[dict[str, Any]],
     stage_event: dict[str, Any],
+    choice_intent: dict[str, Any] | None = None,
 ) -> str:
     age = str(session.get('current_age') or '')
     half_label = str(session.get('current_half_label') or fate_mapper.half_label(session.get('current_half') or 1))
@@ -666,11 +821,17 @@ def _build_life_scene(
     goal_text = ''
     if goal.get('title'):
         goal_text = '你未必能清楚说出“' + str(goal.get('title')) + '”意味着什么，但这个愿望已经在选择背后发出很轻的牵引。'
+    choice_text = ''
+    if choice_intent and choice_intent.get('raw_choice_text') and choice_intent.get('is_custom'):
+        choice_text = '这不是系统替你选的抽象按钮，而是你自己写下的“' + str(choice_intent.get('raw_choice_text')) + '”，后台把它归入“' + '、'.join(_string_list(choice_intent.get('normalized_focuses'), focuses, 3)) + '”。'
+    bazi_event_line = str(stage_event.get('bazi_event_influence') or '')
     return (
         (age + '岁' + half_label if age else '这个半年') +
         ('，你还在“' + stage_label + '”里生活。' if stage_label else '，生活先从具体日子开始。') +
+        choice_text +
         daily_scene +
         (('触发这段变化的，是《' + event_title + '》：' + event_text) if event_text and event_title else (event_text if event_text else '')) +
+        (bazi_event_line if bazi_event_line else '') +
         outcome_text +
         _build_month_life_detail(luck, annual, monthly_cycles) +
         _build_state_life_detail(changes) +
@@ -688,6 +849,7 @@ def build_fate_explanation(
     annual: dict[str, Any],
     monthly_cycles: list[dict[str, Any]],
     stage_event: dict[str, Any],
+    choice_intent: dict[str, Any] | None = None,
 ) -> dict[str, str]:
     chart = session.get('bazi_chart') or {}
     tags = _string_list(session.get('chart_tags'), [], 5)
@@ -695,13 +857,16 @@ def build_fate_explanation(
     profile = fate_mapper.ACTION_PROFILES.get(main_focus, fate_mapper.ACTION_PROFILES['随缘而行'])
     day_master = str(chart.get('day_master') or '日主')
     bazi_life_detail = _build_bazi_life_detail(session, main_focus)
-    life_scene = _build_life_scene(session, focuses, main_focus, roll_event, changes, luck, annual, monthly_cycles, stage_event)
+    life_scene = _build_life_scene(session, focuses, main_focus, roll_event, changes, luck, annual, monthly_cycles, stage_event, choice_intent)
     month_life_detail = _build_month_life_detail(luck, annual, monthly_cycles)
+    choice_display = _choice_display_text(choice_intent, focuses)
+    classification_display = '、'.join(_string_list((choice_intent or {}).get('normalized_focuses'), focuses, 3))
+    bazi_event_line = str(stage_event.get('bazi_event_influence') or '')
     chart_text = (
         '你的命盘以' + day_master + '为底色' +
         ('，关键词是“' + '、'.join(tags) + '”' if tags else '') +
         ('，喜' + '、'.join(useful) if useful else '') +
-        '。' + bazi_life_detail
+        '。' + bazi_life_detail + (('事件牵引：' + bazi_event_line) if bazi_event_line else '')
     )
     fortune_text = _cycle_text(luck, annual, monthly_cycles) + '。' + month_life_detail
     outcome = str(roll_event.get('outcome') or '未知')
@@ -711,7 +876,9 @@ def build_fate_explanation(
         choice_result = '这次选择触碰到现实阻力，挫败感会先从小事里冒出来'
     daily_scene = _stage_action_scene(stage_event, main_focus)
     choice_text = (
-        '你选择“' + '、'.join(focuses) + '”。' + daily_scene + choice_result +
+        '你选择“' + choice_display + '”' +
+        (('，系统将它归入“' + classification_display + '”') if choice_display != classification_display else '') +
+        '。' + daily_scene + choice_result +
         '：主线推向“' + str(profile.get('primary') or '') + '”，副线牵动“' +
         str(profile.get('secondary') or '') + '”，同时把“' + str(profile.get('risk') or '机会成本') +
         '”带入账本。' + str(stage_event.get('event') or '')
@@ -755,18 +922,87 @@ def roll(player_id: str, roll_type: str, target: int, description: str) -> dict[
         'result_text': '【系统提示：' + roll_type + ' D100 判定；目标值 ' + str(target) + '，投掷 ' + str(result) + '，结果 ' + outcome + '】',
     }
 
-def normalize_focuses(action_payload: dict[str, Any] | str) -> list[str]:
+
+CITY_OR_MIGRATION_HINTS = [
+    '北京', '上海', '广州', '深圳', '杭州', '成都', '南京', '武汉', '西安', '苏州', '重庆', '天津',
+    '外地', '异地', '大城市', '一线城市', '换城市', '去外面', '离开家', '搬去', '搬到', '出省',
+]
+
+
+def _raw_focus_values(action_payload: dict[str, Any] | str) -> list[str]:
     if isinstance(action_payload, str):
-        return [fate_mapper.infer_action_from_text(action_payload)]
-    focuses = action_payload.get('focuses') or action_payload.get('actions') or []
-    if isinstance(focuses, str):
-        focuses = [focuses]
-    cleaned = []
-    for item in focuses:
-        action = fate_mapper.infer_action_from_text(str(item))
-        if action not in cleaned:
-            cleaned.append(action)
-    return cleaned[:3] or ['随缘而行']
+        return [str(action_payload).strip()] if str(action_payload).strip() else []
+    source = (
+        action_payload.get('focuses')
+        or action_payload.get('actions')
+        or action_payload.get('raw_focuses')
+        or action_payload.get('choice_text')
+        or action_payload.get('action')
+        or []
+    )
+    if isinstance(source, str):
+        source = [source]
+    if not isinstance(source, list):
+        return []
+    return [str(item).strip() for item in source if str(item).strip()]
+
+
+def infer_focuses_from_text(text: str) -> list[str]:
+    raw = str(text or '').strip()
+    if not raw:
+        return []
+    if raw in fate_mapper.ACTION_PROFILES:
+        return [raw]
+    matches: list[str] = []
+    for action, keywords in fate_mapper.ACTION_KEYWORDS.items():
+        if action == '发展事业' and '专注学业' in matches:
+            strong_career_keywords = [keyword for keyword in keywords if keyword != '专业']
+            if not any(keyword in raw for keyword in strong_career_keywords):
+                continue
+        if any(keyword in raw for keyword in keywords):
+            matches.append(action)
+    if any(hint in raw for hint in CITY_OR_MIGRATION_HINTS) and '搬迁远行' not in matches:
+        matches.append('搬迁远行')
+    if not matches:
+        inferred = fate_mapper.infer_action_from_text(raw)
+        if inferred:
+            matches.append(inferred)
+    result: list[str] = []
+    for action in matches:
+        if action in fate_mapper.ACTION_PROFILES and action not in result:
+            result.append(action)
+    return result[:3]
+
+
+def build_choice_intent(action_payload: dict[str, Any] | str) -> dict[str, Any]:
+    raw_focuses = _raw_focus_values(action_payload)
+    normalized: list[str] = []
+    for item in raw_focuses:
+        for action in infer_focuses_from_text(item):
+            if action not in normalized:
+                normalized.append(action)
+    if not normalized:
+        normalized = ['随缘而行']
+    raw_choice_text = '、'.join(raw_focuses)
+    is_custom = any(item not in fate_mapper.ACTION_PROFILES for item in raw_focuses)
+    return {
+        'raw_focuses': raw_focuses,
+        'raw_choice_text': raw_choice_text,
+        'normalized_focuses': normalized[:3],
+        'classification_text': '、'.join(normalized[:3]),
+        'is_custom': is_custom,
+        'source': 'free_text' if is_custom else 'preset',
+    }
+
+
+def _choice_display_text(choice_intent: dict[str, Any] | None, focuses: list[str]) -> str:
+    if choice_intent and choice_intent.get('raw_choice_text') and choice_intent.get('is_custom'):
+        return str(choice_intent.get('raw_choice_text'))
+    return '、'.join(_string_list(focuses, ['随缘而行'], 3))
+
+
+def normalize_focuses(action_payload: dict[str, Any] | str) -> list[str]:
+    return _string_list(build_choice_intent(action_payload).get('normalized_focuses'), ['随缘而行'], 3)
 
 def resolve_authoritative_record(session: dict[str, Any], action_payload: dict[str, Any] | str) -> dict[str, Any]:
     """Resolve the authoritative deterministic half-year choice.
@@ -777,7 +1013,8 @@ def resolve_authoritative_record(session: dict[str, Any], action_payload: dict[s
     - this function mutates only authoritative state for the half-year choice:
       life_state, roll_event, focus_memory/focus_streak/streak_warning.
     """
-    focuses = normalize_focuses(action_payload)
+    choice_intent = build_choice_intent(action_payload)
+    focuses = _string_list(choice_intent.get('normalized_focuses'), ['随缘而行'], 3)
     state_before = dict(session.get('life_state', {}))
     life_systems_before = deepcopy(session.get('life_systems') or {})
     relationships_before = deepcopy(session.get('relationships') or [])
@@ -797,6 +1034,8 @@ def resolve_authoritative_record(session: dict[str, Any], action_payload: dict[s
             normalized.append(safe_focus)
     focuses = normalized[:3] or ['随缘而行']
     main_focus = focuses[0]
+    choice_intent['normalized_focuses'] = focuses
+    choice_intent['classification_text'] = '、'.join(focuses)
 
     focus_feedback = build_focus_streak_feedback(session, main_focus)
     target, modifiers = fate_mapper.compute_roll_target(session, main_focus)
@@ -806,7 +1045,7 @@ def resolve_authoritative_record(session: dict[str, Any], action_payload: dict[s
     roll_event = roll(session['player_id'], fate_mapper.ACTION_PROFILES[main_focus]['roll'], target, str(age) + '岁' + half_label + '行动')
     roll_event['modifiers'] = modifiers
 
-    stage_event = pick_stage_event(str(session.get('player_id') or 'guest'), age, half, main_focus, roll_event['outcome'])
+    stage_event = pick_stage_event(str(session.get('player_id') or 'guest'), age, half, main_focus, roll_event['outcome'], _event_context(session, luck, annual))
     changes = fate_mapper.scale_changes(fate_mapper.apply_annual_result(session, main_focus, roll_event['outcome']))
     for extra_focus in focuses[1:]:
         profile = fate_mapper.ACTION_PROFILES[extra_focus]
@@ -821,8 +1060,9 @@ def resolve_authoritative_record(session: dict[str, Any], action_payload: dict[s
     focus_memory_after = commit_focus_streak(session, focus_feedback, age, half, half_label, roll_event['outcome'])
 
     month_pillars = '、'.join(str(item.get('month_name', '')) + str(item.get('pillar', '')) for item in monthly_cycles)
-    summary = str(age) + '岁' + half_label + '，你选择' + '、'.join(focuses) + '。流年' + str(annual.get('pillar', '未知')) + '之下，流月经过' + month_pillars + '，判定结果为' + roll_event['outcome'] + '。'
-    fate_explanation = build_fate_explanation(session, focuses, main_focus, roll_event, changes, luck, annual, monthly_cycles, stage_event)
+    choice_display = _choice_display_text(choice_intent, focuses)
+    summary = str(age) + '岁' + half_label + '，你选择“' + choice_display + '”' + (('，后台归入' + '、'.join(focuses)) if choice_display != '、'.join(focuses) else '') + '。流年' + str(annual.get('pillar', '未知')) + '之下，流月经过' + month_pillars + '，判定结果为' + roll_event['outcome'] + '。'
+    fate_explanation = build_fate_explanation(session, focuses, main_focus, roll_event, changes, luck, annual, monthly_cycles, stage_event, choice_intent)
     return {
         'age': age,
         'year': year,
@@ -832,6 +1072,10 @@ def resolve_authoritative_record(session: dict[str, Any], action_payload: dict[s
         'fate_explanation': fate_explanation,
         'state_effect': changes,
         'focuses': focuses,
+        'raw_choice_text': str(choice_intent.get('raw_choice_text') or ''),
+        'raw_focuses': list(choice_intent.get('raw_focuses') or []),
+        'normalized_focuses': list(focuses),
+        'choice_intent': deepcopy(choice_intent),
         'main_focus': main_focus,
         'roll_event': roll_event,
         'roll_modifiers': modifiers,

@@ -115,6 +115,7 @@ def test_childhood_stage_limits_adult_actions_after_start():
     assert session['action_guides']
     assert all('roll_target_preview' in guide for guide in session['action_guides'])
     assert all((guide.get('life_choice') or {}).get('decision') for guide in session['action_guides'])
+    assert all((guide.get('event_preview') or {}).get('bazi_event_influence') for guide in session['action_guides'])
 
     _choose_focuses(session, ['想创业赚钱'])
     assert session['annual_summaries'][-1]['main_focus'] == '专注学业'
@@ -238,6 +239,93 @@ def test_annual_action_accepts_custom_text(monkeypatch):
     assert '命盘与时势' in stage_history
     assert '生活叙事' in latest_history
     assert '判定细节' in latest_history
+
+def test_custom_choice_preserves_raw_text_and_backend_classification(monkeypatch):
+    monkeypatch.setattr(game_logic.openai_client, 'is_text_ai_enabled', lambda *args, **kwargs: False)
+    session = _chart_session()
+    _generate_prelude(session)
+    _accept_prelude(session)
+
+    _choose_focuses(session, ['去上海找工作'])
+
+    latest = session['annual_summaries'][-1]
+    assert latest['raw_choice_text'] == '去上海找工作'
+    assert latest['raw_focuses'] == ['去上海找工作']
+    assert latest['normalized_focuses'] == ['发展事业', '搬迁远行']
+    assert latest['choice_intent']['is_custom'] is True
+    assert latest['choice_intent']['classification_text'] == '发展事业、搬迁远行'
+    assert latest['main_focus'] == '发展事业'
+    assert latest['roll_event']['type'] == '事业判定'
+    assert '去上海找工作' in latest['summary']
+    assert '系统将它归入“发展事业、搬迁远行”' in latest['summary']
+    assert '去上海找工作' in session['display_history'][-1]
+    assert any('玩家选择' not in item and '去上海找工作' in item for item in session['display_history'])
+    assert latest['fate_explanation']['choice_influence'].startswith('你选择“去上海找工作”')
+
+def test_bazi_context_weights_stage_event_style():
+    stage = half_year_resolution.age_stage(6)
+    gold_water = {
+        'useful_elements': ['金', '水'],
+        'unfavorable_elements': [],
+        'ten_gods': ['正官', '正印'],
+        'chart_tags': [],
+        'luck_themes': [],
+        'annual_events': [],
+    }
+    wood_earth = {
+        'useful_elements': ['木', '土'],
+        'unfavorable_elements': ['木'],
+        'ten_gods': ['比肩', '食神'],
+        'chart_tags': ['土气显'],
+        'luck_themes': [],
+        'annual_events': [],
+    }
+
+    gold_event = event_pool.pick_stage_event('same_player', 6, 1, '专注学业', '成功', stage, gold_water)
+    wood_event = event_pool.pick_stage_event('same_player', 6, 1, '专注学业', '成功', stage, wood_earth)
+
+    assert gold_event['title'] == '旧题重做'
+    assert wood_event['title'] == '沉默积累'
+    assert gold_event['title'] != wood_event['title']
+    assert '规则训练和信息整理' in gold_event['bazi_event_influence']
+    assert gold_event['bazi_event_score'] != wood_event['bazi_event_score']
+    assert {'金', '水'} <= set(gold_event['elements'])
+    assert gold_event['life_domains']
+
+def test_life_memory_records_and_echoes_at_later_age(monkeypatch):
+    monkeypatch.setattr(game_logic.openai_client, 'is_text_ai_enabled', lambda *args, **kwargs: False)
+    monkeypatch.setattr(half_year_resolution.random, 'randint', lambda start, end: 42)
+    session = life_session.new_session('memory_echo_player')
+    _generate_chart(
+        session,
+        {
+            'birth_info': {
+                'birth_date': '2018-04-10',
+                'birth_time': '09:00',
+                'gender': 'unknown',
+                'start_age': 6,
+                'calendar': 'solar',
+            }
+        },
+    )
+    _generate_prelude(session)
+    _accept_prelude(session)
+
+    _choose_focuses(session, ['反复学习旧题'])
+    first = session['annual_summaries'][-1]
+    assert first['life_memory']['echo_after_age'] == 18
+    assert first['life_memory']['choice_text'] == '反复学习旧题'
+    assert session['life_memories']
+
+    session['current_age'] = 18
+    session['current_half'] = 1
+    session['current_half_label'] = '上半年'
+    _choose_focuses(session, ['准备升学考试'])
+    latest = session['annual_summaries'][-1]
+
+    assert latest['memory_echoes']
+    assert '反复学习旧题' in latest['memory_echoes'][0]['text']
+    assert '伏笔与回声' in latest['summary']
 
 def test_game_command_router_owns_public_action_dispatch(monkeypatch):
     monkeypatch.setattr(game_logic.openai_client, 'is_text_ai_enabled', lambda *args, **kwargs: False)

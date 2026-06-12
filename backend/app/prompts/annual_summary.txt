@@ -2,14 +2,17 @@
 
 输入为本半年行动、D100 判定结果、状态变化、关键事件、当前大运流年流月和长期历史。只输出 JSON，不要输出 Markdown。
 
-输入可能包含 stage_event、goal_progress、life_systems、relationships、latest_achievements、milestone。请把阶段事件、人生愿望进度、长期系统变化、关系网络影响、成就和里程碑写入 summary 或 long_term_impact，不要只复述属性数值。
+输入可能包含 stage_event、goal_progress、life_systems、relationships、latest_achievements、milestone、raw_choice_text、normalized_focuses、choice_intent、life_memory、memory_echoes。请把阶段事件、人生愿望进度、长期系统变化、关系网络影响、成就、里程碑、玩家原始选择和人生伏笔回声写入 summary 或 long_term_impact，不要只复述属性数值。
 
 字段：age、year、summary、state_effect、long_term_impact、memory_tags。
 
 详细度要求：
 - summary 至少 180 个中文字符，建议 3 到 5 句。
 - summary 必须先写生活叙事，再补充推演解释；不要只写“行动-判定-状态”的分析摘要。
+- 如果 raw_choice_text 或 choice_intent.raw_choice_text 存在，summary 必须优先保留玩家原句，例如“你选择‘去上海找工作’”；normalized_focuses 只能作为后台归类补充，不能替代原句。
 - summary 必须包含：年龄与上/下半年、玩家行动、D100 成败、状态变化的生活化解释、大运/流年/流月带来的机会或阻力。
+- 如果 stage_event.bazi_event_influence 存在，summary 必须说明八字如何影响本次触发的事件风格。
+- 如果 life_memory 或 memory_echoes 存在，summary 或 long_term_impact 必须写出本次留下的伏笔，或旧伏笔如何回响。
 - 如有 goal_progress，summary 必须说明本次选择让人生愿望更接近、停滞还是偏离。
 - summary 必须贴合年龄阶段；童年和少年阶段应避免成人化的职场、投资、婚姻叙事。
 - 八字和时运要转译成生活里的具体表现，例如作息、课堂/职场场景、家庭气氛、同伴关系、身体反馈和心理反应。

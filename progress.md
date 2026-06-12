@@ -279,3 +279,13 @@
 - Docker 最终验证通过：`docker compose up -d --build` 成功，`docker compose ps -a` 显示 `yimingqiantu` healthy，容器内 `python -B -m pytest -p no:cacheprovider backend/tests` 42 passed / 1 warning。
 - 部署页 `http://127.0.0.1:7650/?v=phase-view-final` 返回 200 并加载 `index.css?v=phase-view-20260608`、`index.js?v=phase-view-20260608`、`phase_views.js?v=phase-view-20260608`。
 - in-app Browser 行为复测：当前部署进入 `life_simulation` 后 `#game-view[data-phase=life_simulation]`，`chart-panel` / `prelude-panel` 均 hidden，`simulation-panel` 可见；1044×660 视口下行动区 140.8px / 21.3%，主内容 422.8px，无横向溢出，console error 为 0。
+
+- 本轮开始把“八字 + 玩家真实选择”从解释层推进到事件层：后端半年度记录贯穿 `raw_choice_text`、`raw_focuses`、`normalized_focuses`、`choice_intent`；自由输入如“去上海找工作”会保留原句，同时归类为发展事业/搬迁远行用于判定。
+- `backend/app/event_pool.py` 已让 `pick_stage_event()` 接收命盘上下文，并为事件加入 `elements`、`ten_gods`、`life_domains` 与八字事件解释；事件加权使用模板专属标签，确保同样“专注学业”会因喜金水/木土等上下文触发不同生活事件风格。
+- 新增人生记忆链路：session 记录 `life_memories`、`relationship_memories`、`regrets`、`turning_points`、`unresolved_threads`；半年度记录写入 `life_memory` 和 `memory_echoes`，前端结算卡与 Markdown 档案展示“伏笔与回声”。
+- 补充 AI prompts，要求优先保留玩家原始选择，并自然写入八字事件牵引、人生伏笔与旧回声。
+- 验证通过：`python -m compileall -q backend\app backend\tests`、`python -B -m pytest -p no:cacheprovider backend\tests`（54 passed，普通沙箱曾受 Windows Temp ACL 影响，已用非沙箱权限重跑确认）、`node --check frontend\simulation_view.js`、`node --check frontend\archive_view.js`、`npm run test:frontend:layout`、`git diff --check`。
+
+- 继续把玩家理解前置到提交前：`backend/app/action_guide.py` 为每个行动预览加入 `event_preview`，使用当前命盘/大运/流年上下文预览八字加权事件倾向。
+- `frontend/simulation_view.js` 在行动预览中新增“命盘事件倾向”，自由输入如“去上海找工作”会在提交前预显示“去上海找工作 → 发展事业、搬迁远行”，并提示最终以后端权威归类为准。
+- 验证通过：`python -m compileall -q backend\app backend\tests`、`node --check frontend\simulation_view.js`、`npm.cmd run test:frontend:layout`、`python -B -m pytest -p no:cacheprovider backend\tests`（54 passed）、`git diff --check`。

@@ -259,3 +259,10 @@
 - Static checks passed for the new UI/JS wiring: `node --check frontend/index.js`, `node --check frontend/live.js`, and `node tests/frontend_layout_check.mjs`.
 - Backend regression still passes with 29 tests; the first sandboxed pytest attempt failed only because Windows temp directory writes were denied, then passed after running pytest with approved elevated permissions.
 - Docker was rebuilt on port `7650`; deployed desktop smoke verified guide, turn guide, filter chips, archive button, age-6 action chips, half-year progression, achievement/summary history typing, and readable state effects. Mobile smoke at `390x844` verified no horizontal overflow, collapsed status panel, single-column guide/history layout, and no visible interactive target below 44px.
+
+## Raw choice / Bazi event / Life memory follow-up 2026-06-09
+
+- Design decision: 玩家自由输入是叙事事实，后台行动归类只是判定工具；因此半年度记录同时保存 `raw_choice_text` 和 `normalized_focuses`，确定性总结与 AI prompt 都必须优先使用原句。
+- Design decision: 八字不再只用于结算解释，`event_pool.pick_stage_event()` 使用命盘喜忌、十神、命盘标签和大运/流年主题为事件模板加权；评分使用模板专属标签，避免所有同类行动因继承行动 meta 而同分。
+- Design decision: 每个半年都会生成一条 `life_memory`，并按年龄门槛在 18/22/35 岁等节点产生 `memory_echoes`，让童年习惯、关系遗憾或迁移经验在后续人生重新出现。
+- Follow-up: 玩家需要在提交前知道系统如何理解自由输入，因此行动预览承担“预归类 + 命盘事件倾向”职责；真正写入半年度记录时仍以后端 `choice_intent` 和权威事件抽取为准。

@@ -61,6 +61,11 @@ function buildLifeArchiveMarkdown(state) {
         lines.push('## 人生里程碑');
         state.milestones.forEach(item => lines.push('- ' + (item.title || '里程碑') + '：' + (item.text || '')));
     }
+    appendMemorySection(lines, '人生记忆', state.life_memories);
+    appendMemorySection(lines, '关系记忆', state.relationship_memories);
+    appendMemorySection(lines, '伏笔与回声', collectArchiveEchoes(state));
+    appendMemorySection(lines, '遗憾与未竟线索', [...(state.regrets || []), ...(state.unresolved_threads || [])]);
+    appendMemorySection(lines, '关键转折', state.turning_points);
     if (ending.title || ending.summary) {
         lines.push('');
         lines.push('## 结局');
@@ -108,4 +113,29 @@ function exportLifeArchive() {
     if (!state || state.phase === 'birth_input') return;
     const stamp = [state.current_year || 'unknown', state.current_age ? state.current_age + '岁' : ''].filter(Boolean).join('-');
     downloadTextFile('一命千途-人生档案-' + stamp + '.md', buildLifeArchiveMarkdown(state));
+}
+
+function appendMemorySection(lines, title, memories) {
+    const list = Array.isArray(memories) ? memories.filter(Boolean).slice(-12) : [];
+    if (!list.length) return;
+    lines.push('');
+    lines.push('## ' + title);
+    list.forEach(item => {
+        const age = item.age ? String(item.age) + '岁' + (item.half_label || '') : '';
+        const titleText = item.title || item.type || '记忆';
+        const text = item.text || item.summary || item.choice_text || '';
+        const echo = item.echo_after_age ? '；预计' + item.echo_after_age + '岁后回响' : '';
+        const affects = Array.isArray(item.affects) && item.affects.length ? '；影响：' + item.affects.join('、') : '';
+        lines.push('- ' + [age, titleText].filter(Boolean).join(' · ') + '：' + text + echo + affects);
+    });
+}
+
+function collectArchiveEchoes(state) {
+    const records = [...(state.half_year_summaries || []), ...(state.annual_summaries || [])];
+    const echoes = [];
+    records.forEach(record => {
+        if (record?.life_memory) echoes.push(record.life_memory);
+        (record?.memory_echoes || []).forEach(item => echoes.push(item));
+    });
+    return echoes;
 }

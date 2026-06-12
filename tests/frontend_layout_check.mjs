@@ -181,6 +181,10 @@ assert.match(js, /function renderMonthFlowBoard\(/, 'frontend should render flow
 assert.match(js, /function renderTurnGuide\(/, 'frontend should render a decision guide for the current half-year');
 assert.match(js, /function renderFirstTurnCoach\(/, 'frontend should render first-turn guidance');
 assert.match(js, /function renderTurnResolutionCard\(/, 'frontend should render half-year settlement cards');
+assert.match(js, /function choiceDisplay\(/, 'half-year settlement should preserve player raw choice display');
+assert.match(js, /raw_choice_text/, 'frontend should consume backend raw_choice_text in settlement and archive views');
+assert.match(js, /伏笔与回声/, 'frontend should expose life-memory echoes in player-facing UI');
+assert.match(js, /人生记忆/, 'archive export should include long-term life memories');
 assert.match(js, /function focusPendingResolution\(/, 'frontend should move focus to the newest settlement card');
 assert.match(js, /function wireTermChips\(/, 'frontend should wire clickable term explanations');
 assert.match(jsEntry, /import\s+\{\s*applyPhaseView,\s*phaseLabel\s*\}\s+from\s+'\.\/phase_views\.js\?v=phase-view-20260608'/, 'index.js should delegate phase visibility to phase view modules');
@@ -205,6 +209,9 @@ assert.match(packageManifest, /"playwright":/, 'package manifest should declare 
 assert.match(js, /function getStreakView\(/, 'frontend should normalize continuous focus streak state');
 assert.match(js, /function renderStreakStatusCard\(/, 'frontend should render continuous choice feedback in status');
 assert.match(js, /function actionGuideMap\(/, 'frontend should map backend action guide previews by action');
+assert.match(js, /function inferPreviewActions\(/, 'frontend should preview custom free-text action classification before submit');
+assert.match(js, /event_preview/, 'frontend should consume backend bazi-weighted event previews before submit');
+assert.match(js, /命盘事件倾向/, 'action preview should show likely bazi event tendency before the turn is committed');
 assert.match(js, /function renderActionPreviewPanel\(/, 'frontend should render selected action preview details');
 assert.match(js, /function wireHorizontalWheelScroll\(/, 'frontend should convert mouse-wheel movement into horizontal action-chip scrolling');
 assert.match(js, /addEventListener\('wheel'[\s\S]*passive:\s*false/s, 'horizontal action-chip wheel handler should be able to prevent vertical scroll while moving sideways');

@@ -96,6 +96,11 @@ def new_session(player_id: str) -> dict[str, Any]:
         'milestones': [],
         'personality': [],
         'relationships': [],
+        'life_memories': [],
+        'relationship_memories': [],
+        'regrets': [],
+        'turning_points': [],
+        'unresolved_threads': [],
         'major_events': [],
         'half_year_summaries': [],
         'annual_summaries': [],
@@ -128,6 +133,7 @@ def ensure_defaults(session: dict[str, Any], action_summaries: dict[str, str] | 
     session.setdefault('latest_achievements', [])
     session.setdefault('milestones', [])
     session.setdefault('relationships', [])
+    half_year_resolution.ensure_life_memory_lists(session)
     session.setdefault('ending_reason', '')
     session.setdefault('action_options', half_year_resolution.ACTION_OPTIONS)
     session.setdefault('action_guides', [])

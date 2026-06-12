@@ -97,6 +97,17 @@ def test_state_schema_tracks_achievements_and_milestones():
     assert {'new_achievements', 'milestone'} <= set(half_item)
     assert {'achievements_unlocked', 'milestones'} <= set(ending_props)
 
+def test_state_schema_tracks_raw_choices_and_life_memories():
+    schema = json.loads(Path('backend/app/state.schema.json').read_text(encoding='utf-8'))
+    properties = schema['properties']
+    half_item = properties['half_year_summaries']['items']['properties']
+    annual_item = properties['annual_summaries']['items']['properties']
+
+    assert {'life_memories', 'relationship_memories', 'regrets', 'turning_points', 'unresolved_threads'} <= set(properties)
+    assert {'life_memories', 'relationship_memories', 'regrets', 'turning_points', 'unresolved_threads'} <= set(schema['required'])
+    assert {'raw_choice_text', 'raw_focuses', 'normalized_focuses', 'choice_intent', 'life_memory', 'memory_echoes'} <= set(half_item)
+    assert {'raw_choice_text', 'raw_focuses', 'normalized_focuses', 'choice_intent', 'life_memory', 'memory_echoes'} <= set(annual_item)
+
 def test_state_schema_documents_luck_start_fields_on_chart():
     schema = json.loads(Path('backend/app/state.schema.json').read_text(encoding='utf-8'))
     chart_properties = schema['definitions']['baziChart']['properties']

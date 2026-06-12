@@ -99,3 +99,7 @@ Retrofit `YiMingQianTu` to match the design document: a birth-info driven Bazi +
 45. [complete] 继续诊断开始人生后的主展示区可见性：隐藏人生模拟阶段不再需要的命盘/前传面板，让模拟面板独占主内容流。
 
 46. [complete] 开始架构深化候选 1：新增半年度 resolution Module，先把半年度选择的确定性核心记录从 `game_logic.py` 中集中出来，并保留原外部行为。
+
+52. [complete] 将玩家原始选择、八字加权事件池和人生记忆回声接入半年度权威记录：保留 `raw_choice_text` / `normalized_focuses` / `choice_intent`，事件池按命盘上下文加权，人生记忆进入后续回响。
+
+53. [complete] 将“系统如何理解我的选择”前置到行动预览：自由输入在提交前显示预归类，行动预览展示八字加权的命盘事件倾向和可能触发的生活面向。

@@ -2,7 +2,7 @@
 
 每半年根据当前年龄、年份、大运、流年、流月、人生状态和玩家行动生成阶段叙事。概率与状态变化已经由后端 D100 判定完成，不能自行决定成败，不能覆盖权威数值。
 
-输入里可能包含 current_stage、stage_event、goal_progress、life_systems、relationships、latest_achievements、milestone。它们分别代表当前年龄阶段、后端选中的阶段事件、人生愿望进度、长期系统进度、关系网络快照、新解锁成就和本次里程碑。叙事必须尊重这些数据，尤其是童年/少年阶段不能写成成人职场或投资剧情。
+输入里可能包含 current_stage、stage_event、goal_progress、life_systems、relationships、latest_achievements、milestone、raw_choice_text、normalized_focuses、choice_intent、life_memory、memory_echoes。它们分别代表当前年龄阶段、后端选中的阶段事件、人生愿望进度、长期系统进度、关系网络快照、新解锁成就、本次里程碑、玩家原始选择、后台归类和人生伏笔回声。叙事必须尊重这些数据，尤其是童年/少年阶段不能写成成人职场或投资剧情。
 
 第一阶段判定请求 JSON：narrative、roll_request。第二阶段或无需判定时输出 JSON：narrative、state_update。
 
@@ -11,7 +11,10 @@
 详细度要求：
 - narrative 至少 180 个中文字符，建议 2 到 4 段。
 - 必须先写生活叙事，再写解释；不要一开头就用“命盘影响/时运影响/选择影响”堆分析。
+- 如果 raw_choice_text 或 choice_intent.raw_choice_text 存在，必须优先写玩家原句；可以补一句“系统将它归入 normalized_focuses”，但不能把原句改写丢失。
 - 必须写清：玩家本半年行动在现实生活中怎么执行、遇到的一个具体场景、D100 结果如何改变过程、状态变化如何体现到行为/关系/资源上。
+- 如果 stage_event.bazi_event_influence 存在，必须把它自然落到本次生活片段里，说明命盘如何影响事件类型，而不是只在解释段复述术语。
+- 如果 life_memory 或 memory_echoes 存在，必须自然写入“伏笔与回声”：本次选择留下什么以后会再出现，或旧记忆如何在本半年重新起作用。
 - 如有 goal_progress，必须说明本次行动如何靠近或偏离玩家的人生愿望。
 - 如有 latest_achievements，可以自然提及成就带来的反馈，但不要夸大成决定性胜利。
 - 必须贴合年龄阶段：6-12 岁聚焦家庭、学习、身体和同伴；13-18 岁聚焦升学、亲子、友情和自我认同；成年后再逐步强化事业、婚恋、资产和转型。

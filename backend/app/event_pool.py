@@ -4,16 +4,16 @@ from typing import Any
 
 
 ACTION_META = {
-    '专注学业': {'id': 'study', 'primary': '学识', 'tags': ['积累', '学习'], 'clue': '长期学习会在后续职业与名望判定里留下伏笔。'},
-    '发展事业': {'id': 'career', 'primary': '事业', 'tags': ['职场', '责任'], 'clue': '事业推进越稳定，越容易触发长期系统里的职业上升。'},
-    '经营感情': {'id': 'romance', 'primary': '感情', 'tags': ['亲密', '边界'], 'clue': '亲密关系会影响情绪、家庭与部分隐藏结局。'},
-    '陪伴家人': {'id': 'family', 'primary': '家庭', 'tags': ['家庭', '照护'], 'clue': '家庭线会改变安全感，也会拉动责任与事业之间的取舍。'},
-    '投资理财': {'id': 'wealth', 'primary': '财富', 'tags': ['资产', '风险'], 'clue': '财富线不是只看收益，也会记录风险承受力和现金余量。'},
-    '调养身体': {'id': 'health', 'primary': '健康', 'tags': ['身体', '修复'], 'clue': '健康是提前终局的底线，也是高压路线的承载力。'},
-    '社交拓展': {'id': 'network', 'primary': '社交', 'tags': ['人脉', '合作'], 'clue': '社交线会把信息差、贵人和关系消耗同时带进后续回合。'},
-    '创业冒险': {'id': 'venture', 'primary': '事业', 'tags': ['创业', '波动'], 'clue': '创业会放大成功收益，也会放大财富、健康和关系成本。'},
-    '搬迁远行': {'id': 'move', 'primary': '社交', 'tags': ['迁移', '视野'], 'clue': '迁移会改变机会半径，也会改变原有支持系统。'},
-    '随缘而行': {'id': 'flow', 'primary': '福德', 'tags': ['留白', '机缘'], 'clue': '留白能恢复弹性，但长期交出主动权会留下另一种代价。'},
+    '专注学业': {'id': 'study', 'primary': '学识', 'tags': ['积累', '学习'], 'elements': ['金', '水', '木'], 'ten_gods': ['正官', '正印', '偏印'], 'life_domains': ['学习', '规则', '信息', '专业训练'], 'clue': '长期学习会在后续职业与名望判定里留下伏笔。'},
+    '发展事业': {'id': 'career', 'primary': '事业', 'tags': ['职场', '责任'], 'elements': ['金', '土', '火'], 'ten_gods': ['正官', '七杀', '正财'], 'life_domains': ['事业', '规则', '责任', '交付'], 'clue': '事业推进越稳定，越容易触发长期系统里的职业上升。'},
+    '经营感情': {'id': 'romance', 'primary': '感情', 'tags': ['亲密', '边界'], 'elements': ['水', '火', '木'], 'ten_gods': ['正财', '偏财', '食神'], 'life_domains': ['亲密', '表达', '情绪', '边界'], 'clue': '亲密关系会影响情绪、家庭与部分隐藏结局。'},
+    '陪伴家人': {'id': 'family', 'primary': '家庭', 'tags': ['家庭', '照护'], 'elements': ['土', '水'], 'ten_gods': ['正印', '正财'], 'life_domains': ['家庭', '安全感', '照护', '责任'], 'clue': '家庭线会改变安全感，也会拉动责任与事业之间的取舍。'},
+    '投资理财': {'id': 'wealth', 'primary': '财富', 'tags': ['资产', '风险'], 'elements': ['土', '金', '水'], 'ten_gods': ['正财', '偏财'], 'life_domains': ['财富', '资产', '风险', '纪律'], 'clue': '财富线不是只看收益，也会记录风险承受力和现金余量。'},
+    '调养身体': {'id': 'health', 'primary': '健康', 'tags': ['身体', '修复'], 'elements': ['木', '水', '土'], 'ten_gods': ['正印', '食神'], 'life_domains': ['健康', '身体', '作息', '修复'], 'clue': '健康是提前终局的底线，也是高压路线的承载力。'},
+    '社交拓展': {'id': 'network', 'primary': '社交', 'tags': ['人脉', '合作'], 'elements': ['火', '水', '木'], 'ten_gods': ['食神', '伤官', '偏财'], 'life_domains': ['社交', '表达', '信息', '合作'], 'clue': '社交线会把信息差、贵人和关系消耗同时带进后续回合。'},
+    '创业冒险': {'id': 'venture', 'primary': '事业', 'tags': ['创业', '波动'], 'elements': ['火', '金', '水'], 'ten_gods': ['七杀', '伤官', '偏财'], 'life_domains': ['创业', '风险', '曝光', '现金流'], 'clue': '创业会放大成功收益，也会放大财富、健康和关系成本。'},
+    '搬迁远行': {'id': 'move', 'primary': '社交', 'tags': ['迁移', '视野'], 'elements': ['水', '木', '金'], 'ten_gods': ['偏印', '偏财', '驿马'], 'life_domains': ['迁移', '远行', '信息', '城市'], 'clue': '迁移会改变机会半径，也会改变原有支持系统。'},
+    '随缘而行': {'id': 'flow', 'primary': '福德', 'tags': ['留白', '机缘'], 'elements': ['水', '木'], 'ten_gods': ['偏印', '食神'], 'life_domains': ['留白', '机缘', '恢复', '观察'], 'clue': '留白能恢复弹性，但长期交出主动权会留下另一种代价。'},
 }
 
 STAGE_FLAVORS = {
@@ -27,9 +27,9 @@ STAGE_FLAVORS = {
 
 ACTION_EVENT_TEMPLATES = {
     '专注学业': [
-        {'title': '旧题重做', 'event': '围绕{anchor}，你把{texture}里的杂音暂时压低，反复训练一项能被检验的能力。', 'state_bias': {'学识': 1}, 'tags': ['复盘']},
-        {'title': '师友点灯', 'event': '{texture}中出现一位愿意指出问题的人，你开始明白真正的学习不是被夸，而是能承受修正。', 'state_bias': {'学识': 1, '心智': 1}, 'tags': ['师友']},
-        {'title': '沉默积累', 'event': '这个半年没有立刻显眼的成果，但你在{anchor}上留下了稳定记录，未来会反复调用这段底气。', 'state_bias': {'学识': 1, '压力': 1}, 'tags': ['长期']},
+        {'title': '旧题重做', 'event': '围绕{anchor}，你把{texture}里的杂音暂时压低，反复训练一项能被检验的能力。', 'state_bias': {'学识': 1}, 'tags': ['复盘'], 'elements': ['金', '水'], 'ten_gods': ['正官', '正印'], 'life_domains': ['学习', '规则', '专业训练']},
+        {'title': '师友点灯', 'event': '{texture}中出现一位愿意指出问题的人，你开始明白真正的学习不是被夸，而是能承受修正。', 'state_bias': {'学识': 1, '心智': 1}, 'tags': ['师友'], 'elements': ['水', '木'], 'ten_gods': ['正印', '偏印'], 'life_domains': ['学习', '信息', '贵人']},
+        {'title': '沉默积累', 'event': '这个半年没有立刻显眼的成果，但你在{anchor}上留下了稳定记录，未来会反复调用这段底气。', 'state_bias': {'学识': 1, '压力': 1}, 'tags': ['长期'], 'elements': ['木', '土'], 'ten_gods': ['比肩', '食神'], 'life_domains': ['学习', '慢热', '长期']},
     ],
     '发展事业': [
         {'title': '责任上桌', 'event': '一个更清晰的任务被推到你面前，{texture}让你意识到能力必须通过交付而不是想象来证明。', 'state_bias': {'事业': 1, '压力': 1}, 'tags': ['交付']},
@@ -79,6 +79,18 @@ ACTION_EVENT_TEMPLATES = {
 }
 
 
+def _unique_strings(*values: Any) -> list[str]:
+    result: list[str] = []
+    for value in values:
+        if not isinstance(value, list):
+            continue
+        for item in value:
+            text = str(item).strip()
+            if text and text not in result:
+                result.append(text)
+    return result
+
+
 def _render_template(stage_id: str, action: str, index: int, template: dict[str, Any]) -> dict[str, Any]:
     stage = STAGE_FLAVORS.get(stage_id, STAGE_FLAVORS['late_life'])
     meta = ACTION_META.get(action, ACTION_META['随缘而行'])
@@ -98,6 +110,12 @@ def _render_template(stage_id: str, action: str, index: int, template: dict[str,
         'title': title,
         'event': event,
         'tags': tags,
+        'event_elements': list(template.get('elements') or []),
+        'event_ten_gods': list(template.get('ten_gods') or []),
+        'event_life_domains': list(template.get('life_domains') or []),
+        'elements': _unique_strings(template.get('elements'), meta.get('elements')),
+        'ten_gods': _unique_strings(template.get('ten_gods'), meta.get('ten_gods')),
+        'life_domains': _unique_strings(template.get('life_domains'), meta.get('life_domains')),
         'state_bias': dict(template.get('state_bias') or {}),
         'clue': str(template.get('clue') or meta.get('clue') or ''),
     }
@@ -119,19 +137,92 @@ FALLBACK_EVENT = {
     'title': '日常暗流',
     'event': '这个半年没有单一的大事，却在日常细节里改变了你的惯性。',
     'tags': ['fallback'],
+    'elements': [],
+    'ten_gods': [],
+    'life_domains': ['日常'],
     'state_bias': {},
     'clue': '看似平淡的半年也会进入长期历史。',
 }
 
 
-def pick_stage_event(player_id: str, age: int, half: int, action: str, outcome: str, stage: dict[str, Any]) -> dict[str, Any]:
+def _string_list(value: Any, limit: int = 12) -> list[str]:
+    if isinstance(value, dict):
+        value = list(value.values())
+    if not isinstance(value, list):
+        return []
+    result: list[str] = []
+    for item in value:
+        text = str(item).strip()
+        if text and text not in result:
+            result.append(text)
+        if len(result) >= limit:
+            break
+    return result
+
+
+def _score_event(option: dict[str, Any], context: dict[str, Any]) -> int:
+    score = 10
+    elements = set(_string_list(option.get('event_elements') or option.get('elements')))
+    domains = set(_string_list(option.get('event_life_domains') or option.get('life_domains')))
+    ten_gods = set(_string_list(option.get('event_ten_gods') or option.get('ten_gods')))
+    useful = set(_string_list(context.get('useful_elements')))
+    unfavorable = set(_string_list(context.get('unfavorable_elements')))
+    active_ten_gods = set(_string_list(context.get('ten_gods')))
+    chart_tags = set(_string_list(context.get('chart_tags')))
+    luck_themes = set(_string_list(context.get('luck_themes'))) | set(_string_list(context.get('annual_events')))
+    score += len(elements & useful) * 7
+    score += len(ten_gods & active_ten_gods) * 4
+    if '金' in useful and domains & {'规则', '专业训练', '事业', '交付'}:
+        score += 5
+    if '水' in useful and domains & {'信息', '迁移', '观察', '学习'}:
+        score += 5
+    if '土' in chart_tags or '土气显' in chart_tags:
+        if domains & {'家庭', '安全感', '责任', '资产'}:
+            score += 5
+    if '火' in unfavorable and domains & {'表达', '曝光', '名望'}:
+        score += 4
+    if '木' in unfavorable and domains & {'学习', '成长', '长期', '慢热'}:
+        score += 4
+    if domains & {'风险', '创业', '现金流'} and ('转折频仍' in luck_themes or '资源消耗' in luck_themes):
+        score += 3
+    return score
+
+
+def _pick_weighted_option(options: list[dict[str, Any]], seed: str, context: dict[str, Any]) -> tuple[dict[str, Any], int]:
+    if not options:
+        return dict(FALLBACK_EVENT), 0
+    scored = [(option, _score_event(option, context)) for option in options]
+    max_score = max(score for _, score in scored)
+    best = [option for option, score in scored if score == max_score]
+    index = sum(ord(char) for char in seed) % len(best)
+    return dict(best[index]), max_score
+
+
+def _bazi_event_influence(selected: dict[str, Any], context: dict[str, Any]) -> str:
+    useful = _string_list(context.get('useful_elements'), 3)
+    unfavorable = _string_list(context.get('unfavorable_elements'), 3)
+    domains = _string_list(selected.get('event_life_domains') or selected.get('life_domains'), 4)
+    domain_text = '、'.join(domains[:3]) if domains else '当前事件'
+    if {'金', '水'} & set(useful) and set(domains) & {'规则', '信息', '专业训练', '学习'}:
+        return '因为命盘喜' + '、'.join(useful) + '，本阶段更容易通过规则训练和信息整理获得进展。'
+    if '火' in unfavorable and set(domains) & {'表达', '曝光', '名望'}:
+        return '因为火气偏弱，表达、曝光和被评价的场景会更容易带来压力，也更需要慢慢练习。'
+    if '土' in useful or '土气显' in _string_list(context.get('chart_tags'), 8):
+        if set(domains) & {'家庭', '安全感', '责任'}:
+            return '土气让家庭责任、稳定环境和安全感更容易成为本阶段事件的入口。'
+    if useful:
+        return '因为命盘喜' + '、'.join(useful) + '，本阶段事件更容易落在“' + domain_text + '”这些生活面向。'
+    return '命盘没有直接决定事件，但会改变你更容易注意到哪类机会、阻力和关系反馈。'
+
+
+def pick_stage_event(player_id: str, age: int, half: int, action: str, outcome: str, stage: dict[str, Any], context: dict[str, Any] | None = None) -> dict[str, Any]:
     """Pick a deterministic structured event while preserving the old return shape."""
+    context = context or {}
     stage_id = str(stage.get('id') or 'late_life')
     stage_pool = STAGE_EVENT_POOL.get(stage_id) or STAGE_EVENT_POOL.get('late_life') or {}
     options = stage_pool.get(action) or stage_pool.get('随缘而行') or [FALLBACK_EVENT]
     seed = str(player_id) + str(age) + str(half) + str(action) + str(outcome) + stage_id
-    index = sum(ord(char) for char in seed) % len(options)
-    selected = dict(options[index])
+    selected, event_score = _pick_weighted_option(options, seed, context)
     if outcome in ['大成功', '成功']:
         result_note = '判定顺利让这件事成为可继续利用的经验。'
     else:
@@ -146,6 +237,11 @@ def pick_stage_event(player_id: str, age: int, half: int, action: str, outcome: 
         'event_id': selected.get('id') or FALLBACK_EVENT['id'],
         'title': selected.get('title') or FALLBACK_EVENT['title'],
         'tags': list(selected.get('tags') or []),
+        'elements': list(selected.get('elements') or []),
+        'ten_gods': list(selected.get('ten_gods') or []),
+        'life_domains': list(selected.get('life_domains') or []),
+        'bazi_event_score': event_score,
+        'bazi_event_influence': _bazi_event_influence(selected, context),
         'state_bias': dict(selected.get('state_bias') or {}),
         'clue': selected.get('clue') or FALLBACK_EVENT['clue'],
     }

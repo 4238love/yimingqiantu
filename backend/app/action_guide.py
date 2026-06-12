@@ -205,6 +205,36 @@ def build_life_choice(session: dict[str, Any], action: str, stage: dict[str, Any
     }
 
 
+def build_event_preview(session: dict[str, Any], action: str, stage: dict[str, Any], age: int) -> dict[str, Any]:
+    """Preview the bazi-weighted event tendency without committing a turn."""
+    from . import half_year_resolution
+
+    half = int(session.get('current_half') or 1)
+    context = half_year_resolution._event_context(
+        session,
+        session.get('current_luck_cycle') or {},
+        session.get('current_annual_cycle') or {},
+    )
+    preview = event_pool.pick_stage_event(
+        str(session.get('player_id') or 'guest'),
+        age,
+        half,
+        action,
+        '成功',
+        stage,
+        context,
+    )
+    return {
+        'title': preview.get('title') or '',
+        'event_id': preview.get('event_id') or '',
+        'life_domains': list(preview.get('life_domains') or [])[:5],
+        'elements': list(preview.get('elements') or [])[:5],
+        'ten_gods': list(preview.get('ten_gods') or [])[:5],
+        'bazi_event_influence': preview.get('bazi_event_influence') or '',
+        'clue': preview.get('clue') or '',
+    }
+
+
 def build_decision_support(session: dict[str, Any], action_summaries: dict[str, str] | None = None) -> list[dict[str, Any]]:
 
     """Build the advisory action-guide artifact without mutating authoritative records."""
@@ -294,6 +324,8 @@ def build_decision_support(session: dict[str, Any], action_summaries: dict[str, 
             'summary': action_preview_summary(action, action_summaries),
 
             'life_choice': build_life_choice(session, action, stage),
+
+            'event_preview': build_event_preview(session, action, stage, int(age)),
 
         })
 

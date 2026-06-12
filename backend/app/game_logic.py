@@ -183,6 +183,30 @@ def _format_goal_progress(progress: dict[str, Any]) -> str:
         '，进度' + str(progress.get('percent') or 0) + '%，状态为' + str(progress.get('status') or '未知') + '。'
     )
 
+def _choice_display(record: dict[str, Any], focuses: list[str]) -> str:
+    raw_text = str(record.get('raw_choice_text') or '').strip()
+    intent = record.get('choice_intent') or {}
+    if raw_text and intent.get('is_custom'):
+        return raw_text
+    return '、'.join(focuses)
+
+def _choice_classification_note(record: dict[str, Any], focuses: list[str]) -> str:
+    display = _choice_display(record, focuses)
+    normalized = '、'.join(_string_list(record.get('normalized_focuses'), focuses, 3))
+    if display and normalized and display != normalized:
+        return '系统将它归入“' + normalized + '”。'
+    return ''
+
+def _format_memory_feedback(record: dict[str, Any]) -> str:
+    memory = record.get('life_memory') or {}
+    echoes = record.get('memory_echoes') or []
+    parts = []
+    if memory.get('text'):
+        parts.append('新伏笔：' + str(memory.get('text')))
+    if echoes:
+        parts.append('旧回声：' + '；'.join(str(item.get('text') or '') for item in echoes if item.get('text')))
+    return '伏笔与回声：' + (' '.join(parts) if parts else '这次选择会进入人生记忆，等待后续阶段再次回响。')
+
 async def get_or_create_session(current_user: dict[str, Any]) -> dict[str, Any]:
     player_id = _player_id(current_user)
     session = await state_manager.get_session(player_id)
@@ -454,6 +478,8 @@ def _format_cycle_detail(record: dict[str, Any]) -> str:
 def _stage_narrative_body(record: dict[str, Any]) -> str:
     action = str(record.get('main_focus') or '随缘而行')
     focuses = _string_list(record.get('focuses'), [action], 3)
+    choice_display = _choice_display(record, focuses)
+    classification_note = _choice_classification_note(record, focuses)
     roll_event = record.get('roll_event') or {}
     outcome = str(roll_event.get('outcome') or '未知')
     action_detail = ACTION_DETAIL.get(action, ACTION_DETAIL['随缘而行'])
@@ -489,7 +515,7 @@ def _stage_narrative_body(record: dict[str, Any]) -> str:
     return (
         ('人生阶段：' + stage_label + '。' + str(stage_event.get('stage_summary') or '') + '\n\n' if stage_label else '') +
         (_format_goal_progress(goal_progress) + '\n\n' if goal_progress else '') +
-        '人生抉择：你本阶段选择' + '、'.join(focuses) + '。' + action_detail + '\n\n' +
+        '人生抉择：你本阶段选择“' + choice_display + '”。' + classification_note + action_detail + '\n\n' +
         (('生活片段：' + life_scene + '\n\n') if life_scene else '') +
         (event_line + '\n\n' if event_line else '') +
         _format_streak_feedback(record) + '\n\n' +
@@ -497,6 +523,7 @@ def _stage_narrative_body(record: dict[str, Any]) -> str:
         '命盘影响：' + str(bazi_life_detail or fate_explanation.get('bazi_influence') or '命盘提供底色，但不替你做决定。') + '\n\n' +
         '时运影响：' + str(month_life_detail or fate_explanation.get('fortune_influence') or cycle_detail) + '\n\n' +
         '选择影响：' + str(fate_explanation.get('choice_influence') or ('你把本半年压在“' + action + '”上。')) + '\n\n' +
+        _format_memory_feedback(record) + '\n\n' +
         '命盘与时势：' + cycle_detail + '\n\n' +
         '推演结果：' + result_line + outcome_line + '\n\n' +
         '状态余波：' + _format_state_transition(record) + '。这些变化不会只停留在数值上，它们会表现为精力分配、关系反馈、资源余量和下一次选择时的心理惯性。'
@@ -510,6 +537,8 @@ def _format_stage_narrative(record: dict[str, Any]) -> str:
 def _format_detailed_half_year_summary(record: dict[str, Any]) -> str:
     action = str(record.get('main_focus') or '随缘而行')
     focuses = _string_list(record.get('focuses'), [action], 3)
+    choice_display = _choice_display(record, focuses)
+    classification_note = _choice_classification_note(record, focuses)
     roll_event = record.get('roll_event') or {}
     age_half = str(record.get('age') or '') + '岁' + str(record.get('half_label') or '')
     stage_event = record.get('stage_event') or {}
@@ -530,7 +559,8 @@ def _format_detailed_half_year_summary(record: dict[str, Any]) -> str:
         clue_text = str(stage_event.get('clue') or '').rstrip('。；;,.， ')
         event_line = '后来能被记住的触发点，是' + event_intro + str(stage_event.get('event')) + str(stage_event.get('result_note') or '') + ('伏笔：' + clue_text + '。' if clue_text else '')
     summary = (
-        '半年回顾：' + age_half + '，你把本阶段重点放在' + '、'.join(focuses) + '。' +
+        '半年回顾：' + age_half + '，你选择“' + choice_display + '”。' +
+        (classification_note if classification_note else '这个选择会进入后续人生记忆。') +
         (('\n\n生活叙事：' + life_scene) if life_scene else ('\n\n生活叙事：' + scene_detail)) +
         (('\n\n' + stage_intro) if stage_intro else '') +
         (('\n\n' + event_line) if event_line else '') +
@@ -557,6 +587,7 @@ def _format_detailed_half_year_summary(record: dict[str, Any]) -> str:
     impact = (
         '阶段影响：' + ACTION_DETAIL.get(action, ACTION_DETAIL['随缘而行']) +
         '这条选择会进入后续记忆，影响下一次面对同类机会时的底气、风险承受力和关系反馈。' +
+        _format_memory_feedback(record) +
         (_format_goal_progress(goal_progress) if goal_progress else '') +
         ('本阶段解锁成就：' + '、'.join(str(item.get('title')) for item in new_achievements if item.get('title')) + '。' if new_achievements else '') +
         ('长期系统：' + '；'.join(str(item.get('label')) + str(item.get('score')) + '分，' + str(item.get('stage')) + '，趋势' + str(item.get('trend')) for item in systems_after.values()) + '。' if isinstance(systems_after, dict) and systems_after else '') +
@@ -651,10 +682,12 @@ async def _try_ai_latest_annual_summary(session: dict[str, Any]) -> None:
     focus_line = ''
     focuses = _string_list(latest.get('focuses'), [], 3)
     if focuses:
+        choice_display = _choice_display(latest, focuses)
+        classification_note = _choice_classification_note(latest, focuses)
         focus_line = (
             str(latest.get('age') or '') + '岁' +
             str(latest.get('half_label') or '') +
-            '，你选择' + '、'.join(focuses) + '。'
+            '，你选择“' + choice_display + '”。' + classification_note
         )
     display_parts = []
     if focus_line and focus_line not in summary:

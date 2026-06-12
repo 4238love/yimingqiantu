@@ -52,6 +52,18 @@ const TERM_DEFINITIONS = {
     '四柱': '出生年、月、日、时组成的命盘信息；不知道时辰时会使用三柱模式。',
     '十神': '命理里描述资源、行动、压力、关系等倾向的术语，本游戏会尽量转译成白话。'
 };
+const PREVIEW_ACTION_KEYWORDS = {
+    '专注学业': ['学', '考试', '考研', '读书', '课程', '技能', '证书', '研究', '论文', '培训'],
+    '发展事业': ['工作', '事业', '职场', '升职', '职位', '项目', '跳槽', '老板', '绩效', '专业'],
+    '经营感情': ['感情', '恋爱', '伴侣', '对象', '婚', '约会', '亲密', '表白', '分手', '关系'],
+    '陪伴家人': ['家庭', '父母', '孩子', '亲人', '家人', '陪伴', '照顾', '亲子', '回家'],
+    '投资理财': ['投资', '理财', '股票', '基金', '买房', '资产', '存钱', '赚钱', '副业', '财务'],
+    '调养身体': ['健康', '身体', '运动', '休息', '睡眠', '体检', '治疗', '养生', '减压', '康复'],
+    '社交拓展': ['社交', '朋友', '人脉', '合作', '贵人', '聚会', '圈子', '沟通', '团队'],
+    '创业冒险': ['创业', '冒险', '公司', '合伙', '融资', '辞职', '开店', '产品', '市场'],
+    '搬迁远行': ['搬家', '迁移', '远行', '旅行', '出国', '城市', '异地', '留学', '调动'],
+};
+const PREVIEW_MIGRATION_HINTS = ['北京', '上海', '广州', '深圳', '杭州', '成都', '南京', '武汉', '西安', '苏州', '重庆', '天津', '外地', '异地', '大城市', '一线城市', '换城市', '去外面', '离开家', '搬去', '搬到', '出省'];
 
 function classifyHistoryItem(item) {
     const text = String(item || '');
@@ -406,6 +418,22 @@ function formatGoalDelta(before, after) {
     return after.title + ' · ' + Number(after.percent || 0) + '%' + (delta ? '（' + (delta > 0 ? '+' : '') + delta + '）' : '（持平）');
 }
 
+function choiceDisplay(record) {
+    const rawText = String(record?.raw_choice_text || '').trim();
+    const intent = record?.choice_intent || {};
+    const normalized = Array.isArray(record?.normalized_focuses) ? record.normalized_focuses : (record?.focuses || [record?.main_focus || '人生抉择']);
+    const normalizedText = normalized.filter(Boolean).join('、') || '人生抉择';
+    if (rawText && intent.is_custom) return rawText + ' → ' + normalizedText;
+    return normalizedText;
+}
+
+function memoryEchoText(record) {
+    const memory = record?.life_memory || {};
+    const echoes = Array.isArray(record?.memory_echoes) ? record.memory_echoes : [];
+    if (echoes.length) return echoes.map(item => item.text || '').filter(Boolean).join('；');
+    return memory.text || '本次选择已进入人生记忆，后续阶段可能再次回响。';
+}
+
 function renderTurnResolutionCard() {
     const state = appState.gameState || {};
     if (!DOMElements.turnResolution) return;
@@ -431,9 +459,9 @@ function renderTurnResolutionCard() {
                 '<article class=\'turn-resolution-story\'><span>生活片段</span><b>这一半年怎么过</b><small>' + escapeHtml(fate.life_scene || fate.choice_influence || '这次选择会先落在日常作息、关系反馈和身体感受里。') + '</small></article>' +
                 '<article><span>命盘影响</span><b>' + escapeHtml(record.main_focus || '随缘而行') + '</b><small>' + escapeHtml(fate.bazi_influence || '命盘提供底色，但不替你做决定。') + '</small></article>' +
                 '<article><span>时运影响</span><b>' + escapeHtml((record.annual_cycle || {}).pillar || '流年') + '</b><small>' + escapeHtml(fate.fortune_influence || '大运、流年与流月共同改变机会和阻力。') + '</small></article>' +
-                '<article><span>选择影响</span><b>' + escapeHtml((record.focuses || [record.main_focus || '人生抉择']).join('、')) + '</b><small>' + escapeHtml(fate.choice_influence || milestone.text || '本半年事件已写入叙事记录。') + '</small></article>' +
+                '<article><span>玩家选择</span><b>' + escapeHtml(choiceDisplay(record)) + '</b><small>' + escapeHtml(fate.choice_influence || milestone.text || '本半年事件已写入叙事记录。') + '</small></article>' +
                 '<article><span>人生愿望</span><b>' + escapeHtml(formatGoalDelta(goalBefore, goalAfter)) + '</b><small>' + escapeHtml(goalAfter.summary || '后续结局会追踪愿望达成度。') + '</small></article>' +
-                '<article><span>下一步回声</span><b>' + escapeHtml(choiceShortLabel(nextGuide, nextGuide.action || '阅读最新叙事')) + '</b><small>' + escapeHtml((nextGuide.life_choice || {}).choice_impact || nextGuide.summary || '根据结算结果调整下个半年的抉择。') + '</small></article>' +
+                '<article><span>伏笔与回声</span><b>' + escapeHtml((record.life_memory || {}).title || choiceShortLabel(nextGuide, nextGuide.action || '阅读最新叙事')) + '</b><small>' + escapeHtml(memoryEchoText(record)) + '</small></article>' +
             '</div>' +
             '<div class=\'turn-resolution-deltas\'><span>人生变化</span>' + formatStateDeltaList(record.state_effect || {}) + '</div>' +
             (achievements.length ? '<div class=\'turn-resolution-achievements\'><span>人生回声</span>' + achievements.map(item => '<b>' + escapeHtml(item.title || '') + '</b>').join('') + '</div>' : '') +
@@ -515,32 +543,74 @@ function recommendationReason(guide) {
     return alignment.reason || guide.clue || tags || '综合当前阶段、愿望与时势排序靠前。';
 }
 
+function inferPreviewActions(text, guides) {
+    const raw = String(text || '').trim();
+    if (!raw) return [];
+    if (guides.has(raw)) return [raw];
+    const matches = [];
+    Object.entries(PREVIEW_ACTION_KEYWORDS).forEach(([action, keywords]) => {
+        const effectiveKeywords = action === '发展事业' && matches.includes('专注学业')
+            ? keywords.filter(keyword => keyword !== '专业')
+            : keywords;
+        if (effectiveKeywords.some(keyword => raw.includes(keyword))) matches.push(action);
+    });
+    if (PREVIEW_MIGRATION_HINTS.some(keyword => raw.includes(keyword)) && !matches.includes('搬迁远行')) {
+        matches.push('搬迁远行');
+    }
+    return Array.from(new Set(matches)).filter(action => guides.has(action)).slice(0, 3);
+}
+
+function resolvePreviewAction(guides, action) {
+    const raw = String(action || '').trim();
+    const normalized = inferPreviewActions(raw, guides);
+    const primaryAction = normalized[0] || raw;
+    return {
+        raw,
+        normalized,
+        primaryAction,
+        isCustom: Boolean(raw && !guides.has(raw)),
+        guide: guideForAction(guides, primaryAction),
+    };
+}
+
+function previewChoiceLabel(resolution) {
+    if (!resolution.isCustom) return resolution.primaryAction || resolution.raw;
+    const normalizedText = resolution.normalized.length ? resolution.normalized.join('、') : '待归类';
+    return resolution.raw + ' → ' + normalizedText;
+}
+
 function renderActionPreviewPanel(state, options) {
     const guides = actionGuideMap(state);
     const recommended = recommendedActionGuides(state);
     const defaultAction = recommended[0]?.action || options[0] || '随缘而行';
     const selected = appState.selectedFocuses.length ? appState.selectedFocuses : [defaultAction].filter(Boolean);
     const mainAction = selected[0] || defaultAction;
-    const guide = guideForAction(guides, mainAction);
-    const choice = lifeChoiceOf(guide, mainAction);
+    const preview = resolvePreviewAction(guides, mainAction);
+    const guide = preview.guide;
+    const choice = lifeChoiceOf(guide, preview.primaryAction || mainAction);
     const alignment = guide.goal_alignment || {};
     const streak = guide.streak_preview || {};
     const target = Number(guide.roll_target_preview || guide.roll_target_base || 0);
     const base = Number(guide.roll_target_base || target || 0);
     const bonus = Number(streak.bonus || 0);
+    const eventPreview = guide.event_preview || {};
+    const eventDomains = Array.isArray(eventPreview.life_domains) ? eventPreview.life_domains.filter(Boolean).slice(0, 3).join('、') : '';
     const selectedPills = selected.map(action => {
-        const item = guideForAction(guides, action);
+        const resolved = resolvePreviewAction(guides, action);
+        const item = resolved.guide;
         const itemAlignment = item.goal_alignment || {};
-        return '<span>' + escapeHtml(choiceShortLabel(item, action)) + ' · ' + escapeHtml(itemAlignment.level || '待判定') + '</span>';
+        const label = resolved.isCustom ? previewChoiceLabel(resolved) : choiceShortLabel(item, action);
+        return '<span>' + escapeHtml(label) + ' · ' + escapeHtml(itemAlignment.level || (resolved.normalized.length ? '已预归类' : '待判定')) + '</span>';
     }).join('');
     return '<section class=\'action-preview-panel\' aria-live=\'polite\'>' +
-        '<div class=\'action-preview-head\'><div><span>' + (appState.selectedFocuses.length ? '人生抉择' : '默认抉择') + '</span><strong>' + escapeHtml(choice.short_label || mainAction) + '</strong><small>' + escapeHtml(mainAction) + '</small></div>' +
+        '<div class=\'action-preview-head\'><div><span>' + (appState.selectedFocuses.length ? '人生抉择' : '默认抉择') + '</span><strong>' + escapeHtml(preview.isCustom ? preview.raw : (choice.short_label || mainAction)) + '</strong><small>' + escapeHtml(previewChoiceLabel(preview)) + '</small></div>' +
         '<b>' + escapeHtml(alignment.level || '等待选择') + '</b></div>' +
-        '<p>' + escapeHtml(choice.decision || guide.summary || '先选择一个本半年抉择，系统会解释命盘、时运和选择如何共同影响人生。') + '</p>' +
+        '<p>' + escapeHtml(preview.isCustom ? ('你写下“' + preview.raw + '”，系统预判会归入“' + (preview.normalized.join('、') || '随缘而行') + '”；提交后以后端权威归类为准。') : (choice.decision || guide.summary || '先选择一个本半年抉择，系统会解释命盘、时运和选择如何共同影响人生。')) + '</p>' +
         '<div class=\'action-preview-grid\'>' +
             '<article><span>当前处境</span><b>' + escapeHtml(choice.title || mainAction) + '</b><small>' + escapeHtml(choice.situation || '人生处在新的岔口。') + '</small></article>' +
             '<article><span>命盘提示</span><b>' + escapeHtml(formatGuideBenefit(guide)) + '</b><small>' + escapeHtml(choice.bazi_hint || '命盘提供底色，但不替你做决定。') + '</small></article>' +
             '<article><span>时运提示</span><b>' + escapeHtml(alignment.level || '自由探索') + '</b><small>' + escapeHtml(choice.fortune_hint || recommendationReason(guide)) + '</small></article>' +
+            '<article><span>命盘事件倾向</span><b>' + escapeHtml(eventPreview.title || '待触发') + '</b><small>' + escapeHtml(eventPreview.bazi_event_influence || (eventDomains ? '更容易落在“' + eventDomains + '”这些生活面向。' : '提交后会按命盘、时运和行动重新抽取阶段事件。')) + '</small></article>' +
             '<article><span>取舍代价</span><b>' + escapeHtml(formatGuideRisk(guide)) + '</b><small>' + escapeHtml(choice.choice_impact || '选择会留下长期回声。') + '</small></article>' +
             '<article><span>后台推演</span><b>' + escapeHtml(target ? 'D100 约 ' + String(target) : '待归类') + '</b><small>' + escapeHtml(bonus ? ('基础 ' + base + ' / 路径惯性 +' + bonus) : '暗中合参大运、流年、流月与当前状态') + '</small></article>' +
         '</div>' +
@@ -579,7 +649,10 @@ function renderFocusActions() {
     meta.className = 'decision-dock-meta';
     const defaultText = topOptions[0] || options[0] || '随缘而行';
     const selectedText = appState.selectedFocuses.length
-        ? appState.selectedFocuses.map(action => choiceShortLabel(guideForAction(guides, action), action)).join('、')
+        ? appState.selectedFocuses.map(action => {
+            const resolved = resolvePreviewAction(guides, action);
+            return resolved.isCustom ? previewChoiceLabel(resolved) : choiceShortLabel(guideForAction(guides, action), action);
+        }).join('、')
         : '尚未选择，默认采用推荐：' + choiceShortLabel(guideForAction(guides, defaultText), defaultText);
     meta.innerHTML =
         '<p class=\'stage-action-hint\'><span>' + escapeHtml(stage.label || '本半年人生抉择') + '</span><small>' + escapeHtml(stage.summary || '请选择符合当前人生阶段的抉择。') + '</small></p>' +
