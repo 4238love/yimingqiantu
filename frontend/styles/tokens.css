@@ -1,0 +1,251 @@
+/* ===================================
+   Design Tokens - 一命千途设计系统
+
+   职责：定义所有设计原子（颜色、间距、圆角、阴影、字体）
+   支持：明暗模式切换
+   原则：适度现代化，保留命书古朴基因
+   =================================== */
+
+:root {
+    /* ==================== 颜色系统 ==================== */
+
+    /* 基础色板 - 命书古朴色系 */
+    --color-ink-900: #1a1410;
+    --color-ink-800: #2b241c;
+    --color-ink-700: #3d342a;
+    --color-ink-600: #4f4539;
+    --color-ink-500: #615648;
+
+    --color-paper-50: #fffcf5;
+    --color-paper-100: #faf6e8;
+    --color-paper-200: #f0ead6;
+    --color-paper-300: #e6dfc5;
+    --color-paper-400: #dcd3b4;
+
+    --color-gold-50: #fef9ec;
+    --color-gold-100: #fcefc4;
+    --color-gold-200: #f5dc8a;
+    --color-gold-300: #e8c757;
+    --color-gold-400: #d9b23d;
+    --color-gold-500: #c99a42;
+    --color-gold-600: #a67d35;
+    --color-gold-700: #826029;
+
+    --color-jade-50: #ecf5f2;
+    --color-jade-100: #c8e4dc;
+    --color-jade-200: #8fc9b8;
+    --color-jade-300: #5cae96;
+    --color-jade-400: #3d9578;
+    --color-jade-500: #2f7b64;
+    --color-jade-600: #266451;
+    --color-jade-700: #1d4d3e;
+
+    --color-red-50: #fbecea;
+    --color-red-100: #f4cec8;
+    --color-red-200: #e79d90;
+    --color-red-300: #d36d5c;
+    --color-red-400: #be4e3b;
+    --color-red-500: #9f3d31;
+    --color-red-600: #7f3127;
+    --color-red-700: #5f251e;
+
+    /* 语义化颜色 - 明亮模式 */
+    --color-background: var(--color-ink-900);
+    --color-surface: var(--color-paper-100);
+    --color-surface-elevated: var(--color-paper-50);
+    --color-surface-overlay: rgba(250, 246, 232, 0.96);
+
+    --color-text-primary: var(--color-ink-800);
+    --color-text-secondary: var(--color-ink-600);
+    --color-text-tertiary: var(--color-ink-500);
+    --color-text-inverse: var(--color-paper-50);
+
+    --color-border: rgba(61, 52, 42, 0.16);
+    --color-border-strong: rgba(61, 52, 42, 0.28);
+    --color-divider: rgba(61, 52, 42, 0.12);
+
+    --color-primary: var(--color-gold-500);
+    --color-primary-hover: var(--color-gold-600);
+    --color-primary-light: var(--color-gold-100);
+
+    --color-secondary: var(--color-jade-500);
+    --color-secondary-hover: var(--color-jade-600);
+    --color-secondary-light: var(--color-jade-100);
+
+    --color-accent: var(--color-red-500);
+    --color-accent-hover: var(--color-red-600);
+    --color-accent-light: var(--color-red-100);
+
+    --color-success: var(--color-jade-500);
+    --color-warning: var(--color-gold-500);
+    --color-error: var(--color-red-500);
+    --color-info: var(--color-ink-600);
+
+    /* ==================== 间距系统 ==================== */
+    /* 基于 4px 基准，1rem = 16px */
+
+    --space-0: 0;
+    --space-1: 0.25rem;    /* 4px */
+    --space-2: 0.5rem;     /* 8px */
+    --space-3: 0.75rem;    /* 12px */
+    --space-4: 1rem;       /* 16px */
+    --space-5: 1.25rem;    /* 20px */
+    --space-6: 1.5rem;     /* 24px */
+    --space-8: 2rem;       /* 32px */
+    --space-10: 2.5rem;    /* 40px */
+    --space-12: 3rem;      /* 48px */
+    --space-16: 4rem;      /* 64px */
+    --space-20: 5rem;      /* 80px */
+
+    /* ==================== 圆角系统 ==================== */
+
+    --radius-none: 0;
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --radius-xl: 20px;
+    --radius-2xl: 24px;
+    --radius-3xl: 28px;
+    --radius-full: 9999px;
+
+    /* ==================== 阴影系统 ==================== */
+
+    --shadow-xs: 0 1px 2px rgba(27, 20, 16, 0.05);
+    --shadow-sm: 0 2px 8px rgba(27, 20, 16, 0.08);
+    --shadow-md: 0 4px 16px rgba(27, 20, 16, 0.12);
+    --shadow-lg: 0 8px 24px rgba(27, 20, 16, 0.16);
+    --shadow-xl: 0 16px 40px rgba(27, 20, 16, 0.20);
+    --shadow-2xl: 0 24px 56px rgba(27, 20, 16, 0.24);
+
+    --shadow-inset-sm: inset 0 1px 2px rgba(27, 20, 16, 0.08);
+    --shadow-inset-md: inset 0 2px 4px rgba(27, 20, 16, 0.12);
+
+    /* ==================== 字体系统 ==================== */
+
+    --font-serif: 'KaiTi', 'STKaiti', 'Songti SC', Georgia, serif;
+    --font-sans: 'Microsoft YaHei', 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --font-mono: 'Consolas', 'Monaco', 'Courier New', monospace;
+
+    /* 字体大小 */
+    --text-xs: 0.75rem;     /* 12px */
+    --text-sm: 0.875rem;    /* 14px */
+    --text-base: 1rem;      /* 16px */
+    --text-lg: 1.125rem;    /* 18px */
+    --text-xl: 1.25rem;     /* 20px */
+    --text-2xl: 1.5rem;     /* 24px */
+    --text-3xl: 1.875rem;   /* 30px */
+    --text-4xl: 2.25rem;    /* 36px */
+    --text-5xl: 3rem;       /* 48px */
+    --text-6xl: 3.75rem;    /* 60px */
+
+    /* 字重 */
+    --font-normal: 400;
+    --font-medium: 500;
+    --font-semibold: 600;
+    --font-bold: 700;
+    --font-extrabold: 800;
+    --font-black: 900;
+
+    /* 行高 */
+    --leading-none: 1;
+    --leading-tight: 1.25;
+    --leading-snug: 1.375;
+    --leading-normal: 1.5;
+    --leading-relaxed: 1.625;
+    --leading-loose: 2;
+
+    /* ==================== 过渡动画 ==================== */
+
+    --duration-fast: 150ms;
+    --duration-base: 250ms;
+    --duration-slow: 350ms;
+    --duration-slower: 500ms;
+
+    --ease-in: cubic-bezier(0.4, 0, 1, 1);
+    --ease-out: cubic-bezier(0, 0, 0.2, 1);
+    --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+    --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+    /* ==================== Z-index 层级 ==================== */
+
+    --z-base: 0;
+    --z-dropdown: 100;
+    --z-sticky: 200;
+    --z-fixed: 300;
+    --z-modal-backdrop: 400;
+    --z-modal: 500;
+    --z-popover: 600;
+    --z-tooltip: 700;
+    --z-toast: 800;
+
+    /* ==================== 断点系统 ==================== */
+    /* 在 JS 和媒体查询中使用 */
+
+    --breakpoint-sm: 640px;
+    --breakpoint-md: 768px;
+    --breakpoint-lg: 1024px;
+    --breakpoint-xl: 1280px;
+    --breakpoint-2xl: 1536px;
+}
+
+/* ==================== 暗色模式 ==================== */
+
+[data-theme="dark"] {
+    /* 背景和表面 */
+    --color-background: #0d0b09;
+    --color-surface: rgba(43, 36, 28, 0.85);
+    --color-surface-elevated: rgba(61, 52, 42, 0.9);
+    --color-surface-overlay: rgba(43, 36, 28, 0.95);
+
+    /* 文本颜色 */
+    --color-text-primary: var(--color-paper-100);
+    --color-text-secondary: var(--color-paper-300);
+    --color-text-tertiary: var(--color-paper-400);
+    --color-text-inverse: var(--color-ink-800);
+
+    /* 边框和分割线 */
+    --color-border: rgba(230, 223, 197, 0.12);
+    --color-border-strong: rgba(230, 223, 197, 0.24);
+    --color-divider: rgba(230, 223, 197, 0.08);
+
+    /* 主题色在暗色模式下略微调亮 */
+    --color-primary: var(--color-gold-400);
+    --color-primary-hover: var(--color-gold-300);
+
+    --color-secondary: var(--color-jade-400);
+    --color-secondary-hover: var(--color-jade-300);
+
+    --color-accent: var(--color-red-400);
+    --color-accent-hover: var(--color-red-300);
+
+    /* 阴影在暗色模式下更深 */
+    --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.3);
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.4);
+    --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.5);
+    --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.6);
+    --shadow-xl: 0 16px 40px rgba(0, 0, 0, 0.7);
+    --shadow-2xl: 0 24px 56px rgba(0, 0, 0, 0.8);
+}
+
+/* ==================== 响应式字体大小 ==================== */
+/* 在小屏幕上略微缩小 */
+
+@media (max-width: 640px) {
+    :root {
+        --text-3xl: 1.5rem;     /* 24px */
+        --text-4xl: 1.875rem;   /* 30px */
+        --text-5xl: 2.25rem;    /* 36px */
+        --text-6xl: 3rem;       /* 48px */
+    }
+}
+
+/* ==================== 减弱动画（尊重用户偏好）==================== */
+
+@media (prefers-reduced-motion: reduce) {
+    :root {
+        --duration-fast: 1ms;
+        --duration-base: 1ms;
+        --duration-slow: 1ms;
+        --duration-slower: 1ms;
+    }
+}

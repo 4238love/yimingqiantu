@@ -22,7 +22,6 @@
     <button data-screen="s-prelude">④ 前传·愿望</button>
     <button data-screen="s-sim">⑤ 人生模拟</button>
     <button data-screen="s-ending">⑥ 结局档案</button>
-    <button id="open-codex">◈ 图鉴弹窗</button>
     <button id="open-roll">◈ 天机骰</button>
 </nav>
 
@@ -59,7 +58,6 @@
             </div>
             <div class="topbar-status">
                 <span class="phase-pill">序 · 待排盘</span>
-                <button class="icon-btn">图鉴 4/13</button>
                 <button class="icon-btn">设置</button>
             </div>
         </header>
@@ -138,7 +136,6 @@
             </div>
             <div class="topbar-status">
                 <span class="phase-pill">卷一 · 命盘已成</span>
-                <button class="icon-btn">图鉴 4/13</button>
                 <button class="icon-btn">设置</button>
             </div>
         </header>
@@ -233,7 +230,6 @@
             </div>
             <div class="topbar-status">
                 <span class="phase-pill">卷二 · 前传已书</span>
-                <button class="icon-btn">图鉴 4/13</button>
                 <button class="icon-btn">设置</button>
             </div>
         </header>
@@ -302,7 +298,6 @@
             </div>
             <div class="topbar-status">
                 <span class="phase-pill">卷三 · 人生行进中</span>
-                <button class="icon-btn" id="open-codex-2">图鉴 4/13</button>
                 <button class="icon-btn">导出档案</button>
                 <button class="icon-btn">回望一生</button>
                 <button class="icon-btn">设置</button>
@@ -436,7 +431,7 @@
                     </div>
                     <div class="dock-input-row">
                         <input type="text" placeholder="亦可写下心中所想 —— 例如「辞职去大理开客栈」，命书会自动归类…">
-                        <button class="btn btn-ghost small" style="min-height:44px;padding:0 22px;">加入重点</button>
+                        <button class="btn btn-ghost small" style="min-height:34px;padding:0 14px;">加入重点</button>
                     </div>
                     <div class="preview-strip">
                         <div class="preview-cell highlight"><span>愿望同频</span><b>高度同频 · 事业有成</b></div>
@@ -463,7 +458,6 @@
             </div>
             <div class="topbar-status">
                 <span class="phase-pill">终卷 · 人生收束</span>
-                <button class="icon-btn">图鉴 5/13</button>
                 <button class="icon-btn">导出档案</button>
             </div>
         </header>
@@ -510,7 +504,6 @@
                     </div>
                     <div class="ending-actions">
                         <button class="btn btn-gold" style="min-width:200px;">导出人生档案</button>
-                        <button class="btn btn-ghost" id="open-codex-3">查看结局图鉴</button>
                         <button class="btn btn-cinnabar" data-goto="s-birth">再开一局</button>
                     </div>
                 </div>
@@ -518,29 +511,6 @@
         </div>
     </div>
 </section>
-
-<!-- ════════════ 弹窗 · 结局图鉴 ════════════ -->
-<div class="modal-backdrop" id="codex-modal">
-    <div class="gilt-card corner-frame modal">
-        <div class="corners"><i></i><i></i><i></i><i></i></div>
-        <div class="modal-head">
-            <div><p class="eyebrow">ENDING CODEX</p><h2>结局图鉴</h2></div>
-            <button class="modal-close" data-close="codex-modal">✕</button>
-        </div>
-        <div class="codex-progress"><div class="fmeter"><i style="width:38%"></i></div><span>已集 5 / 13</span></div>
-        <div class="codex-grid">
-            <div class="codex-card unlocked"><span class="c-rarity">普通</span><b>平凡之路</b><p>不惊不险地走完一生，平淡本身就是答案。</p></div>
-            <div class="codex-card unlocked"><span class="c-rarity">普通</span><b>持家者</b><p>家庭与感情双高收束，热汤常温，灯火常明。</p></div>
-            <div class="codex-card unlocked"><span class="c-rarity">稀有</span><b>燃灯者</b><p>事业与名望俱高，一生如火照亮他人。</p></div>
-            <div class="codex-card unlocked rare"><span class="c-rarity">传奇</span><b>薪火相传</b><p>极致事业之后转身传承，余温胜于灼热。</p></div>
-            <div class="codex-card unlocked"><span class="c-rarity">稀有</span><b>云游四海</b><p>自由愿望满级，足迹七城以上，无枝可依亦无憾。</p></div>
-            <div class="codex-card locked"><span class="c-rarity">稀有</span><b>？？？</b><p>线索：财富归零之后，仍有人愿意借你第一桶金。</p></div>
-            <div class="codex-card locked"><span class="c-rarity">隐藏</span><b>？？？</b><p>线索：健康濒危时做出的那个选择，决定了这个结局。</p></div>
-            <div class="codex-card locked"><span class="c-rarity">传奇</span><b>？？？</b><p>线索：连续二十次同一行动，惯性本身会成为命运。</p></div>
-            <div class="codex-card locked"><span class="c-rarity">普通</span><b>？？？</b><p>线索：六岁开局，且从未离开出生的城市。</p></div>
-        </div>
-    </div>
-</div>
 
 <!-- ════════════ 弹层 · D100 天机骰 ════════════ -->
 <div id="roll-overlay">

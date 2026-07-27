@@ -1,0 +1,440 @@
+/* ===================================
+   Modals & Overlays - 模态框和遮罩层
+
+   职责：模态对话框、抽屉、提示框、加载覆盖层
+   依赖：tokens.css, base.css
+   =================================== */
+
+/* ==================== 模态遮罩 ==================== */
+
+.modal-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: var(--z-modal-backdrop);
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    opacity: 0;
+    transition: opacity var(--duration-base) var(--ease-out);
+    pointer-events: none;
+}
+
+.modal-backdrop.visible {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+[data-theme="dark"] .modal-backdrop {
+    background: rgba(0, 0, 0, 0.8);
+}
+
+/* ==================== 模态对话框 ==================== */
+
+.modal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.95);
+    z-index: var(--z-modal);
+    width: min(42rem, calc(100vw - var(--space-8)));
+    max-height: calc(100vh - var(--space-16));
+    overflow-y: auto;
+    padding: var(--space-8);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-3xl);
+    background: var(--color-surface);
+    box-shadow: var(--shadow-2xl);
+    opacity: 0;
+    transition:
+        opacity var(--duration-base) var(--ease-out),
+        transform var(--duration-base) var(--ease-out);
+    pointer-events: none;
+}
+
+.modal.visible {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+    pointer-events: auto;
+}
+
+.modal-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--space-4);
+    margin-bottom: var(--space-6);
+}
+
+.modal-title {
+    font-family: var(--font-serif);
+    font-size: var(--text-3xl);
+    font-weight: var(--font-bold);
+}
+
+.modal-subtitle {
+    margin-top: var(--space-2);
+    font-size: var(--text-sm);
+    color: var(--color-text-secondary);
+}
+
+.modal-close {
+    flex-shrink: 0;
+    width: 2rem;
+    height: 2rem;
+    padding: 0;
+    border: none;
+    border-radius: var(--radius-md);
+    background: transparent;
+    color: var(--color-text-secondary);
+    font-size: var(--text-2xl);
+    line-height: 1;
+    cursor: pointer;
+    transition: all var(--duration-fast) var(--ease-out);
+}
+
+.modal-close:hover {
+    background: var(--color-surface-elevated);
+    color: var(--color-text-primary);
+}
+
+.modal-body {
+    line-height: var(--leading-relaxed);
+    color: var(--color-text-secondary);
+}
+
+.modal-footer {
+    margin-top: var(--space-8);
+    display: flex;
+    gap: var(--space-3);
+    justify-content: flex-end;
+}
+
+/* ==================== 抽屉式面板 ==================== */
+
+.drawer {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    right: 0;
+    z-index: var(--z-modal);
+    width: min(28rem, 85vw);
+    padding: var(--space-6);
+    background: var(--color-surface);
+    box-shadow: var(--shadow-2xl);
+    transform: translateX(100%);
+    transition: transform var(--duration-base) var(--ease-out);
+    overflow-y: auto;
+}
+
+.drawer.visible {
+    transform: translateX(0);
+}
+
+.drawer-left {
+    right: auto;
+    left: 0;
+    transform: translateX(-100%);
+}
+
+.drawer-left.visible {
+    transform: translateX(0);
+}
+
+.drawer-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--space-6);
+    padding-bottom: var(--space-4);
+    border-bottom: 1px solid var(--color-divider);
+}
+
+.drawer-title {
+    font-family: var(--font-serif);
+    font-size: var(--text-2xl);
+    font-weight: var(--font-bold);
+}
+
+/* ==================== AI API 设置模态框 ==================== */
+
+#api-settings-modal {
+    width: min(56rem, calc(100vw - var(--space-8)));
+}
+
+.api-profile-manager {
+    display: grid;
+    grid-template-columns: 14rem 1fr;
+    gap: var(--space-6);
+}
+
+.api-profile-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+}
+
+.api-profile-card {
+    padding: var(--space-3);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    background: var(--color-surface-elevated);
+    cursor: pointer;
+    transition: all var(--duration-fast) var(--ease-out);
+}
+
+.api-profile-card:hover {
+    border-color: var(--color-secondary);
+}
+
+.api-profile-card.active {
+    border-color: var(--color-secondary);
+    background: var(--color-secondary-light);
+}
+
+.profile-name {
+    font-weight: var(--font-semibold);
+    margin-bottom: var(--space-1);
+}
+
+.profile-status {
+    font-size: var(--text-xs);
+    color: var(--color-text-tertiary);
+}
+
+.api-profile-editor {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+}
+
+.api-actions {
+    display: flex;
+    gap: var(--space-3);
+    flex-wrap: wrap;
+}
+
+/* ==================== 加载覆盖层 ==================== */
+
+.loading-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: calc(var(--z-modal) + 10);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(8px);
+}
+
+.loading-card {
+    padding: var(--space-8);
+    border: 1px solid var(--color-primary);
+    border-radius: var(--radius-2xl);
+    background: var(--color-surface);
+    box-shadow: var(--shadow-2xl);
+    text-align: center;
+}
+
+.loading-symbol {
+    width: 4rem;
+    height: 4rem;
+    margin: 0 auto var(--space-4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-full);
+    border: 3px solid var(--color-primary);
+    font-family: var(--font-serif);
+    font-size: var(--text-3xl);
+    font-weight: var(--font-black);
+    color: var(--color-accent);
+    animation: loading-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes loading-pulse {
+    0%, 100% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 var(--color-primary);
+    }
+    50% {
+        transform: scale(1.05);
+        box-shadow: 0 0 0 12px rgba(201, 154, 66, 0);
+    }
+}
+
+.loading-text {
+    font-family: var(--font-serif);
+    font-size: var(--text-xl);
+    font-weight: var(--font-bold);
+    margin-bottom: var(--space-2);
+}
+
+.loading-hint {
+    font-size: var(--text-sm);
+    color: var(--color-text-secondary);
+}
+
+/* ==================== 判定动画 ==================== */
+
+.roll-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: calc(var(--z-modal) + 5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(8px);
+}
+
+.roll-card {
+    width: min(24rem, calc(100vw - var(--space-8)));
+    padding: var(--space-8);
+    border: 1px solid var(--color-primary);
+    border-radius: var(--radius-2xl);
+    background: var(--color-surface);
+    box-shadow: var(--shadow-2xl);
+    text-align: center;
+}
+
+.roll-stage {
+    font-family: var(--font-serif);
+    font-size: var(--text-2xl);
+    font-weight: var(--font-bold);
+    margin-bottom: var(--space-6);
+}
+
+.roll-dice {
+    width: 6rem;
+    height: 6rem;
+    margin: 0 auto var(--space-6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-full);
+    border: 3px solid var(--color-primary);
+    background: var(--color-surface-elevated);
+    font-family: var(--font-serif);
+    font-size: var(--text-5xl);
+    font-weight: var(--font-black);
+    color: var(--color-accent);
+}
+
+.roll-dice.rolling {
+    animation: dice-roll 0.5s ease-in-out;
+}
+
+@keyframes dice-roll {
+    0%, 100% { transform: rotate(0deg) scale(1); }
+    25% { transform: rotate(90deg) scale(1.1); }
+    50% { transform: rotate(180deg) scale(0.9); }
+    75% { transform: rotate(270deg) scale(1.1); }
+}
+
+.roll-result {
+    font-size: var(--text-lg);
+    color: var(--color-text-secondary);
+}
+
+.roll-result.success {
+    color: var(--color-success);
+    font-weight: var(--font-bold);
+}
+
+.roll-result.failure {
+    color: var(--color-error);
+    font-weight: var(--font-bold);
+}
+
+/* ==================== Toast 通知 ==================== */
+
+.toast-container {
+    position: fixed;
+    top: var(--space-6);
+    right: var(--space-6);
+    z-index: var(--z-toast);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    max-width: 24rem;
+}
+
+.toast {
+    padding: var(--space-4) var(--space-5);
+    border-radius: var(--radius-lg);
+    background: var(--color-surface);
+    box-shadow: var(--shadow-lg);
+    border-left: 4px solid var(--color-secondary);
+    animation: toast-slide-in var(--duration-base) var(--ease-out);
+}
+
+@keyframes toast-slide-in {
+    from {
+        transform: translateX(calc(100% + var(--space-6)));
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.toast.toast-success { border-left-color: var(--color-success); }
+.toast.toast-warning { border-left-color: var(--color-warning); }
+.toast.toast-error { border-left-color: var(--color-error); }
+
+.toast-title {
+    font-weight: var(--font-semibold);
+    margin-bottom: var(--space-1);
+}
+
+.toast-message {
+    font-size: var(--text-sm);
+    color: var(--color-text-secondary);
+    line-height: var(--leading-relaxed);
+}
+
+/* ==================== 响应式调整 ==================== */
+
+@media (max-width: 640px) {
+    .modal {
+        width: calc(100vw - var(--space-4));
+        max-height: calc(100vh - var(--space-8));
+        padding: var(--space-6);
+    }
+
+    .drawer {
+        width: 100vw;
+    }
+
+    .api-profile-manager {
+        grid-template-columns: 1fr;
+    }
+
+    .api-profile-sidebar {
+        flex-direction: row;
+        overflow-x: auto;
+    }
+
+    .toast-container {
+        top: auto;
+        bottom: var(--space-6);
+        right: var(--space-4);
+        left: var(--space-4);
+        max-width: none;
+    }
+
+    .toast {
+        animation: toast-slide-up var(--duration-base) var(--ease-out);
+    }
+
+    @keyframes toast-slide-up {
+        from {
+            transform: translateY(calc(100% + var(--space-6)));
+            opacity: 0;
+        }
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+}

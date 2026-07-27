@@ -1,0 +1,362 @@
+/* ===================================
+   Mobile Styles - 移动端交互样式
+
+   职责：
+   - 流月横向滑动
+   - 触摸反馈
+   - 抽屉式行动选择
+   - 下拉刷新
+   =================================== */
+
+/* ==================== 触摸设备优化 ==================== */
+
+.touch-device button,
+.touch-device .chip,
+.touch-device .card-interactive {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+}
+
+/* 触摸激活状态 */
+.touch-active {
+    transform: scale(0.97);
+    opacity: 0.9;
+    transition: transform 0.1s var(--ease-out);
+}
+
+/* ==================== 流月横向滑动 ==================== */
+
+.month-flow-grid.mobile-scroll {
+    display: flex;
+    gap: var(--space-3);
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+}
+
+.month-flow-grid.mobile-scroll::-webkit-scrollbar {
+    display: none;
+}
+
+.month-flow-grid.mobile-scroll .month-card {
+    flex: 0 0 85%;
+    scroll-snap-align: center;
+}
+
+/* 滑动指示器 */
+.scroll-indicator {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: var(--z-sticky);
+    width: 2.5rem;
+    height: 2.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-full);
+    background: var(--color-surface-overlay);
+    backdrop-filter: blur(8px);
+    box-shadow: var(--shadow-md);
+    color: var(--color-secondary);
+    font-size: var(--text-lg);
+    cursor: pointer;
+    transition: all var(--duration-fast) var(--ease-out);
+    user-select: none;
+}
+
+.scroll-indicator:hover {
+    background: var(--color-secondary-light);
+    transform: translateY(-50%) scale(1.1);
+}
+
+.scroll-indicator:active {
+    transform: translateY(-50%) scale(0.95);
+}
+
+.scroll-indicator.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.scroll-left {
+    left: var(--space-2);
+}
+
+.scroll-right {
+    right: var(--space-2);
+}
+
+/* ==================== 抽屉式行动选择 ==================== */
+
+.action-drawer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    max-height: 70vh;
+    overflow-y: auto;
+    transform: translateY(calc(100% - 4rem));
+    transition: transform var(--duration-base) var(--ease-out);
+    box-shadow: var(--shadow-2xl);
+    border-top-left-radius: var(--radius-3xl);
+    border-top-right-radius: var(--radius-3xl);
+    z-index: var(--z-fixed);
+}
+
+.action-drawer.drawer-open {
+    transform: translateY(0);
+}
+
+.action-drawer-trigger {
+    position: fixed;
+    bottom: var(--space-6);
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: calc(var(--z-fixed) + 1);
+    padding: var(--space-3) var(--space-8);
+    border: 1px solid var(--color-primary);
+    border-radius: var(--radius-full);
+    background: var(--color-primary);
+    color: var(--color-text-inverse);
+    font-weight: var(--font-bold);
+    box-shadow: var(--shadow-xl);
+    transition: all var(--duration-fast) var(--ease-out);
+}
+
+.action-drawer-trigger:active {
+    transform: translateX(-50%) scale(0.95);
+}
+
+.action-drawer-trigger .trigger-icon {
+    display: inline-block;
+    transition: transform var(--duration-fast) var(--ease-out);
+}
+
+.action-drawer-trigger.active .trigger-icon {
+    transform: rotate(180deg);
+}
+
+/* 抽屉手柄 */
+.action-drawer::before {
+    content: '';
+    position: sticky;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    display: block;
+    width: 3rem;
+    height: 0.25rem;
+    margin: var(--space-3) auto;
+    border-radius: var(--radius-full);
+    background: var(--color-border-strong);
+}
+
+/* ==================== 下拉刷新 ==================== */
+
+.pull-refresh-indicator {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-secondary-light);
+    color: var(--color-secondary);
+    font-weight: var(--font-semibold);
+    opacity: 0;
+    transition: all var(--duration-fast) var(--ease-out);
+    overflow: hidden;
+}
+
+.pull-refresh-indicator.ready {
+    color: var(--color-primary);
+}
+
+.pull-refresh-indicator.refreshing {
+    animation: refresh-spin 1s linear infinite;
+}
+
+@keyframes refresh-spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* ==================== 触摸友好的尺寸 ==================== */
+
+@media (max-width: 768px) {
+    /* 增加可点击区域 */
+    button,
+    .chip,
+    .tab,
+    a {
+        min-height: 44px;
+        min-width: 44px;
+    }
+
+    /* 增加间距，避免误触 */
+    .action-chips {
+        gap: var(--space-4);
+    }
+
+    /* 表单元素更大 */
+    input,
+    select,
+    textarea {
+        padding: var(--space-4) var(--space-5);
+        font-size: var(--text-base);
+    }
+
+    /* 模态框全屏 */
+    .modal {
+        width: 100vw;
+        height: 100vh;
+        max-height: 100vh;
+        border-radius: 0;
+        transform: translate(-50%, -50%) scale(1);
+    }
+
+    .modal.visible {
+        transform: translate(-50%, -50%) scale(1);
+    }
+
+    /* 抽屉从底部滑出 */
+    .drawer {
+        width: 100vw;
+        max-width: 100vw;
+        border-radius: var(--radius-3xl) var(--radius-3xl) 0 0;
+    }
+
+    /* 横向滚动的卡片网格 */
+    .chart-grid {
+        display: flex;
+        gap: var(--space-3);
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+    }
+
+    .chart-grid::-webkit-scrollbar {
+        display: none;
+    }
+
+    .chart-grid .pillar-card {
+        flex: 0 0 70%;
+        scroll-snap-align: center;
+    }
+}
+
+/* ==================== 横屏优化 ==================== */
+
+@media (max-width: 768px) and (orientation: landscape) {
+    #game-header {
+        padding: var(--space-2) var(--space-4);
+    }
+
+    .header-brand h1 {
+        font-size: var(--text-xl);
+    }
+
+    .modal {
+        max-height: 100vh;
+        overflow-y: auto;
+    }
+
+    .landing-card {
+        padding: var(--space-6);
+    }
+}
+
+/* ==================== 虚拟滚动 ==================== */
+
+.virtual-scroll-viewport {
+    position: relative;
+    width: 100%;
+}
+
+.virtual-scroll-viewport > * {
+    position: absolute;
+    left: 0;
+    right: 0;
+}
+
+/* ==================== 长按反馈 ==================== */
+
+@keyframes long-press-pulse {
+    0%, 100% {
+        box-shadow: 0 0 0 0 var(--color-secondary);
+    }
+    50% {
+        box-shadow: 0 0 0 8px rgba(47, 123, 100, 0);
+    }
+}
+
+[data-long-press].pressing {
+    animation: long-press-pulse 0.6s ease-out;
+}
+
+/* ==================== iOS 安全区域 ==================== */
+
+@supports (padding: max(0px)) {
+    #game-header {
+        padding-left: max(var(--space-4), env(safe-area-inset-left));
+        padding-right: max(var(--space-4), env(safe-area-inset-right));
+    }
+
+    #action-footer {
+        padding-bottom: max(var(--space-4), env(safe-area-inset-bottom));
+    }
+
+    .action-drawer-trigger {
+        bottom: max(var(--space-6), calc(env(safe-area-inset-bottom) + var(--space-4)));
+    }
+}
+
+/* ==================== 防止文本选择（移动端）==================== */
+
+.touch-device button,
+.touch-device .chip,
+.touch-device .badge,
+.touch-device .tab {
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+/* ==================== 滚动性能优化 ==================== */
+
+.month-flow-grid.mobile-scroll,
+.narrative-window,
+.chart-grid {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+}
+
+/* ==================== 固定定位元素优化 ==================== */
+
+.theme-toggle,
+.action-drawer-trigger {
+    position: fixed;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+}
+
+/* ==================== 移动端字体优化 ==================== */
+
+@media (max-width: 640px) {
+    body {
+        font-size: 15px;
+    }
+
+    .panel-title {
+        font-size: var(--text-2xl);
+    }
+
+    .year-toggle {
+        font-size: var(--text-lg);
+    }
+}

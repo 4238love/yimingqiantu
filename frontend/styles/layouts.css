@@ -1,0 +1,389 @@
+/* ===================================
+   Layouts - 布局系统
+
+   职责：应用外壳、页面网格、响应式布局
+   依赖：tokens.css, base.css
+   =================================== */
+
+/* ==================== 应用容器 ==================== */
+
+#app-container {
+    position: relative;
+    width: 100%;
+    min-height: 100vh;
+    z-index: var(--z-base);
+}
+
+/* ==================== 视图系统 ==================== */
+
+.view {
+    display: none;
+    min-height: 100vh;
+}
+
+.view.active {
+    display: flex;
+}
+
+/* ==================== 登录视图 ==================== */
+
+#login-view {
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-6);
+}
+
+.landing-card {
+    width: min(42rem, 100%);
+    padding: clamp(var(--space-8), 6vw, var(--space-16));
+    border: 1px solid var(--color-primary);
+    border-radius: var(--radius-3xl);
+    background: var(--color-surface);
+    box-shadow: var(--shadow-2xl);
+    text-align: center;
+}
+
+.landing-card h1 {
+    margin-bottom: var(--space-4);
+    font-family: var(--font-serif);
+    font-size: clamp(var(--text-4xl), 8vw, var(--text-6xl));
+    letter-spacing: 0.1em;
+}
+
+.landing-card .subtitle {
+    margin-bottom: var(--space-8);
+    color: var(--color-text-secondary);
+    line-height: var(--leading-relaxed);
+}
+
+.landing-actions {
+    display: flex;
+    gap: var(--space-4);
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+/* ==================== 游戏视图布局 ==================== */
+
+#game-view {
+    display: grid;
+    grid-template-columns: minmax(18rem, 22vw) minmax(0, 1fr);
+    grid-template-rows: auto 1fr auto;
+    grid-template-areas:
+        'header header'
+        'sidebar main'
+        'sidebar footer';
+    min-height: 100vh;
+    background: var(--color-background);
+}
+
+/* ==================== 顶部导航栏 ==================== */
+
+#game-header {
+    grid-area: header;
+    position: sticky;
+    top: 0;
+    z-index: var(--z-sticky);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-4);
+    padding: var(--space-4) clamp(var(--space-4), 3vw, var(--space-8));
+    border-bottom: 1px solid var(--color-border);
+    background: var(--color-surface-overlay);
+    backdrop-filter: blur(12px);
+}
+
+.header-brand {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+}
+
+.header-brand h1 {
+    font-family: var(--font-serif);
+    font-size: var(--text-2xl);
+    letter-spacing: 0.12em;
+}
+
+.header-subtitle {
+    margin-top: var(--space-1);
+    font-size: var(--text-xs);
+    color: var(--color-primary);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+}
+
+/* ==================== 侧边栏 ==================== */
+
+#status-sidebar {
+    grid-area: sidebar;
+    overflow-y: auto;
+    padding: var(--space-6) var(--space-4);
+    border-right: 1px solid var(--color-border);
+    background: var(--color-surface);
+}
+
+#status-sidebar.collapsed {
+    width: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+/* 侧边栏切换按钮 */
+.sidebar-toggle {
+    display: none;
+}
+
+/* ==================== 主内容区 ==================== */
+
+#main-content {
+    grid-area: main;
+    overflow-y: auto;
+    padding: clamp(var(--space-4), 3vw, var(--space-8));
+    background: var(--color-background);
+}
+
+/* 内容容器 */
+.content-container {
+    max-width: 72rem;
+    margin: 0 auto;
+}
+
+.content-narrow {
+    max-width: 48rem;
+}
+
+.content-wide {
+    max-width: 90rem;
+}
+
+/* ==================== 底部操作区 ==================== */
+
+#action-footer {
+    grid-area: footer;
+    padding: var(--space-4) clamp(var(--space-4), 3vw, var(--space-8));
+    border-top: 1px solid var(--color-border);
+    background: var(--color-surface);
+}
+
+.action-row {
+    display: flex;
+    gap: var(--space-3);
+    align-items: center;
+}
+
+/* ==================== 面板系统 ==================== */
+
+.panel {
+    margin-bottom: var(--space-6);
+    padding: var(--space-6);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-2xl);
+    background: var(--color-surface);
+}
+
+.panel-header {
+    margin-bottom: var(--space-6);
+}
+
+.panel-title {
+    font-family: var(--font-serif);
+    font-size: var(--text-3xl);
+    font-weight: var(--font-bold);
+}
+
+.panel-subtitle {
+    margin-top: var(--space-2);
+    font-size: var(--text-sm);
+    color: var(--color-text-secondary);
+}
+
+.panel-body {
+    line-height: var(--leading-relaxed);
+}
+
+.panel-footer {
+    margin-top: var(--space-6);
+    padding-top: var(--space-6);
+    border-top: 1px solid var(--color-divider);
+    display: flex;
+    gap: var(--space-3);
+}
+
+/* ==================== 网格系统 ==================== */
+
+.grid {
+    display: grid;
+    gap: var(--space-4);
+}
+
+.grid-cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
+.grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.grid-cols-6 { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+
+.grid-auto-fit {
+    grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+}
+
+.grid-auto-fill {
+    grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr));
+}
+
+.col-span-2 { grid-column: span 2; }
+.col-span-3 { grid-column: span 3; }
+.col-span-full { grid-column: 1 / -1; }
+
+/* ==================== 弹性布局 ==================== */
+
+.flex {
+    display: flex;
+}
+
+.flex-col {
+    flex-direction: column;
+}
+
+.flex-wrap {
+    flex-wrap: wrap;
+}
+
+.items-center {
+    align-items: center;
+}
+
+.items-start {
+    align-items: flex-start;
+}
+
+.items-end {
+    align-items: flex-end;
+}
+
+.justify-center {
+    justify-content: center;
+}
+
+.justify-between {
+    justify-content: space-between;
+}
+
+.justify-end {
+    justify-content: flex-end;
+}
+
+.gap-1 { gap: var(--space-1); }
+.gap-2 { gap: var(--space-2); }
+.gap-3 { gap: var(--space-3); }
+.gap-4 { gap: var(--space-4); }
+.gap-6 { gap: var(--space-6); }
+.gap-8 { gap: var(--space-8); }
+
+/* ==================== 响应式布局 ==================== */
+
+@media (max-width: 1024px) {
+    #game-view {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto 1fr auto;
+        grid-template-areas:
+            'header'
+            'main'
+            'footer';
+    }
+
+    #status-sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        width: 20rem;
+        max-width: 80vw;
+        z-index: var(--z-modal);
+        transform: translateX(-100%);
+        transition: transform var(--duration-base) var(--ease-out);
+        box-shadow: var(--shadow-2xl);
+    }
+
+    #status-sidebar.open {
+        transform: translateX(0);
+    }
+
+    .sidebar-toggle {
+        display: flex;
+    }
+
+    /* 侧边栏遮罩 */
+    #sidebar-backdrop {
+        position: fixed;
+        inset: 0;
+        z-index: calc(var(--z-modal) - 1);
+        background: rgba(0, 0, 0, 0.5);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity var(--duration-base) var(--ease-out);
+    }
+
+    #sidebar-backdrop.visible {
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    .grid-cols-2,
+    .grid-cols-3,
+    .grid-cols-4,
+    .grid-cols-6 {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 640px) {
+    #game-header {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: var(--space-3) var(--space-4);
+    }
+
+    .header-actions {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    #main-content {
+        padding: var(--space-4);
+    }
+
+    .landing-card {
+        padding: var(--space-6);
+    }
+
+    .panel {
+        padding: var(--space-4);
+    }
+}
+
+/* ==================== 打印布局 ==================== */
+
+@media print {
+    #game-header,
+    #status-sidebar,
+    #action-footer {
+        display: none;
+    }
+
+    #game-view {
+        grid-template-columns: 1fr;
+        grid-template-areas: 'main';
+    }
+
+    .panel {
+        break-inside: avoid;
+    }
+}

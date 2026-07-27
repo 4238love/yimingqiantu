@@ -1,0 +1,477 @@
+/* ===================================
+   Animations - 交互动画样式
+
+   职责：状态变化、判定动画、微交互、进度指示
+   =================================== */
+
+/* ==================== 状态变化动画 ==================== */
+
+.stat-changing {
+    animation: stat-pulse 0.6s ease-out;
+}
+
+@keyframes stat-pulse {
+    0%, 100% {
+        background: transparent;
+    }
+    50% {
+        background: var(--color-secondary-light);
+    }
+}
+
+.stat-fill {
+    transition: width var(--duration-slow) cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.stat-value {
+    transition: transform var(--duration-fast) var(--ease-out);
+}
+
+.stat-changing .stat-value {
+    animation: value-bounce 0.6s ease-out;
+}
+
+@keyframes value-bounce {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.2);
+        color: var(--color-primary);
+    }
+}
+
+/* ==================== D100 判定增强动画 ==================== */
+
+.roll-dice {
+    position: relative;
+    transition: all var(--duration-base) var(--ease-out);
+}
+
+.roll-dice.rolling {
+    animation: dice-roll-enhanced 0.5s ease-in-out infinite;
+}
+
+@keyframes dice-roll-enhanced {
+    0%, 100% {
+        transform: rotate(0deg) scale(1);
+    }
+    25% {
+        transform: rotate(90deg) scale(1.15);
+    }
+    50% {
+        transform: rotate(180deg) scale(0.95);
+    }
+    75% {
+        transform: rotate(270deg) scale(1.1);
+    }
+}
+
+.roll-dice.roll-success {
+    animation: success-bounce 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes success-bounce {
+    0% {
+        transform: scale(0.8);
+    }
+    50% {
+        transform: scale(1.3);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+.roll-dice.roll-failure {
+    animation: failure-shake 0.5s ease-out;
+}
+
+@keyframes failure-shake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-10px); }
+    20%, 40%, 60%, 80% { transform: translateX(10px); }
+}
+
+/* 进度环 */
+.progress-ring {
+    position: absolute;
+    inset: -8px;
+    border: 3px solid var(--color-primary);
+    border-top-color: transparent;
+    border-radius: var(--radius-full);
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* 成功粒子 */
+.success-particle {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    border-radius: var(--radius-full);
+    background: var(--color-success);
+    top: 50%;
+    left: 50%;
+    transform-origin: 0 0;
+    animation: particle-burst 1s ease-out forwards;
+    transform: rotate(var(--angle)) translateX(0);
+}
+
+@keyframes particle-burst {
+    to {
+        transform: rotate(var(--angle)) translateX(60px);
+        opacity: 0;
+    }
+}
+
+/* 修正值显示 */
+.roll-modifiers {
+    margin-top: var(--space-3);
+    padding: var(--space-2) var(--space-4);
+    border-radius: var(--radius-full);
+    background: var(--color-surface-elevated);
+    font-size: var(--text-sm);
+    color: var(--color-text-secondary);
+    animation: slide-up 0.3s var(--ease-out);
+}
+
+@keyframes slide-up {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ==================== 涟漪效果 ==================== */
+
+button,
+.chip,
+.card-interactive {
+    position: relative;
+    overflow: hidden;
+}
+
+.ripple {
+    position: absolute;
+    border-radius: var(--radius-full);
+    background: rgba(255, 255, 255, 0.4);
+    transform: scale(0);
+    animation: ripple-animation 0.6s ease-out;
+    pointer-events: none;
+}
+
+@keyframes ripple-animation {
+    to {
+        transform: scale(4);
+        opacity: 0;
+    }
+}
+
+/* ==================== 顶部进度条 ==================== */
+
+.top-progress-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    z-index: var(--z-toast);
+    background: transparent;
+}
+
+.top-progress-fill {
+    height: 100%;
+    width: 0;
+    background: linear-gradient(90deg, var(--color-primary), var(--color-secondary));
+    transition: width 2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.top-progress-bar.error .top-progress-fill {
+    background: var(--color-error);
+}
+
+/* ==================== 骨架屏动画 ==================== */
+
+.skeleton-container {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    transition: opacity var(--duration-base) var(--ease-out);
+}
+
+/* ==================== 内容切换过渡 ==================== */
+
+[data-transition] {
+    transition:
+        opacity var(--duration-base) var(--ease-out),
+        transform var(--duration-base) var(--ease-out);
+}
+
+/* ==================== 确认对话框动画 ==================== */
+
+.confirm-modal {
+    position: fixed;
+    inset: 0;
+    z-index: var(--z-modal);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity var(--duration-base) var(--ease-out);
+}
+
+.confirm-modal.visible {
+    opacity: 1;
+}
+
+.confirm-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+}
+
+.confirm-dialog {
+    position: relative;
+    width: min(24rem, calc(100vw - var(--space-8)));
+    padding: var(--space-8);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-2xl);
+    background: var(--color-surface);
+    box-shadow: var(--shadow-2xl);
+    transform: scale(0.9);
+    transition: transform var(--duration-base) var(--ease-out);
+}
+
+.confirm-modal.visible .confirm-dialog {
+    transform: scale(1);
+}
+
+.confirm-message {
+    margin-bottom: var(--space-6);
+    font-size: var(--text-lg);
+    line-height: var(--leading-relaxed);
+    text-align: center;
+}
+
+.confirm-actions {
+    display: flex;
+    gap: var(--space-3);
+    justify-content: center;
+}
+
+/* ==================== 微交互 - 悬浮提升 ==================== */
+
+.card-interactive,
+.chip,
+.pillar-card,
+.action-chip {
+    transition:
+        transform var(--duration-fast) var(--ease-out),
+        box-shadow var(--duration-fast) var(--ease-out);
+}
+
+.card-interactive:hover,
+.chip:hover,
+.action-chip:hover {
+    transform: translateY(-2px);
+}
+
+.card-interactive:active,
+.chip:active,
+.action-chip:active {
+    transform: translateY(0);
+}
+
+/* ==================== 焦点可见性 ==================== */
+
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+.chip:focus-visible {
+    outline: 3px solid var(--color-secondary);
+    outline-offset: 2px;
+    animation: focus-pulse 0.5s ease-out;
+}
+
+@keyframes focus-pulse {
+    0%, 100% {
+        outline-color: var(--color-secondary);
+    }
+    50% {
+        outline-color: var(--color-primary);
+    }
+}
+
+/* ==================== 加载状态 ==================== */
+
+[data-loading="true"] {
+    position: relative;
+    pointer-events: none;
+    opacity: 0.6;
+}
+
+[data-loading="true"]::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 1.5rem;
+    height: 1.5rem;
+    border: 3px solid var(--color-surface-elevated);
+    border-top-color: var(--color-secondary);
+    border-radius: var(--radius-full);
+    animation: spinner-rotate 0.8s linear infinite;
+}
+
+/* ==================== 禁用状态过渡 ==================== */
+
+button:disabled,
+input:disabled,
+select:disabled,
+.chip.disabled {
+    transition: opacity var(--duration-base) var(--ease-out);
+}
+
+/* ==================== 展开/折叠动画 ==================== */
+
+details {
+    overflow: hidden;
+}
+
+details[open] summary ~ * {
+    animation: expand 0.3s var(--ease-out);
+}
+
+@keyframes expand {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+details summary {
+    cursor: pointer;
+    user-select: none;
+}
+
+details summary::marker {
+    content: '▶ ';
+    transition: transform var(--duration-fast) var(--ease-out);
+}
+
+details[open] summary::marker {
+    transform: rotate(90deg);
+}
+
+/* ==================== 数字滚动 ==================== */
+
+.number-roll {
+    display: inline-block;
+    animation: number-change 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes number-change {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-20px);
+    }
+}
+
+/* ==================== 淡入动画类 ==================== */
+
+.fade-in {
+    animation: fade-in 0.4s var(--ease-out);
+}
+
+@keyframes fade-in {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.slide-in-up {
+    animation: slide-in-up 0.4s var(--ease-out);
+}
+
+@keyframes slide-in-up {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.slide-in-right {
+    animation: slide-in-right 0.4s var(--ease-out);
+}
+
+@keyframes slide-in-right {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* ==================== 缩放动画 ==================== */
+
+.scale-in {
+    animation: scale-in 0.3s var(--ease-out);
+}
+
+@keyframes scale-in {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* ==================== 性能优化 ==================== */
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+
+    .skeleton {
+        animation: none;
+    }
+
+    .roll-dice.rolling {
+        animation: none;
+    }
+}

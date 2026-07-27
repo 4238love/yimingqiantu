@@ -1,0 +1,308 @@
+/* ===================================
+   Dark Mode Styles - 暗色模式样式增强
+
+   职责：特殊元素暗色适配、过渡效果、阅读模式
+   =================================== */
+
+/* ==================== 主题切换按钮样式 ==================== */
+
+.theme-toggle {
+    position: fixed;
+    bottom: var(--space-6);
+    right: var(--space-6);
+    z-index: var(--z-floating);
+    width: 3rem;
+    height: 3rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-full);
+    background: var(--color-surface-elevated);
+    color: var(--color-text-primary);
+    box-shadow: var(--shadow-lg);
+    cursor: pointer;
+    transition: all var(--duration-fast) var(--ease-out);
+}
+
+.theme-toggle:hover {
+    transform: scale(1.1);
+    box-shadow: var(--shadow-xl);
+}
+
+.theme-toggle:active {
+    transform: scale(0.95);
+}
+
+.theme-toggle .icon-sun,
+.theme-toggle .icon-moon {
+    transition: opacity var(--duration-fast) var(--ease-out), transform var(--duration-fast) var(--ease-out);
+}
+
+.theme-toggle .icon-moon {
+    position: absolute;
+}
+
+.theme-toggle .hidden {
+    opacity: 0;
+    transform: rotate(180deg) scale(0);
+}
+
+.theme-toggle-clicked {
+    animation: theme-toggle-pulse 0.3s ease-out;
+}
+
+@keyframes theme-toggle-pulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.2);
+    }
+}
+
+/* ==================== 暗色模式特定样式 ==================== */
+
+[data-theme="dark"] {
+    /* 增强阴影（暗色下需要更强的阴影） */
+    --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+    --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.4), 0 1px 2px -1px rgba(0, 0, 0, 0.4);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -2px rgba(0, 0, 0, 0.5);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.6), 0 4px 6px -4px rgba(0, 0, 0, 0.5);
+    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.6), 0 8px 10px -6px rgba(0, 0, 0, 0.5);
+    --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
+}
+
+/* 暗色下的图片调整 */
+[data-theme="dark"] img {
+    filter: brightness(0.9) contrast(0.95);
+}
+
+/* 保持原始亮度的图片 */
+[data-theme="dark"] img[data-no-dark-adjust] {
+    filter: none;
+}
+
+/* 暗色下的代码块 */
+[data-theme="dark"] pre,
+[data-theme="dark"] code {
+    background: rgba(0, 0, 0, 0.3);
+    border-color: var(--color-border);
+}
+
+/* 暗色下的输入框 */
+[data-theme="dark"] input,
+[data-theme="dark"] select,
+[data-theme="dark"] textarea {
+    background: var(--color-surface);
+    color: var(--color-text-primary);
+    border-color: var(--color-border);
+}
+
+[data-theme="dark"] input::placeholder,
+[data-theme="dark"] textarea::placeholder {
+    color: var(--color-text-tertiary);
+}
+
+/* 暗色下的焦点环 */
+[data-theme="dark"] *:focus-visible {
+    outline-color: var(--color-primary);
+}
+
+/* 暗色下的选中文本 */
+[data-theme="dark"] ::selection {
+    background: rgba(201, 154, 66, 0.3);
+    color: var(--color-text-primary);
+}
+
+/* ==================== 阅读模式 ==================== */
+
+.reading-mode {
+    --color-text-primary: var(--color-paper-400);
+    --color-text-secondary: var(--color-paper-500);
+    --color-text-tertiary: var(--color-paper-600);
+}
+
+.reading-mode .narrative-window {
+    max-width: 42rem;
+    margin: 0 auto;
+    font-size: var(--text-lg);
+    line-height: var(--leading-loose);
+}
+
+.reading-mode .card,
+.reading-mode .panel {
+    border: none;
+    box-shadow: none;
+}
+
+/* ==================== 暗色图片遮罩 ==================== */
+
+.dark-image-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.3) 100%);
+    pointer-events: none;
+    border-radius: inherit;
+}
+
+/* ==================== 暗色模式下的特殊组件适配 ==================== */
+
+/* 判定覆盖层 */
+[data-theme="dark"] .roll-overlay {
+    background: rgba(13, 11, 9, 0.95);
+}
+
+[data-theme="dark"] .roll-card {
+    background: var(--color-surface);
+    border-color: var(--color-border-strong);
+}
+
+/* 加载覆盖层 */
+[data-theme="dark"] .loading-overlay {
+    background: rgba(13, 11, 9, 0.95);
+}
+
+/* Toast 通知 */
+[data-theme="dark"] .toast {
+    background: var(--color-surface-elevated);
+    border-color: var(--color-border-strong);
+    box-shadow: var(--shadow-2xl);
+}
+
+/* 模态框背景 */
+[data-theme="dark"] .modal-backdrop {
+    background: rgba(0, 0, 0, 0.7);
+}
+
+/* 徽章 */
+[data-theme="dark"] .badge {
+    border: 1px solid var(--color-border);
+}
+
+/* 进度条 */
+[data-theme="dark"] .progress {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+/* 分隔线 */
+[data-theme="dark"] hr,
+[data-theme="dark"] .divider {
+    border-color: var(--color-border);
+    opacity: 0.3;
+}
+
+/* ==================== 平滑过渡（仅在切换时） ==================== */
+
+html.theme-transitioning * {
+    transition: background-color 0.3s ease,
+                color 0.3s ease,
+                border-color 0.3s ease,
+                box-shadow 0.3s ease !important;
+}
+
+/* ==================== 系统主题指示器 ==================== */
+
+.theme-indicator {
+    position: fixed;
+    top: var(--space-4);
+    right: var(--space-4);
+    padding: var(--space-2) var(--space-3);
+    border-radius: var(--radius-full);
+    background: var(--color-surface-elevated);
+    color: var(--color-text-secondary);
+    font-size: var(--text-xs);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--duration-fast) var(--ease-out);
+    z-index: var(--z-toast);
+}
+
+.theme-indicator.visible {
+    opacity: 1;
+}
+
+/* ==================== 响应式调整 ==================== */
+
+@media (max-width: 640px) {
+    .theme-toggle {
+        bottom: var(--space-4);
+        right: var(--space-4);
+        width: 2.5rem;
+        height: 2.5rem;
+    }
+}
+
+/* 确保 iOS 安全区域 */
+@supports (padding: max(0px)) {
+    .theme-toggle {
+        bottom: max(var(--space-6), calc(env(safe-area-inset-bottom) + var(--space-4)));
+        right: max(var(--space-6), calc(env(safe-area-inset-right) + var(--space-4)));
+    }
+}
+
+/* ==================== 暗色模式下的滚动条 ==================== */
+
+[data-theme="dark"] ::-webkit-scrollbar {
+    background: var(--color-surface);
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-thumb {
+    background: var(--color-border-strong);
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-text-tertiary);
+}
+
+/* ==================== 打印样式（始终亮色）==================== */
+
+@media print {
+    [data-theme="dark"] {
+        --color-background: #ffffff;
+        --color-text-primary: #000000;
+        --color-surface: #ffffff;
+    }
+
+    [data-theme="dark"] img {
+        filter: none;
+    }
+
+    .theme-toggle {
+        display: none;
+    }
+}
+
+/* ==================== 高对比度模式支持 ==================== */
+
+@media (prefers-contrast: high) {
+    [data-theme="dark"] {
+        --color-text-primary: #ffffff;
+        --color-background: #000000;
+        --color-border: #ffffff;
+    }
+
+    [data-theme="dark"] .card,
+    [data-theme="dark"] .panel {
+        border: 2px solid var(--color-border);
+    }
+}
+
+/* ==================== 强制暗色（用户系统偏好）==================== */
+
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme]) {
+        --color-background: var(--color-ink-900);
+        --color-surface: var(--color-ink-800);
+        --color-surface-elevated: var(--color-ink-700);
+        --color-surface-overlay: rgba(26, 23, 20, 0.95);
+        --color-text-primary: var(--color-paper-100);
+        --color-text-secondary: var(--color-paper-300);
+        --color-text-tertiary: var(--color-paper-500);
+        --color-text-inverse: var(--color-ink-900);
+        --color-border: var(--color-ink-600);
+        --color-border-strong: var(--color-ink-500);
+        --color-divider: var(--color-ink-700);
+    }
+}

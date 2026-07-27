@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="一命千途 - 结合八字命理与人生选择的文字模拟游戏">
+    <meta name="theme-color" content="#c99a42">
+    <title>一命千途 - 命盘人生模拟</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="styles-new/index.css">
+</head>
+<body>
+    <!-- 应用容器 -->
+    <div id="app-container">
+
+        <!-- 登录视图 -->
+        <div id="login-view" class="view active">
+            <div class="landing-card">
+                <div class="header-subtitle">Bazi Life Simulator</div>
+                <h1>一命千途</h1>
+                <p class="subtitle">输入出生信息，生成专属命盘。从你选择的年龄开始，每半年做出选择，探索千种人生可能。</p>
+                <div class="landing-actions">
+                    <button id="guest-login-button" class="btn-primary btn-lg">开始体验</button>
+                </div>
+                <p id="login-error" class="text-color-error text-center mt-4" role="alert" aria-live="polite"></p>
+            </div>
+        </div>
+
+        <!-- 游戏主视图 -->
+        <div id="game-view" class="view">
+
+            <!-- 顶部导航栏 -->
+            <header id="game-header">
+                <div class="header-brand">
+                    <div>
+                        <h1>一命千途</h1>
+                        <p class="header-subtitle">命盘提供底色 · 选择改变路径</p>
+                    </div>
+                </div>
+                <div class="header-actions">
+                    <span id="phase-badge" class="badge badge-primary" aria-live="polite">待排盘</span>
+                    <button id="sidebar-toggle" class="btn-ghost sidebar-toggle" type="button" aria-label="切换侧边栏">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="3" y1="12" x2="21" y2="12"></line>
+                            <line x1="3" y1="6" x2="21" y2="6"></line>
+                            <line x1="3" y1="18" x2="21" y2="18"></line>
+                        </svg>
+                    </button>
+                    <button id="settings-button" class="btn-secondary" type="button">设置</button>
+                </div>
+            </header>
+
+            <!-- 侧边状态栏 -->
+            <aside id="status-sidebar">
+                <div class="status-section">
+                    <h3 class="status-section-title">核心状态</h3>
+                    <div id="core-stats" class="stat-grid">
+                        <!-- 由 JS 动态生成 -->
+                    </div>
+                </div>
+
+                <div class="status-section">
+                    <h3 class="status-section-title">发展维度</h3>
+                    <div id="dev-stats" class="stat-grid">
+                        <!-- 由 JS 动态生成 -->
+                    </div>
+                </div>
+
+                <div class="status-section">
+                    <h3 class="status-section-title">人生愿望</h3>
+                    <div id="life-goal-progress">
+                        <!-- 由 JS 动态生成 -->
+                    </div>
+                </div>
+            </aside>
+
+            <!-- 主内容区 -->
+            <main id="main-content">
+                <div class="content-container">
+
+                    <!-- 出生信息面板 -->
+                    <section id="birth-panel" class="panel">
+                        <div class="panel-header">
+                            <div class="badge badge-secondary">Step 01</div>
+                            <h2 class="panel-title">出生信息</h2>
+                            <p class="panel-subtitle">填写你的出生信息，生成专属命盘</p>
+                        </div>
+
+                        <details class="card mb-6" open>
+                            <summary class="font-semibold cursor-pointer p-4">📖 新手指南</summary>
+                            <div class="p-4 pt-0">
+                                <ol class="text-secondary">
+                                    <li>命盘提供人生底色，不会锁死结局</li>
+                                    <li>选择人生愿望，追踪目标达成进度</li>
+                                    <li>每半年选择 1-3 个行动重点</li>
+                                    <li>可随时导出人生档案或回望一生</li>
+                                </ol>
+                                <div class="grid grid-cols-4 gap-3 mt-4">
+                                    <div class="text-center">
+                                        <div class="text-color-primary font-bold">大运</div>
+                                        <div class="text-xs text-tertiary mt-1">十年基调</div>
+                                    </div>
+                                    <div class="text-center">
+                                        <div class="text-color-secondary font-bold">流年</div>
+                                        <div class="text-xs text-tertiary mt-1">年度倾向</div>
+                                    </div>
+                                    <div class="text-center">
+                                        <div class="text-color-accent font-bold">流月</div>
+                                        <div class="text-xs text-tertiary mt-1">月度机会</div>
+                                    </div>
+                                    <div class="text-center">
+                                        <div class="text-color-primary font-bold">D100</div>
+                                        <div class="text-xs text-tertiary mt-1">判定骰子</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </details>
+
+                        <form id="birth-form" class="panel-body">
+                            <label>
+                                <span class="text-sm font-medium mb-2 block">出生日期</span>
+                                <input id="birth-date" name="birth_date" type="date" required>
+                            </label>
+
+                            <label>
+                                <span class="text-sm font-medium mb-2 block">出生时间</span>
+                                <input id="birth-time" name="birth_time" type="time" value="08:00">
+                            </label>
+
+                            <label class="flex items-center gap-2">
+                                <input id="unknown-time" name="unknown_time" type="checkbox">
+                                <span class="text-sm">不知道时辰（三柱模式）</span>
+                            </label>
+
+                            <label>
+                                <span class="text-sm font-medium mb-2 block">性别</span>
+                                <select id="gender" name="gender">
+                                    <option value="male">男</option>
+                                    <option value="female">女</option>
+                                    <option value="unknown">不透露</option>
+                                </select>
+                            </label>
+
+                            <label>
+                                <span class="text-sm font-medium mb-2 block">开始年龄</span>
+                                <input id="start-age" name="start_age" type="number" min="6" max="60" value="22">
+                            </label>
+
+                            <div class="col-span-2">
+                                <span class="text-sm font-medium mb-2 block">快捷年龄</span>
+                                <div class="quick-age-chips">
+                                    <span class="text-tertiary">常用：</span>
+                                    <button type="button" class="age-chip" data-age="6">6岁</button>
+                                    <button type="button" class="age-chip" data-age="12">12岁</button>
+                                    <button type="button" class="age-chip" data-age="18">18岁</button>
+                                    <button type="button" class="age-chip" data-age="22">22岁</button>
+                                    <button type="button" class="age-chip" data-age="30">30岁</button>
+                                    <button type="button" class="age-chip" data-age="40">40岁</button>
+                                </div>
+                            </div>
+                        </form>
+
+                        <div class="panel-footer">
+                            <button id="generate-chart-button" class="btn-primary" type="submit">生成命盘</button>
+                        </div>
+                    </section>
+
+                    <!-- 命盘展示面板 -->
+                    <section id="chart-panel" class="panel hidden">
+                        <div class="panel-header">
+                            <div class="badge badge-secondary">Step 02</div>
+                            <h2 class="panel-title">你的命盘</h2>
+                            <p class="panel-subtitle">根据出生信息生成的人生底色</p>
+                        </div>
+
+                        <div class="panel-body">
+                            <!-- 四柱 -->
+                            <div class="chart-grid mb-6">
+                                <div class="pillar-card">
+                                    <div class="pillar-label">年柱</div>
+                                    <div class="pillar-characters" id="year-pillar">--</div>
+                                </div>
+                                <div class="pillar-card">
+                                    <div class="pillar-label">月柱</div>
+                                    <div class="pillar-characters" id="month-pillar">--</div>
+                                </div>
+                                <div class="pillar-card">
+                                    <div class="pillar-label">日柱</div>
+                                    <div class="pillar-characters" id="day-pillar">--</div>
+                                </div>
+                                <div class="pillar-card">
+                                    <div class="pillar-label">时柱</div>
+                                    <div class="pillar-characters" id="hour-pillar">--</div>
+                                </div>
+                            </div>
+
+                            <!-- 五行分布 -->
+                            <div class="element-board mb-6">
+                                <div class="element-card">
+                                    <div class="element-name">木</div>
+                                    <div class="element-value" id="wood-value">0</div>
+                                </div>
+                                <div class="element-card">
+                                    <div class="element-name">火</div>
+                                    <div class="element-value" id="fire-value">0</div>
+                                </div>
+                                <div class="element-card">
+                                    <div class="element-name">土</div>
+                                    <div class="element-value" id="earth-value">0</div>
+                                </div>
+                                <div class="element-card">
+                                    <div class="element-name">金</div>
+                                    <div class="element-value" id="metal-value">0</div>
+                                </div>
+                                <div class="element-card">
+                                    <div class="element-name">水</div>
+                                    <div class="element-value" id="water-value">0</div>
+                                </div>
+                            </div>
+
+                            <!-- 大运时间轴 -->
+                            <div class="luck-timeline">
+                                <h3 class="timeline-title">大运时间轴</h3>
+                                <div class="timeline-track" id="luck-timeline-track">
+                                    <!-- 由 JS 动态生成 -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="panel-footer">
+                            <button id="generate-prelude-button" class="btn-primary">生成人生前传</button>
+                            <button id="edit-birth-button" class="btn-secondary">修改出生信息</button>
+                        </div>
+                    </section>
+
+                    <!-- 人生前传面板 -->
+                    <section id="prelude-panel" class="panel hidden">
+                        <div class="panel-header">
+                            <div class="badge badge-secondary">Step 03</div>
+                            <h2 class="panel-title">人生前传</h2>
+                            <p class="panel-subtitle">AI 为你推演的早年经历</p>
+                        </div>
+
+                        <div class="panel-body">
+                            <div id="prelude-content">
+                                <!-- 由 JS 动态生成 -->
+                            </div>
+
+                            <!-- 人生愿望选择 -->
+                            <div class="prelude-section">
+                                <h3 class="prelude-section-title">选择你的人生愿望</h3>
+                                <div class="life-goal-grid" id="life-goal-selector">
+                                    <!-- 由 JS 动态生成 -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="panel-footer">
+                            <button id="accept-prelude-button" class="btn-primary">开始一命千途</button>
+                            <button id="regen-prelude-button" class="btn-secondary">重新生成前传</button>
+                        </div>
+                    </section>
+
+                    <!-- 人生模拟面板 -->
+                    <section id="simulation-panel" class="panel hidden">
+                        <!-- 年度横幅 -->
+                        <div class="year-banner mb-6">
+                            <div class="banner-item">
+                                <div class="banner-label">当前年龄</div>
+                                <div class="banner-value" id="current-age">--</div>
+                            </div>
+                            <div class="banner-item">
+                                <div class="banner-label">当前年份</div>
+                                <div class="banner-value" id="current-year">--</div>
+                            </div>
+                            <div class="banner-item">
+                                <div class="banner-label">当前半年</div>
+                                <div class="banner-value" id="current-half">--</div>
+                            </div>
+                            <div class="banner-item">
+                                <div class="banner-label">大运</div>
+                                <div class="banner-value" id="current-luck">--</div>
+                            </div>
+                        </div>
+
+                        <!-- 流月展示板 -->
+                        <div class="month-flow-board">
+                            <div class="month-flow-header">
+                                <h3 class="month-flow-title">本半年流月</h3>
+                                <button class="btn-ghost btn-sm" id="toggle-months">收起</button>
+                            </div>
+                            <div class="month-flow-grid" id="month-flow-grid">
+                                <!-- 由 JS 动态生成 -->
+                            </div>
+                        </div>
+
+                        <!-- 叙事窗口 -->
+                        <div id="history-filters">
+                            <!-- 由 JS 动态生成筛选按钮 -->
+                        </div>
+                        <div class="narrative-window" id="narrative-window">
+                            <!-- 由 JS 动态生成历史记录 -->
+                        </div>
+                    </section>
+
+                </div>
+            </main>
+
+            <!-- 底部操作区 -->
+            <footer id="action-footer" class="hidden">
+                <div class="action-selector">
+                    <div class="action-hint mb-4">
+                        <p class="text-sm">💡 <strong>本半年行动重点</strong>：选择 1-3 个重点方向，或自由输入行动内容</p>
+                    </div>
+                    <div class="action-chips" id="action-chips">
+                        <!-- 由 JS 动态生成 -->
+                    </div>
+                    <div class="flex gap-3 mt-4">
+                        <input
+                            type="text"
+                            id="action-input"
+                            placeholder="或者，输入你的自定义行动..."
+                            class="flex-1"
+                        >
+                        <button id="submit-action-button" class="btn-primary">确定行动</button>
+                    </div>
+                </div>
+
+                <!-- 行动预览 -->
+                <div id="action-preview" class="action-preview hidden">
+                    <!-- 由 JS 动态生成 -->
+                </div>
+            </footer>
+
+        </div>
+
+    </div>
+
+    <!-- 侧边栏遮罩（移动端）-->
+    <div id="sidebar-backdrop" class="modal-backdrop"></div>
+
+    <!-- 设置模态框 -->
+    <div id="settings-backdrop" class="modal-backdrop"></div>
+    <div id="settings-modal" class="modal" role="dialog" aria-modal="true">
+        <div class="modal-header">
+            <div>
+                <h2 class="modal-title">设置</h2>
+            </div>
+            <button class="modal-close" aria-label="关闭">×</button>
+        </div>
+        <div class="modal-body">
+            <div class="tabs mb-6">
+                <button class="tab active" data-tab="general">通用</button>
+                <button class="tab" data-tab="ai">AI 增强</button>
+                <button class="tab" data-tab="about">关于</button>
+            </div>
+            <div id="settings-content">
+                <!-- 由 JS 动态生成 -->
+            </div>
+        </div>
+    </div>
+
+    <!-- 加载覆盖层 -->
+    <div id="loading-overlay" class="loading-overlay hidden">
+        <div class="loading-card">
+            <div class="loading-symbol">卦</div>
+            <div class="loading-text">正在推演...</div>
+            <div class="loading-hint">命运之轮缓缓转动</div>
+        </div>
+    </div>
+
+    <!-- 判定动画覆盖层 -->
+    <div id="roll-overlay" class="roll-overlay hidden">
+        <div class="roll-card">
+            <div class="roll-stage">天机判定</div>
+            <div class="roll-dice" id="roll-dice">?</div>
+            <div class="roll-result" id="roll-result"></div>
+        </div>
+    </div>
+
+    <!-- Toast 通知容器 -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- 暗色模式切换按钮 -->
+    <button id="theme-toggle" class="theme-toggle" aria-label="切换主题">
+        <svg class="icon-sun" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line>
+            <line x1="21" y1="12" x2="23" y2="12"></line>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+        </svg>
+        <svg class="icon-moon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+        </svg>
+    </button>
+
+    <script src="app.js"></script>
+    <script src="status-panel.js"></script>
+    <script src="mobile-enhancements.js"></script>
+    <script src="interaction-feedback.js"></script>
+    <script src="dark-mode.js"></script>
+    <script src="accessibility.js"></script>
+</body>
+</html>

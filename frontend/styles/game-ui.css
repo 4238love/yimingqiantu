@@ -1,0 +1,550 @@
+/* ===================================
+   Game UI - 游戏界面特定样式
+
+   职责：命盘、前传、人生模拟、流月、状态面板等游戏核心界面
+   依赖：tokens.css, base.css, components.css
+   =================================== */
+
+/* ==================== 出生信息表单 ==================== */
+
+#birth-form {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-4);
+}
+
+#birth-form label {
+    display: flex;
+    flex-direction: column;
+}
+
+.quick-age-chips {
+    grid-column: 1 / -1;
+    display: flex;
+    gap: var(--space-2);
+    flex-wrap: wrap;
+    margin-top: var(--space-2);
+}
+
+.quick-age-chips span {
+    font-size: var(--text-sm);
+    color: var(--color-text-secondary);
+}
+
+.age-chip {
+    min-width: 2.5rem;
+    padding: var(--space-2) var(--space-3);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-surface-elevated);
+    font-size: var(--text-sm);
+    font-weight: var(--font-semibold);
+    cursor: pointer;
+    transition: all var(--duration-fast) var(--ease-out);
+}
+
+.age-chip:hover {
+    border-color: var(--color-secondary);
+    background: var(--color-secondary-light);
+}
+
+/* ==================== 命盘展示 ==================== */
+
+.chart-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--space-4);
+    margin-bottom: var(--space-6);
+}
+
+.pillar-card {
+    padding: var(--space-5);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-xl);
+    background: var(--color-surface-elevated);
+    text-align: center;
+}
+
+.pillar-label {
+    font-size: var(--text-xs);
+    color: var(--color-secondary);
+    font-weight: var(--font-bold);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: var(--space-2);
+}
+
+.pillar-characters {
+    font-family: var(--font-serif);
+    font-size: var(--text-4xl);
+    font-weight: var(--font-black);
+    color: var(--color-text-primary);
+    letter-spacing: 0.08em;
+}
+
+.pillar-characters.unknown {
+    color: var(--color-text-tertiary);
+    font-size: var(--text-2xl);
+}
+
+/* 五行分布 */
+.element-board {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: var(--space-3);
+    margin-bottom: var(--space-6);
+}
+
+.element-card {
+    padding: var(--space-4);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    background: var(--color-surface-elevated);
+    text-align: center;
+}
+
+.element-name {
+    font-size: var(--text-sm);
+    color: var(--color-text-secondary);
+    margin-bottom: var(--space-2);
+}
+
+.element-value {
+    font-family: var(--font-serif);
+    font-size: var(--text-3xl);
+    font-weight: var(--font-bold);
+}
+
+/* 大运时间轴 */
+.luck-timeline {
+    padding: var(--space-6);
+    border: 1px solid var(--color-primary);
+    border-radius: var(--radius-2xl);
+    background: linear-gradient(135deg, var(--color-surface), var(--color-surface-elevated));
+}
+
+.timeline-title {
+    margin-bottom: var(--space-5);
+    font-family: var(--font-serif);
+    font-size: var(--text-xl);
+    font-weight: var(--font-bold);
+}
+
+.timeline-track {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(8rem, 1fr));
+    gap: var(--space-3);
+}
+
+.timeline-item {
+    position: relative;
+    padding: var(--space-3);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    background: var(--color-surface);
+    text-align: center;
+}
+
+.timeline-item.current {
+    border-color: var(--color-secondary);
+    background: var(--color-secondary-light);
+}
+
+.timeline-age {
+    font-size: var(--text-xs);
+    color: var(--color-text-tertiary);
+    margin-bottom: var(--space-1);
+}
+
+.timeline-pillar {
+    font-family: var(--font-serif);
+    font-size: var(--text-lg);
+    font-weight: var(--font-bold);
+}
+
+/* ==================== 人生前传 ==================== */
+
+.prelude-section {
+    margin-bottom: var(--space-8);
+}
+
+.prelude-section-title {
+    margin-bottom: var(--space-4);
+    font-family: var(--font-serif);
+    font-size: var(--text-2xl);
+    color: var(--color-secondary);
+}
+
+.prelude-events {
+    display: grid;
+    gap: var(--space-4);
+}
+
+.prelude-event-card {
+    padding: var(--space-4);
+    border-left: 3px solid var(--color-primary);
+    border-radius: var(--radius-lg);
+    background: var(--color-surface-elevated);
+}
+
+.event-age {
+    font-size: var(--text-sm);
+    color: var(--color-primary);
+    font-weight: var(--font-bold);
+    margin-bottom: var(--space-2);
+}
+
+.event-description {
+    line-height: var(--leading-relaxed);
+    color: var(--color-text-secondary);
+}
+
+/* 人生愿望选择 */
+.life-goal-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+    gap: var(--space-4);
+    margin-top: var(--space-6);
+}
+
+.goal-option {
+    padding: var(--space-5);
+    border: 2px solid var(--color-border);
+    border-radius: var(--radius-xl);
+    background: var(--color-surface);
+    cursor: pointer;
+    transition: all var(--duration-fast) var(--ease-out);
+}
+
+.goal-option:hover {
+    border-color: var(--color-secondary);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.goal-option.selected {
+    border-color: var(--color-secondary);
+    background: var(--color-secondary-light);
+}
+
+.goal-icon {
+    font-size: var(--text-4xl);
+    margin-bottom: var(--space-3);
+}
+
+.goal-name {
+    font-family: var(--font-serif);
+    font-size: var(--text-xl);
+    font-weight: var(--font-bold);
+    margin-bottom: var(--space-2);
+}
+
+.goal-description {
+    font-size: var(--text-sm);
+    color: var(--color-text-secondary);
+    line-height: var(--leading-relaxed);
+}
+
+/* ==================== 人生模拟界面 ==================== */
+
+/* 年度横幅 */
+.year-banner {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+    gap: var(--space-4);
+    margin-bottom: var(--space-6);
+    padding: var(--space-6);
+    border-radius: var(--radius-2xl);
+    background: linear-gradient(135deg, var(--color-ink-800), var(--color-ink-700));
+}
+
+.banner-item {
+    text-align: center;
+    color: var(--color-text-inverse);
+}
+
+.banner-label {
+    font-size: var(--text-xs);
+    opacity: 0.7;
+    margin-bottom: var(--space-1);
+}
+
+.banner-value {
+    font-family: var(--font-serif);
+    font-size: var(--text-2xl);
+    font-weight: var(--font-bold);
+}
+
+/* 流月展示板 */
+.month-flow-board {
+    padding: var(--space-5);
+    border: 1px solid var(--color-primary);
+    border-radius: var(--radius-2xl);
+    background: var(--color-surface);
+    margin-bottom: var(--space-6);
+}
+
+.month-flow-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-4);
+}
+
+.month-flow-title {
+    font-family: var(--font-serif);
+    font-size: var(--text-xl);
+    font-weight: var(--font-bold);
+}
+
+.month-flow-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+    gap: var(--space-3);
+}
+
+.month-card {
+    padding: var(--space-4);
+    border-radius: var(--radius-lg);
+    background: linear-gradient(135deg, var(--color-ink-800), var(--color-ink-700));
+    color: var(--color-text-inverse);
+}
+
+.month-name {
+    font-size: var(--text-sm);
+    opacity: 0.8;
+    margin-bottom: var(--space-2);
+}
+
+.month-pillar {
+    font-family: var(--font-serif);
+    font-size: var(--text-2xl);
+    font-weight: var(--font-bold);
+    margin-bottom: var(--space-3);
+}
+
+.month-themes {
+    font-size: var(--text-xs);
+    line-height: var(--leading-relaxed);
+    opacity: 0.9;
+}
+
+/* 行动选择区 */
+.action-selector {
+    margin-bottom: var(--space-6);
+}
+
+.action-hint {
+    padding: var(--space-4);
+    border-radius: var(--radius-lg);
+    background: var(--color-secondary-light);
+    margin-bottom: var(--space-4);
+}
+
+.action-chips {
+    display: flex;
+    gap: var(--space-3);
+    flex-wrap: wrap;
+}
+
+.action-chip {
+    padding: var(--space-3) var(--space-5);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-full);
+    background: var(--color-surface-elevated);
+    font-weight: var(--font-semibold);
+    cursor: pointer;
+    transition: all var(--duration-fast) var(--ease-out);
+}
+
+.action-chip:hover {
+    border-color: var(--color-secondary);
+    background: var(--color-secondary-light);
+}
+
+.action-chip.selected {
+    background: var(--color-secondary);
+    color: var(--color-text-inverse);
+    border-color: var(--color-secondary);
+}
+
+.action-chip.streak::after {
+    content: ' 连';
+    font-size: var(--text-xs);
+    opacity: 0.8;
+}
+
+/* 行动预览面板 */
+.action-preview {
+    padding: var(--space-5);
+    border: 1px solid var(--color-secondary);
+    border-radius: var(--radius-xl);
+    background: var(--color-secondary-light);
+}
+
+.preview-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-4);
+}
+
+.preview-title {
+    font-family: var(--font-serif);
+    font-size: var(--text-xl);
+    font-weight: var(--font-bold);
+}
+
+.preview-target {
+    padding: var(--space-2) var(--space-4);
+    border-radius: var(--radius-full);
+    background: var(--color-secondary);
+    color: var(--color-text-inverse);
+    font-weight: var(--font-bold);
+}
+
+.preview-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+    gap: var(--space-3);
+}
+
+.preview-item {
+    padding: var(--space-3);
+    border-radius: var(--radius-md);
+    background: var(--color-surface-elevated);
+}
+
+.preview-label {
+    font-size: var(--text-xs);
+    color: var(--color-secondary);
+    font-weight: var(--font-bold);
+    margin-bottom: var(--space-1);
+}
+
+.preview-value {
+    font-family: var(--font-serif);
+    font-size: var(--text-lg);
+    font-weight: var(--font-semibold);
+}
+
+/* ==================== 叙事窗口 ==================== */
+
+.narrative-window {
+    min-height: 32rem;
+    max-height: 48rem;
+    overflow-y: auto;
+    padding: var(--space-6);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-2xl);
+    background: var(--color-surface);
+}
+
+.history-entry {
+    position: relative;
+    padding: var(--space-5) 0 var(--space-5) var(--space-6);
+    border-left: 3px solid var(--color-border);
+    margin-bottom: var(--space-6);
+}
+
+.history-entry:last-child {
+    margin-bottom: 0;
+}
+
+.history-roll { border-left-color: var(--color-primary); }
+.history-stage { border-left-color: var(--color-secondary); }
+.history-summary { border-left-color: var(--color-accent); }
+
+.entry-timestamp {
+    font-size: var(--text-xs);
+    color: var(--color-text-tertiary);
+    margin-bottom: var(--space-2);
+}
+
+.entry-content {
+    line-height: var(--leading-relaxed);
+    color: var(--color-text-secondary);
+}
+
+/* ==================== 状态面板 ==================== */
+
+.status-section {
+    margin-bottom: var(--space-6);
+}
+
+.status-section-title {
+    margin-bottom: var(--space-4);
+    font-family: var(--font-serif);
+    font-size: var(--text-lg);
+    font-weight: var(--font-bold);
+}
+
+.stat-grid {
+    display: grid;
+    gap: var(--space-3);
+}
+
+.stat-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+}
+
+.stat-label {
+    min-width: 4rem;
+    font-size: var(--text-sm);
+    font-weight: var(--font-semibold);
+}
+
+.stat-bar {
+    flex: 1;
+    height: 0.5rem;
+    border-radius: var(--radius-full);
+    background: var(--color-surface-elevated);
+    overflow: hidden;
+}
+
+.stat-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--color-secondary), var(--color-primary));
+    transition: width var(--duration-base) var(--ease-out);
+}
+
+.stat-value {
+    min-width: 2rem;
+    text-align: right;
+    font-weight: var(--font-bold);
+}
+
+/* ==================== 响应式调整 ==================== */
+
+@media (max-width: 1024px) {
+    .chart-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .element-board {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .month-flow-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 640px) {
+    #birth-form {
+        grid-template-columns: 1fr;
+    }
+
+    .chart-grid,
+    .element-board,
+    .life-goal-grid,
+    .month-flow-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .year-banner {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}

@@ -1,0 +1,155 @@
+/* ===================================
+   Main CSS Entry - 样式入口文件
+
+   职责：导入所有样式模块
+   组织：按依赖顺序导入
+   版本：2.0 - 全面重构版
+   =================================== */
+
+/* 1. 设计 Token（必须最先加载）*/
+@import url('./tokens.css');
+
+/* 2. 基础样式 */
+@import url('./base.css');
+
+/* 3. 通用组件 */
+@import url('./components.css');
+
+/* 4. 布局系统 */
+@import url('./layouts.css');
+
+/* 5. 游戏界面 */
+@import url('./game-ui.css');
+
+/* 6. 模态框和遮罩 */
+@import url('./modals.css');
+
+/* 7. 工具类 */
+@import url('./utilities.css');
+
+/* 8. 历史记录和分组 */
+@import url('./history.css');
+
+/* 9. 移动端交互 */
+@import url('./mobile.css');
+
+/* 10. 动画和微交互 */
+@import url('./animations.css');
+
+/* 11. 暗色模式增强 */
+@import url('./dark-mode.css');
+
+/* 12. 无障碍访问性 */
+@import url('./accessibility.css');
+
+/* ===================================
+   全局增强
+   =================================== */
+
+/* 平滑滚动 */
+html {
+    scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html {
+        scroll-behavior: auto;
+    }
+}
+
+/* 暗色模式切换按钮 */
+.theme-toggle {
+    position: fixed;
+    bottom: var(--space-6);
+    right: var(--space-6);
+    z-index: var(--z-fixed);
+    width: 3rem;
+    height: 3rem;
+    padding: 0;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-full);
+    background: var(--color-surface);
+    box-shadow: var(--shadow-lg);
+    cursor: pointer;
+    transition: all var(--duration-fast) var(--ease-out);
+}
+
+.theme-toggle:hover {
+    transform: scale(1.1);
+    box-shadow: var(--shadow-xl);
+}
+
+.theme-toggle svg {
+    width: 1.5rem;
+    height: 1.5rem;
+}
+
+/* 隐藏暗色模式图标，显示亮色模式图标 */
+[data-theme="dark"] .theme-toggle .icon-sun {
+    display: none;
+}
+
+.theme-toggle .icon-moon {
+    display: none;
+}
+
+[data-theme="dark"] .theme-toggle .icon-moon {
+    display: block;
+}
+
+/* ===================================
+   性能优化
+   =================================== */
+
+/* GPU 加速动画元素 */
+.modal,
+.drawer,
+.loading-overlay,
+.roll-overlay {
+    will-change: transform, opacity;
+}
+
+/* 移除不必要的 will-change */
+.modal:not(.visible),
+.drawer:not(.visible) {
+    will-change: auto;
+}
+
+/* ===================================
+   浏览器兼容性修复
+   =================================== */
+
+/* Safari 日期输入样式修复 */
+input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(0.5);
+}
+
+[data-theme="dark"] input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+}
+
+/* Firefox 数字输入按钮 */
+input[type="number"] {
+    -moz-appearance: textfield;
+}
+
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* ===================================
+   开发调试样式（生产环境应移除）
+   =================================== */
+
+.debug-grid {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 9999;
+    background-image:
+        linear-gradient(rgba(255, 0, 0, 0.1) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 0, 0, 0.1) 1px, transparent 1px);
+    background-size: 1rem 1rem;
+}

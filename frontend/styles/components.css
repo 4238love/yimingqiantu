@@ -1,0 +1,435 @@
+/* ===================================
+   Components - 通用组件样式
+
+   职责：按钮、卡片、徽章、输入框等可复用组件
+   依赖：tokens.css, base.css
+   =================================== */
+
+/* ==================== 按钮变体 ==================== */
+
+.btn-primary {
+    padding: var(--space-3) var(--space-6);
+    background: linear-gradient(135deg, var(--color-accent), #cf7a42);
+    color: var(--color-text-inverse);
+    font-weight: var(--font-bold);
+    box-shadow: var(--shadow-sm);
+}
+
+.btn-primary:not(:disabled):hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-1px);
+}
+
+.btn-secondary {
+    padding: var(--space-3) var(--space-5);
+    border: 1px solid var(--color-border);
+    background: var(--color-surface-elevated);
+    color: var(--color-text-primary);
+}
+
+.btn-secondary:not(:disabled):hover {
+    background: var(--color-surface);
+    border-color: var(--color-secondary);
+}
+
+.btn-ghost {
+    padding: var(--space-2) var(--space-4);
+    background: transparent;
+    color: var(--color-secondary);
+}
+
+.btn-ghost:not(:disabled):hover {
+    background: var(--color-secondary-light);
+}
+
+.btn-danger {
+    background: var(--color-accent);
+    color: var(--color-text-inverse);
+}
+
+.btn-danger:not(:disabled):hover {
+    background: var(--color-accent-hover);
+}
+
+.btn-sm {
+    padding: var(--space-2) var(--space-4);
+    font-size: var(--text-sm);
+}
+
+.btn-lg {
+    padding: var(--space-4) var(--space-8);
+    font-size: var(--text-lg);
+}
+
+.btn-icon {
+    padding: var(--space-3);
+    width: 2.5rem;
+    height: 2.5rem;
+}
+
+/* ==================== 卡片组件 ==================== */
+
+.card {
+    padding: var(--space-6);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-2xl);
+    background: var(--color-surface);
+    box-shadow: var(--shadow-sm);
+}
+
+.card-elevated {
+    background: var(--color-surface-elevated);
+    box-shadow: var(--shadow-md);
+}
+
+.card-interactive {
+    cursor: pointer;
+    transition:
+        transform var(--duration-fast) var(--ease-out),
+        box-shadow var(--duration-fast) var(--ease-out);
+}
+
+.card-interactive:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+.card-header {
+    margin-bottom: var(--space-4);
+}
+
+.card-title {
+    font-family: var(--font-serif);
+    font-size: var(--text-2xl);
+    font-weight: var(--font-bold);
+    color: var(--color-text-primary);
+}
+
+.card-subtitle {
+    margin-top: var(--space-1);
+    font-size: var(--text-sm);
+    color: var(--color-text-secondary);
+}
+
+.card-body {
+    line-height: var(--leading-relaxed);
+    color: var(--color-text-secondary);
+}
+
+.card-footer {
+    margin-top: var(--space-6);
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--color-divider);
+    display: flex;
+    gap: var(--space-3);
+    align-items: center;
+}
+
+/* ==================== 徽章组件 ==================== */
+
+.badge {
+    display: inline-flex;
+    align-items: center;
+    padding: var(--space-1) var(--space-3);
+    border-radius: var(--radius-full);
+    font-size: var(--text-xs);
+    font-weight: var(--font-bold);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+.badge-primary {
+    background: var(--color-primary-light);
+    color: var(--color-primary);
+}
+
+.badge-secondary {
+    background: var(--color-secondary-light);
+    color: var(--color-secondary);
+}
+
+.badge-accent {
+    background: var(--color-accent-light);
+    color: var(--color-accent);
+}
+
+.badge-neutral {
+    background: var(--color-surface-elevated);
+    color: var(--color-text-secondary);
+    border: 1px solid var(--color-border);
+}
+
+/* ==================== 芯片组件（可选中）==================== */
+
+.chip {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-4);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-full);
+    background: var(--color-surface-elevated);
+    color: var(--color-text-primary);
+    font-size: var(--text-sm);
+    font-weight: var(--font-semibold);
+    cursor: pointer;
+    transition:
+        background-color var(--duration-fast) var(--ease-out),
+        border-color var(--duration-fast) var(--ease-out),
+        transform var(--duration-fast) var(--ease-out);
+}
+
+.chip:hover {
+    border-color: var(--color-secondary);
+    transform: translateY(-1px);
+}
+
+.chip.selected {
+    background: var(--color-secondary);
+    color: var(--color-text-inverse);
+    border-color: var(--color-secondary);
+}
+
+.chip.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* ==================== 输入框增强 ==================== */
+
+.input-group {
+    display: flex;
+    gap: var(--space-3);
+    align-items: center;
+}
+
+.input-prefix,
+.input-suffix {
+    color: var(--color-text-tertiary);
+    font-size: var(--text-sm);
+}
+
+/* ==================== 标签页 ==================== */
+
+.tabs {
+    display: flex;
+    gap: var(--space-2);
+    border-bottom: 1px solid var(--color-divider);
+}
+
+.tab {
+    padding: var(--space-3) var(--space-4);
+    border: none;
+    border-bottom: 2px solid transparent;
+    background: transparent;
+    color: var(--color-text-secondary);
+    font-weight: var(--font-medium);
+    cursor: pointer;
+    transition:
+        color var(--duration-fast) var(--ease-out),
+        border-color var(--duration-fast) var(--ease-out);
+}
+
+.tab:hover {
+    color: var(--color-text-primary);
+}
+
+.tab.active {
+    color: var(--color-secondary);
+    border-bottom-color: var(--color-secondary);
+}
+
+/* ==================== 进度条 ==================== */
+
+.progress {
+    width: 100%;
+    height: 0.5rem;
+    border-radius: var(--radius-full);
+    background: var(--color-surface-elevated);
+    overflow: hidden;
+}
+
+.progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--color-secondary), var(--color-primary));
+    transition: width var(--duration-base) var(--ease-out);
+}
+
+/* ==================== 骨架屏 ==================== */
+
+.skeleton {
+    background: linear-gradient(
+        90deg,
+        var(--color-surface) 0%,
+        var(--color-surface-elevated) 50%,
+        var(--color-surface) 100%
+    );
+    background-size: 200% 100%;
+    animation: skeleton-loading 1.5s ease-in-out infinite;
+}
+
+@keyframes skeleton-loading {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+.skeleton-text {
+    height: 1rem;
+    border-radius: var(--radius-sm);
+}
+
+.skeleton-title {
+    height: 1.5rem;
+    width: 60%;
+    border-radius: var(--radius-sm);
+}
+
+.skeleton-avatar {
+    width: 3rem;
+    height: 3rem;
+    border-radius: var(--radius-full);
+}
+
+/* ==================== 分割线组件 ==================== */
+
+.divider {
+    margin: var(--space-6) 0;
+    border: none;
+    border-top: 1px solid var(--color-divider);
+}
+
+.divider-text {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: var(--space-6) 0;
+}
+
+.divider-text::before,
+.divider-text::after {
+    content: '';
+    flex: 1;
+    border-top: 1px solid var(--color-divider);
+}
+
+.divider-text span {
+    padding: 0 var(--space-4);
+    color: var(--color-text-tertiary);
+    font-size: var(--text-sm);
+}
+
+/* ==================== 提示框 ==================== */
+
+.alert {
+    padding: var(--space-4);
+    border-radius: var(--radius-lg);
+    border-left: 4px solid;
+}
+
+.alert-info {
+    background: var(--color-secondary-light);
+    border-color: var(--color-secondary);
+    color: var(--color-secondary);
+}
+
+.alert-success {
+    background: var(--color-secondary-light);
+    border-color: var(--color-success);
+    color: var(--color-success);
+}
+
+.alert-warning {
+    background: var(--color-primary-light);
+    border-color: var(--color-warning);
+    color: var(--color-warning);
+}
+
+.alert-error {
+    background: var(--color-accent-light);
+    border-color: var(--color-error);
+    color: var(--color-error);
+}
+
+/* ==================== 加载动画 ==================== */
+
+.spinner {
+    width: 2rem;
+    height: 2rem;
+    border: 3px solid var(--color-surface-elevated);
+    border-top-color: var(--color-secondary);
+    border-radius: var(--radius-full);
+    animation: spinner-rotate 0.8s linear infinite;
+}
+
+@keyframes spinner-rotate {
+    to { transform: rotate(360deg); }
+}
+
+.spinner-sm {
+    width: 1rem;
+    height: 1rem;
+    border-width: 2px;
+}
+
+.spinner-lg {
+    width: 3rem;
+    height: 3rem;
+    border-width: 4px;
+}
+
+/* ==================== 工具提示 ==================== */
+
+[data-tooltip] {
+    position: relative;
+}
+
+[data-tooltip]::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%) translateY(-0.5rem);
+    padding: var(--space-2) var(--space-3);
+    border-radius: var(--radius-md);
+    background: var(--color-ink-800);
+    color: var(--color-text-inverse);
+    font-size: var(--text-xs);
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--duration-fast) var(--ease-out);
+    z-index: var(--z-tooltip);
+}
+
+[data-tooltip]:hover::after {
+    opacity: 1;
+}
+
+/* ==================== 空状态 ==================== */
+
+.empty-state {
+    padding: var(--space-12) var(--space-6);
+    text-align: center;
+    color: var(--color-text-tertiary);
+}
+
+.empty-state-icon {
+    width: 4rem;
+    height: 4rem;
+    margin: 0 auto var(--space-4);
+    opacity: 0.5;
+}
+
+.empty-state-title {
+    margin-bottom: var(--space-2);
+    font-size: var(--text-xl);
+    font-weight: var(--font-semibold);
+    color: var(--color-text-secondary);
+}
+
+.empty-state-description {
+    max-width: 32rem;
+    margin: 0 auto var(--space-6);
+    line-height: var(--leading-relaxed);
+}

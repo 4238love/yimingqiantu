@@ -1,0 +1,146 @@
+/* ===================================
+   History & Year Groups - 历史记录分组样式
+
+   职责：年份分组、折叠展开、筛选按钮
+   =================================== */
+
+/* 年份分组 */
+.year-group {
+    margin-bottom: var(--space-6);
+}
+
+.year-group-header {
+    position: sticky;
+    top: 0;
+    z-index: var(--z-sticky);
+    background: var(--color-surface-overlay);
+    backdrop-filter: blur(8px);
+    border-bottom: 2px solid var(--color-border-strong);
+    margin-bottom: var(--space-4);
+}
+
+.year-toggle {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    width: 100%;
+    padding: var(--space-3) var(--space-4);
+    border: none;
+    border-radius: 0;
+    background: transparent;
+    color: var(--color-text-primary);
+    font-family: var(--font-serif);
+    font-size: var(--text-xl);
+    font-weight: var(--font-bold);
+    cursor: pointer;
+    transition: background-color var(--duration-fast) var(--ease-out);
+}
+
+.year-toggle:hover {
+    background: var(--color-surface-elevated);
+}
+
+.year-toggle-icon {
+    font-size: var(--text-sm);
+    color: var(--color-secondary);
+    transition: transform var(--duration-fast) var(--ease-out);
+}
+
+.year-title {
+    flex: 1;
+    text-align: left;
+    letter-spacing: 0.05em;
+}
+
+.year-entries {
+    padding-left: var(--space-6);
+    border-left: 2px solid var(--color-border);
+}
+
+/* 历史筛选器 */
+#history-filters {
+    padding: var(--space-4);
+    border-bottom: 1px solid var(--color-divider);
+    background: var(--color-surface);
+}
+
+/* 历史记录类型标识 */
+.history-entry {
+    position: relative;
+    padding-left: var(--space-6);
+}
+
+.history-entry::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: var(--space-2);
+    width: 8px;
+    height: 8px;
+    border-radius: var(--radius-full);
+    background: var(--color-border-strong);
+}
+
+.history-roll::before { background: var(--color-primary); }
+.history-stage::before { background: var(--color-secondary); }
+.history-summary::before { background: var(--color-accent); }
+.history-achievement::before {
+    background: var(--color-primary);
+    box-shadow: 0 0 8px var(--color-primary);
+}
+
+/* 成就高亮 */
+.history-achievement {
+    border: 1px solid var(--color-primary);
+    border-radius: var(--radius-lg);
+    background: var(--color-primary-light);
+    padding: var(--space-4) var(--space-4) var(--space-4) var(--space-8);
+}
+
+.history-achievement .entry-content {
+    font-weight: var(--font-semibold);
+    color: var(--color-text-primary);
+}
+
+/* 历史记录过渡动画 */
+.history-entry {
+    animation: history-fade-in var(--duration-base) var(--ease-out);
+}
+
+@keyframes history-fade-in {
+    from {
+        opacity: 0;
+        transform: translateY(var(--space-4));
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* 状态图标 */
+.stat-label {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+/* 人生愿望卡片增强 */
+#life-goal-progress .card {
+    border-left: 4px solid var(--color-primary);
+}
+
+/* 响应式调整 */
+@media (max-width: 640px) {
+    .year-entries {
+        padding-left: var(--space-4);
+    }
+
+    .history-entry {
+        padding-left: var(--space-5);
+    }
+
+    #history-filters {
+        padding: var(--space-3);
+    }
+}

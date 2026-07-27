@@ -84,16 +84,6 @@ rollOverlay.addEventListener('click', () => {
     clearInterval(rollTimer); clearTimeout(settleTimer);
 });
 
-/* 图鉴弹窗 */
-const codexModal = document.getElementById('codex-modal');
-['open-codex', 'open-codex-2', 'open-codex-3'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.addEventListener('click', () => codexModal.classList.add('open'));
-});
-codexModal.addEventListener('click', e => { if (e.target === codexModal) codexModal.classList.remove('open'); });
-document.querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', () => {
-    document.getElementById(b.dataset.close).classList.remove('open');
-}));
 document.addEventListener('keydown', e => {
-    if (e.key === 'Escape') { codexModal.classList.remove('open'); rollOverlay.classList.remove('open'); }
+    if (e.key === 'Escape') rollOverlay.classList.remove('open');
 });

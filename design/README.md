@@ -6,9 +6,9 @@
 
 | 文件 | 说明 |
 |---|---|
-| `index.html` | 全部 6 个界面 + 2 个弹层的结构与假数据 |
+| `index.html` | 全部 6 个界面 + D100 弹层的结构与假数据 |
 | `design.css` | 完整设计样式（设计 token 在文件顶部 `:root` 中） |
-| `design.js` | 原型交互演示：屏幕切换、chips 选择、愿望单选、行动多选、D100 骰子动效、图鉴弹窗 |
+| `design.js` | 原型交互演示：屏幕切换、chips 选择、愿望单选、行动多选、D100 骰子动效 |
 | `favicon.svg` | 站点图标（复制自 frontend/） |
 
 ## 界面清单
@@ -19,12 +19,12 @@
 4. **前传·愿望** — 时间轴叙事 + 五愿望卡
 5. **人生模拟** — 左状态栏 / 顶部命途横幅 + 流月天气带 / 中央全幅人生卷轴（叙事为主舞台，命运推演作为卷轴内特写条目）/ 底部决策台（推演预览默认收起可展开）
 6. **结局档案** — 隐藏结局卡 + 甲乙丙丁七维评级
-7. 弹窗 — 结局图鉴、D100 天机骰
+7. 弹层 — D100 天机骰
 
-页面底部的胶囊导航条仅为原型预览用，落地实现时删除。
+页面底部的胶囊导航条仅为原型预览用，落地实现时删除。当前原型已同步正式前端：不再展示旧结局收集入口或弹窗，并采用更紧凑的顶部栏、状态栏、主叙事区字体和底部决策台。
 
 ## 落地建议
 
 - `design.css` 顶部 `:root` 色板与字体变量可直接抽为正式样式的 foundation 层（对应 `frontend/styles/00-foundation.css`）。
-- 各界面区块与现有 domain View Module 一一对应：出生信息 → birth panel，命盘 → chart_view，前传 → prelude_view，模拟 → simulation_view，图鉴 → codex_view。
+- 各界面区块与现有 domain View Module 一一对应：出生信息 → birth panel，命盘 → chart_view，前传 → prelude_view，模拟 → simulation_view，结局 → archive/export。
 - 字体使用 Google Fonts 的思源宋体 + 马善政手写体，离线时回退楷体；正式部署建议自托管字体文件。
